@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>URLmkr</title>
+
+    <!-- Favicon for most browsers -->
+    <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
+    
+    <!-- PNG icons for better resolution -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon_io/favicon-16x16.png">
+    
+    <!-- Apple Touch Icon (for iOS) -->
+    <link rel="apple-touch-icon" href="/img/favicon_io/apple-touch-icon.png">
+    
+    <!-- Web Manifest (for PWAs) -->
+    <link rel="manifest" href="/img/favicon_io/site.webmanifest">
+    <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="backgroundImages.js"></script>
+    <script src="fontList.js"></script>
+    <script src="font.js"></script>
+</head>
+
+<style>
+
+
+</style>
+
+<body>
+    <div id="dim-overlay" class="dim-overlay"></div>
+
+    <div class="url-output-container">
+        <div class="url-output" id="url_output"></div>
+        <div class="url-output" id="byte_counter"></div>
+        <div class="error-message" id="error_message"></div>
+        <div class="warning-message" id="warning_message"></div>
+        <div class="info-message" id="info_message"></div>
+        <button class="copy-button" id="copy_button">Copy URL</button>
+        <button class="copy-button" id="qr_button">Create QR Code</button>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;">
+        <div style="z-index: 1005 !important; background: #fff; padding: 20px; border-radius: 8px; text-align: center;">
+            <div id="qr-code"></div>
+            <div id="qr-title">Spread it!</div>
+            <button id="save_qr_button" class="copy-button">Save QR Code</button>
+            <button id="share_qr_button" class="copy-button">Share QR Code</button>
+            <button id="close_qr_button" class="copy-button" style="background: #ff4d4d;">Close</button>
+        </div>
+    </div>
+
+    <!-- avatar style selection modal -->
+    <div id="avatar-modal" class="modal avatar-modal" style="display: none;">
+        <div class="avatar-modal-content">
+            <h6 class="avatars-attribute">Avatars provided by <a href="https://www.dicebear.com" target="_blank">dicebear.com</a></h6>
+            <span class="close-modal">&times;</span>
+            <div id="avatar-grid" class="avatar-grid"></div>
+        </div>
+    </div>
+
+    <!-- font modal -->
+    <div id="font-modal" class="modal font-modal">
+        <div class="font-modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="font-grid" class="font-grid"></div>
+        </div>
+    </div>
+
+    <!-- Background Modal -->
+    <div id="background-modal" class="modal background-modal">
+        <div class="background-modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="background-grid" id="background-grid"></div>
+        </div>
+    </div>
+
+
+    <div class="maker-title-and-what">
+        <div class="maker-title">
+            <h1><span style="font-size: 1rem;">postanote.org </span> URL Maker</h1>
+        </div>
+        <div class="maker-subtitle">
+            <h3 id="toggle-description">What this tool does?</h3>
+            <div class="maker-what-text hidden">
+                <p>This tool allows you to easily create a custom URL which will link to a customized postanote.org website by filling in the provided fields.</p>
+                <p>Select an NTAG type with the right amount of memory or no NTAG if you'll use a QR code. Optionally add a title, a subtitle, a custom avatar for users, lock a message or leave it open for end users to post whatever they want, limit their max amount of characters, add hashtags for content discoverability, and choose custom Nostr relays where the notes will be posted by the end user which can be anyone using your custom link.</p>
+                <p>The tool will automatically generate and display the URL, which you can write to an NTAG with various NFC applications or simply create a QR code and share it with the world.</p>
+            </div>
+        </div>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label>NTAG Type:</label>
+        <div class="ntag-group">
+            <label for="ntag_none">
+                No NTAG (∞) <input type="radio" id="ntag_none" name="ntag_type" value="none">
+            </label>
+            <label for="ntag203">
+                * 203 (144 B) <input type="radio" id="ntag203" name="ntag_type" value="203" data-bytes="137">
+            </label>
+            <label for="ntag213">
+                * 213 (144 B) <input type="radio" id="ntag213" name="ntag_type" value="213" data-bytes="137">
+            </label>
+            <label for="ntag215">
+                * 215 (504 B) <input type="radio" id="ntag215" name="ntag_type" value="215" data-bytes="492">
+            </label>
+            <label for="ntag216">
+                * 216 (888 B)<input type="radio" id="ntag216" name="ntag_type" value="216" data-bytes="868">
+            </label>
+
+            <label for="ntag413DNA">
+                * 413 DNA (888 B) <input type="radio" id="ntag413DNA" name="ntag_type" value="413DNA" data-bytes="398">
+            </label>
+            <label for="ntag424DNA">
+                * 424 DNA (888 B)<input type="radio" id="ntag424DNA" name="ntag_type" value="424DNA" data-bytes="916">
+            </label>
+
+            <!-- <label for="ntag_i2c_1K">
+                * I²C 1K (888 B) <input type="radio" id="ntag_i2c_1K" name="ntag_type" value="I2C_1K" data-bytes="868">
+            </label>
+            <label for="ntag216">
+                * I²C 2K (1904 B)<input type="radio" id="ntag_i2c_2K" name="ntag_type" value="I2C_2K" data-bytes="1900">
+            </label> -->
+        </div>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_avatar" class="avatar-label-container">
+            <span id="avatar-preview-container"></span>
+            <span id="avatar-label">Avatar Styles</span>
+            <input type="checkbox" id="include_avatar">
+        </label>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_font">
+            Choose Font <input type="checkbox" id="include_font">
+        </label>
+        <div id="font-container" class="font-container"></div>
+    </div>
+
+    <hr class="hrLine">
+    
+    <div class="form-group">
+        <label for="include_background">
+            Include Background <input type="checkbox" id="include_background">
+        </label>
+        <div id="background-container" class="background-container">
+        </div>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_h1">
+            Add Custom Title (h1) <input type="checkbox" id="include_h1">
+        </label>
+        <input type="text" id="h1_input" placeholder="Decentralize and empower" disabled>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_h3">
+            Add Custom Subtitle (h3) <input type="checkbox" id="include_h3">
+        </label>
+        <input type="text" id="h3_input" placeholder="Share Your Vision" disabled>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_message">
+            Include Fixed Custom Message <input type="checkbox" id="include_message">
+        </label>
+        <textarea id="message_input" placeholder="Enter a preset message here; it will be fixed and uneditable by the end user." disabled></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="custom_characters">
+            Max Characters Allowed In a Message (default is 280) <input type="checkbox" id="custom_characters">
+        </label>
+        <input type="number" id="characters_input" placeholder="(1-5000)" min="1" max="5000" disabled>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="prevent_reuse">
+            Prevent Reusing IDs
+            <input type="checkbox" id="prevent_reuse" title="This will prevent posting notes more than 1 time per pubKey. Use with caution because it deletes the current privKey from local storage">
+        </label>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="hashtag1">Add Hashtags:</label>
+        <input type="text" id="hashtag1" placeholder="1'st (do NOT include #)">
+        <input type="text" id="hashtag2" placeholder="2'nd (do NOT include #)">
+        <input type="text" id="hashtag3" placeholder="3'rd (do NOT include #)">
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_relays">
+            Select Custom or Random Relays<input type="checkbox" id="include_relays" title="if leaved empty, the default relays (greyed relays in the input) will be used by the main website where the user will post the note">
+        </label>
+        <div class="relay-group">
+            <input type="text" id="relay1" placeholder="wss://relay.nostr.band" disabled>
+            <input type="radio" id="random1" name="random_relay1" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
+        </div>
+        <div class="relay-group">
+            <input type="text" id="relay2" placeholder="wss://relay.damus.io" disabled>
+            <input type="radio" id="random2" name="random_relay2" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
+        </div>
+        <div class="relay-group">
+            <input type="text" id="relay3" placeholder="wss://njump.me" disabled>
+            <input type="radio" id="random3" name="random_relay3" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
+        </div>
+        <div class="relay-group">
+            <input type="text" id="relay4" placeholder="wss://relay.snort.social" disabled>
+            <input type="radio" id="random4" name="random_relay4" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
+        </div>
+        <div class="relay-group">
+            <input type="text" id="relay5" placeholder="wss://nos.lol" disabled>
+            <input type="radio" id="random5" name="random_relay5" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
+        </div>
+    </div>
+
+    <footer class="footerStatic">
+        <a href="about.html">About</a> | 
+        <a href="FAQ.html">FAQ</a> | 
+        <a href="urlmkr.html">URLmkr</a>
+        <!-- <button id="showHistoryBtn"  title="a History data of all the posted notes from this device">Show History</button> -->
+    </footer>
+
+    <script>
+        const includeFontCheckbox = document.getElementById('include_font');
+        const fontModal = document.getElementById('font-modal');
+        const fontGrid = document.getElementById('font-grid');
+        let selectedFontIndex = localStorage.getItem('selectedFontIndex') || null;
+        const preventReuseCheckbox = document.getElementById('prevent_reuse');  // Get the checkbox
+        const ntagRadios = document.querySelectorAll('input[name="ntag_type"]');
+        const includeH1Checkbox = document.getElementById('include_h1');
+        const includeH3Checkbox = document.getElementById('include_h3');
+        const includeMessageCheckbox = document.getElementById('include_message');
+        const includeRelaysCheckbox = document.getElementById('include_relays');
+        const customCharactersCheckbox = document.getElementById('custom_characters');
+        const h1Input = document.getElementById('h1_input');
+        const h3Input = document.getElementById('h3_input');
+        const messageInput = document.getElementById('message_input');
+        const charactersInput = document.getElementById('characters_input');
+        const hashtagInputs = [document.getElementById('hashtag1'), document.getElementById('hashtag2'), document.getElementById('hashtag3')];
+        const relayInputs = [document.getElementById('relay1'), document.getElementById('relay2'), document.getElementById('relay3'), document.getElementById('relay4'), document.getElementById('relay5')];
+        const randomRelayButtons = [document.getElementById('random1'), document.getElementById('random2'), document.getElementById('random3'), document.getElementById('random4'), document.getElementById('random5')];
+        const urlOutput = document.getElementById('url_output');
+        const byteCounter = document.getElementById('byte_counter');
+        const errorMessage = document.getElementById('error_message');
+        const warningMessage = document.getElementById('warning_message');
+        const infoMessage = document.getElementById('info_message');
+        const copyButton = document.getElementById('copy_button');
+
+        let relayList = [];
+        let maxBytes = 0;
+
+        // Background and font modals
+        const includeBackgroundCheckbox = document.getElementById('include_background');
+        const backgroundModal = document.getElementById('background-modal');
+        const backgroundGrid = document.getElementById('background-grid');
+        const closeModal = document.querySelector('.close-modal');
+        let selectedBackgroundIndex = null;
+
+        // avatar styles
+        const includeAvatarCheckbox = document.getElementById('include_avatar');
+        const avatarModal = document.getElementById('avatar-modal');
+        const avatarGrid = document.getElementById('avatar-grid');
+        const avatarLabel = document.getElementById('avatar-label');
+        const avatarPreviewContainer = document.getElementById('avatar-preview-container');
+
+        let selectedAvatarIndex = null;
+        const todaySeed = new Date().toISOString().split('T')[0];  // Seed for consistency
+
+
+        ntagRadios.forEach(radio => {
+            radio.addEventListener('change', updateURL);
+        });
+
+
+                // Open modal on checkbox check
+includeAvatarCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+        avatarModal.style.display = 'block';
+        loadAvatarGrid();
+    } else {
+        avatarModal.style.display = 'none';
+        resetAvatar();
+        updateURL();
+    }
+});
+
+const avatarStylesList = {
+    1: 'croodles',
+    2: 'adventurer-neutral',
+    3: 'avataaars',
+    4: 'avataaars-neutral',
+    5: 'big-ears',
+    6: 'big-ears-neutral',
+    7: 'big-smile',
+    8: 'bottts',
+    9: 'bottts-neutral',
+    10: 'adventurer',
+    11: 'croodles-neutral',
+    12: 'fun-emoji',
+    13: 'icons',
+    14: 'identicon',
+    15: 'initials',
+    16: 'lorelei',
+    17: 'lorelei-neutral',
+    18: 'micah',
+    19: 'miniavs',
+    20: 'notionists',
+    21: 'notionists-neutral',
+    22: 'open-peeps',
+    23: 'personas',
+    24: 'pixel-art',
+    25: 'pixel-art-neutral',
+    26: 'shapes',
+    27: 'thumbs',
+    28: 'dylan',
+    29: 'glass',
+    30: 'rings'
+};
+
+const avatarNames = {
+    'croodles': 'croodles',
+    'adventurer-neutral': 'adventurer-neutral',
+    'avataaars': 'avataaars',
+    'avataaars-neutral': 'avataaars-neutral',
+    'big-ears': 'big-ears',
+    'big-ears-neutral': 'big-ears-neutral',
+    'big-smile': 'big-smile',
+    'bottts': 'bottts',
+    'bottts-neutral': 'bottts-neutral',
+    'adventurer': 'adventurer',
+    'croodles-neutral': 'croodles-neutral',
+    'dylan': 'dylan',
+    'fun-emoji': 'fun-emoji',
+    'glass': 'glass',
+    'icons': 'icons',
+    'identicon': 'identicon',
+    'initials': 'initials',
+    'lorelei': 'lorelei',
+    'lorelei-neutral': 'lorelei-neutral',
+    'micah': 'micah',
+    'miniavs': 'miniavs',
+    'notionists': 'notionists',
+    'notionists-neutral': 'notionists-neutral',
+    'open-peeps': 'open-peeps',
+    'personas': 'personas',
+    'pixel-art': 'pixel-art',
+    'pixel-art-neutral': 'pixel-art-neutral',
+    'rings': 'rings',
+    'shapes': 'shapes',
+    'thumbs': 'thumbs'
+};
+
+
+
+
+
+// Open modal on checkbox check
+includeAvatarCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+        avatarModal.style.display = 'block';
+        loadAvatarGrid();
+    } else {
+        resetAvatar();
+        updateURL();
+    }
+});
+
+function loadAvatarGrid() {
+    avatarGrid.innerHTML = '';  // Clear existing avatars
+
+    for (const [index, style] of Object.entries(avatarStylesList)) {
+        const avatarContainer = document.createElement('div');
+        avatarContainer.classList.add('avatar-container');
+
+        const avatarImg = document.createElement('img');
+        avatarImg.src = `https://api.dicebear.com/9.x/${style}/svg?seed=${todaySeed}`;
+        avatarImg.alt = avatarNames[style];
+        avatarImg.title = `https://www.dicebear.com/styles${avatarNames[style]}/`;
+        avatarImg.classList.add('avatar-preview');
+
+        // Avatar name label
+        const avatarLabel = document.createElement('div');
+        avatarLabel.classList.add('avatar-label');
+        avatarLabel.textContent = avatarNames[style];
+
+        // Append image and label
+        avatarContainer.appendChild(avatarImg);
+        avatarContainer.appendChild(avatarLabel);
+
+        // Avatar selection logic
+        avatarImg.addEventListener('click', () => {
+            selectedAvatarIndex = index;
+            avatarModal.style.display = 'none';
+
+            // Replace label text with the avatar preview
+            avatarPreviewContainer.innerHTML = `
+                <img src="${avatarImg.src}" alt="${avatarNames[style]}" title="${avatarNames[style]}" style="width: 150px; height: 150px; border-radius: 5px;">
+            `;
+            
+            // Hide "Avatar Styles" text
+            document.getElementById('avatar-label').style.display = 'none';
+            
+            updateURL();
+        });
+
+        avatarGrid.appendChild(avatarContainer);
+    }
+}
+
+
+// Reset to default when unchecked
+function resetAvatar() {
+    selectedAvatarIndex = null;
+
+    // Show "Avatar Styles" and clear avatar preview
+    avatarLabel.style.display = 'inline'; // Show the label text
+    avatarPreviewContainer.innerHTML = ''; // Clear the avatar image
+
+    updateURL();
+}
+
+        // Font selection logic
+        includeFontCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                fontModal.style.display = 'block';
+                updateFontGrid();
+            } else {
+                fontModal.style.display = 'none';
+                selectedFontIndex = null;
+                document.documentElement.style.setProperty('--main-font', `'inconsolata', monospace`);
+                localStorage.removeItem('selectedFontIndex');
+                updateURL();
+            }
+        });
+
+        function updateFontGrid() {
+            fontGrid.innerHTML = '';
+            
+            for (const [index, fontName] of Object.entries(fontList)) {
+                const fontPreview = document.createElement('div');
+                fontPreview.textContent = fontName.split(':')[0];
+                fontPreview.classList.add('font-preview');
+
+                // Create and add link tag for each font
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.bunny.net/css?family=${fontName}`;
+                document.head.appendChild(link);  // Append to head
+
+                // Apply the font to the preview
+                const cleanFontName = fontName.split(':')[0].replace(/-/g, ' ');
+                fontPreview.style.fontFamily = `'${cleanFontName}', sans-serif`;
+
+                // Font selection logic on click
+                fontPreview.addEventListener('click', () => {
+                    selectedFontIndex = index;
+                    applyFont(index);  // Apply the selected font to the page
+                    fontModal.style.display = 'none';
+                    localStorage.setItem('selectedFontIndex', index);
+                    updateURL();
+                });
+
+                fontGrid.appendChild(fontPreview);
+            }
+        }
+
+        // Apply font dynamically
+        function applyFont(index) {
+            const fontUrl = `https://fonts.bunny.net/css?family=${fontList[index]}`;
+            const existingLink = document.querySelector('#dynamic-font');
+
+            if (existingLink) {
+                existingLink.href = fontUrl;
+            } else {
+                const link = document.createElement('link');
+                link.id = 'dynamic-font';
+                link.rel = 'stylesheet';
+                link.href = fontUrl;
+                document.head.appendChild(link);
+            }
+
+            // Replace dashes with spaces for font-family
+            const cleanFontName = fontList[index].split(':')[0].replace(/-/g, ' ');
+
+            // Apply to the whole document
+            document.documentElement.style.setProperty('--main-font', `'${cleanFontName}', sans-serif`);
+        }
+
+        // Apply stored font on load
+        function applyStoredFont() {
+            const storedIndex = localStorage.getItem('selectedFontIndex');
+            if (storedIndex && fontList[storedIndex]) {
+                applyFont(storedIndex);
+            }
+        }
+
+        includeH1Checkbox.addEventListener('change', function () {
+            h1Input.disabled = !this.checked;
+            updateURL();
+        });
+
+        includeH3Checkbox.addEventListener('change', function () {
+            h3Input.disabled = !this.checked;
+            updateURL();
+        });
+
+        includeMessageCheckbox.addEventListener('change', function () {
+        const isChecked = this.checked;
+        messageInput.disabled = !isChecked;
+        customCharactersCheckbox.disabled = isChecked; // Disable the checkbox for custom characters
+        charactersInput.disabled = isChecked; // Also disable the input for character limit if message is included
+
+        if (isChecked) {
+            customCharactersCheckbox.checked = false; 
+            warningMessage.textContent = 'Characters limit is disabled when a fixed custom message is included.';
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';  // Adjust font size here (e.g., 1rem, 16px, etc.)
+            scrollToMessage(warningMessage);  // Scroll to warning message
+        } else {
+            warningMessage.textContent = '';
+        }
+
+        updateURL();
+    });
+
+    customCharactersCheckbox.addEventListener('change', function () {
+        const isChecked = this.checked;
+        charactersInput.disabled = !isChecked;
+
+        if (isChecked) {
+            includeMessageCheckbox.checked = false; // Uncheck include_message if custom_characters is selected
+            messageInput.disabled = true;
+        }
+        
+        updateURL();
+    });
+
+
+    preventReuseCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+        warningMessage.textContent = 'Be careful with this!';
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);  // Scroll to warning message
+    } else {
+        warningMessage.textContent = '';  // Clear warning if unchecked
+    }
+    updateURL();
+});
+
+
+        function initializeRelayInputs() {
+            const includeRelaysChecked = includeRelaysCheckbox.checked;
+            relayInputs.forEach((input, index) => {
+                input.disabled = !includeRelaysChecked;
+                randomRelayButtons[index].disabled = !includeRelaysChecked;
+                if (!includeRelaysChecked) {
+                    randomRelayButtons[index].checked = false; // Uncheck the radio buttons when disabled
+                }
+            });
+        }
+
+        randomRelayButtons.forEach((button, index) => {
+            button.addEventListener('click', () => {
+                if (relayList.length > 0 && includeRelaysCheckbox.checked) {
+                    relayInputs[index].value = getRandomRelay();
+                    updateURL();
+                }
+            });
+        });
+
+
+        includeRelaysCheckbox.addEventListener('change', function () {
+            relayInputs.forEach((input, index) => {
+                input.disabled = !this.checked;
+                randomRelayButtons[index].disabled = !this.checked;
+                if (!this.checked) {
+                    randomRelayButtons[index].checked = false; // Uncheck the radio buttons when disabled
+                    input.value = '';  // Clear relay input value
+                }
+            });
+            initializeRelayInputs();
+            updateURL();
+        });
+
+        h1Input.addEventListener('input', updateURL);
+        h3Input.addEventListener('input', updateURL);
+        messageInput.addEventListener('input', updateURL);
+        charactersInput.addEventListener('input', updateURL);
+        hashtagInputs.forEach(input => input.addEventListener('input', updateURL));
+        relayInputs.forEach(input => input.addEventListener('input', updateURL));
+        copyButton.addEventListener('click', copyURL);
+
+        randomRelayButtons.forEach((button, index) => {
+            button.addEventListener('click', () => {
+                if (relayList.length > 0) {
+                    relayInputs[index].value = getRandomRelay();
+                    updateURL();
+                }
+            });
+        });
+
+        const relayInvalidChars = /[^a-zA-Z0-9://.-]/;
+        const hashtagInvalidChars = /[^a-zA-Z0-9]/;
+
+        function validateInput(input, area, regex) {
+            const match = input.match(regex);
+            if (match) {
+                errorMessage.textContent = `Invalid character detected in the ${area}: '${match[0]}' is not a valid URL character. Please remove it. # character is added programmatically for the end user`;
+                return false;
+            }
+            return true;
+        }
+
+        function updateBackground() {
+            backgroundGrid.innerHTML = '';  // Clear grid
+            for (const [index, image] of Object.entries(backgroundImages)) {
+                const imgElement = document.createElement('img');
+                imgElement.src = `img/background/${image}`;
+                imgElement.alt = `Background ${index}`;
+                imgElement.classList.add('background-thumbnail');
+
+            // Immediate selection on click
+            imgElement.addEventListener('click', () => {
+                selectedBackgroundIndex = index;
+                document.body.style.backgroundImage = `url('img/background/${image}')`;
+                document.getElementById('dim-overlay').style.display = 'block';
+                localStorage.setItem('selectedBackgroundIndex', index); // Store selection
+                backgroundModal.style.display = 'none';
+                updateURL();
+            });
+                backgroundGrid.appendChild(imgElement);
+            }
+        }
+
+        // Show modal on checkbox selection
+        includeBackgroundCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                backgroundModal.style.display = 'block';
+                updateBackground();
+            } else {
+                backgroundModal.style.display = 'none';
+                selectedBackgroundIndex = null;
+                document.body.style.backgroundImage = '';
+                document.getElementById('dim-overlay').style.display = 'none';
+                localStorage.removeItem('selectedBackgroundIndex');
+                updateURL();
+            }
+        });
+
+        // Apply stored background on load
+        function applyStoredBackground() {
+            const storedIndex = localStorage.getItem('selectedBackgroundIndex');
+            if (storedIndex && backgroundImages[storedIndex]) {
+                document.body.style.backgroundImage = `url('img/background/${backgroundImages[storedIndex]}')`;
+                document.getElementById('dim-overlay').style.display = 'block';
+            }
+        }
+
+        function updateURL() {
+            console.log("Updating URL...");  // Check if the function triggers
+            const selectedNtag = document.querySelector('input[name="ntag_type"]:checked');
+            if (!selectedNtag) {
+                console.log("No NTAG selected!");
+                urlOutput.textContent = 'Please select an NTAG type first!';
+                byteCounter.textContent = '';
+                return;
+            }
+
+            // maxBytes = parseInt(selectedNtag.dataset.bytes, 10);
+
+            let url = 'https://postanote.org/index.html?';
+            let currentBytes = url.length;
+            errorMessage.textContent = '';
+            warningMessage.textContent = '';
+            infoMessage.textContent = '';
+            maxBytes = parseInt(selectedNtag.dataset.bytes, 10);
+
+            console.log("Starting URL: ", url);
+
+            // Check if "No NTAG" is selected
+            if (selectedNtag.value !== 'none') {
+                maxBytes = parseInt(selectedNtag.dataset.bytes, 10);
+            } else {
+                maxBytes = Infinity; // No limit for "No NTAG"
+            }
+
+            if (selectedAvatarIndex) {
+                url += `a=${selectedAvatarIndex}&`;
+                currentBytes += `a=${selectedAvatarIndex}&`.length;
+            }
+
+            // Font selection
+            if (selectedFontIndex) {
+                url += `f=${selectedFontIndex}&`;
+                console.log("Adding Font: ", selectedFontIndex);
+                currentBytes += `f=${selectedFontIndex}&`.length;
+            }
+
+            // Background selection
+            if (includeBackgroundCheckbox.checked && selectedBackgroundIndex) {
+            url += `b=${selectedBackgroundIndex}&`;
+            console.log("Adding Background: ", selectedBackgroundIndex);
+            currentBytes += `b=${selectedBackgroundIndex}&`.length;
+            }
+
+            // Add title (h1)
+            if (includeH1Checkbox.checked) {
+                const h1Value = h1Input.value;
+                const encodedH1Value = encodeURIComponent(h1Value);
+                url += `t=${encodedH1Value}&`;
+                currentBytes += `t=${encodedH1Value}&`.length;
+            }
+
+            // Add subtitle (h3)
+            if (includeH3Checkbox.checked) {
+                const h3Value = h3Input.value;
+                const encodedH3Value = encodeURIComponent(h3Value);
+                url += `s=${encodedH3Value}&`;
+                currentBytes += `s=${encodedH3Value}&`.length;
+            }
+
+            // Add custom message
+            if (includeMessageCheckbox.checked && !customCharactersCheckbox.checked) {
+                const messageValue = messageInput.value;
+                const encodedMessageValue = encodeURIComponent(messageValue);
+                url += `m=${encodedMessageValue}&`;
+                currentBytes += `m=${encodedMessageValue}&`.length;
+            }
+
+            // Add character limit
+            if (customCharactersCheckbox.checked) {
+                const charactersValue = parseInt(charactersInput.value);
+                if (isNaN(charactersValue) || charactersValue < 1 || charactersValue > 5000) {
+                    errorMessage.textContent = 'Please specify characters limit. Enter a value between 1 and 5000.';
+                    errorMessage.style.color ='orange'
+                    errorMessage.style.fontSize = '0.6rem';
+                    scrollToMessage(errorMessage);  // Scroll to error message
+                    return;
+                }
+                url += `l=${charactersValue}&`;
+                currentBytes += `l=${charactersValue}&`.length;
+            }
+
+            // Add Prevent Reuse Parameter (p=1)
+            if (preventReuseCheckbox.checked) {
+                url += `p=1&`;
+                currentBytes += `p=1&`.length;
+
+                // Warning for Prevent Reuse
+                warningMessage.textContent = 'Be careful with this. This prevents posting more then once by deleting private key after posting!';
+                warningMessage.style.color = 'red';
+                warningMessage.style.fontSize = '0.6rem';
+                scrollToMessage(errorMessage);  // Scroll to error message
+
+            } else {
+                warningMessage.textContent = '';  // Clear warning if unchecked
+            }
+
+            // Add hashtags
+            const hashtags = hashtagInputs.map(input => {
+                const value = input.value.toLowerCase();  // Convert to lowercase;
+                if (!validateInput(value, 'Hashtags', hashtagInvalidChars)) return '';
+                return encodeURIComponent(value);
+            }).filter(Boolean);
+            if (hashtags.length > 0) {
+                url += `h=${hashtags.join(',')}&`;
+                currentBytes += `h=${hashtags.join(',')}&`.length;
+            }
+
+            // Add relays
+            if (includeRelaysCheckbox.checked) {
+                const relays = relayInputs.map(input => {
+                    const value = input.value;
+                    if (!validateInput(value, 'Relays', relayInvalidChars)) return '';
+                    return encodeURIComponent(value);
+                }).filter(Boolean);
+                if (relays.length > 0) {
+                    url += `r=${relays.join(',')}&`;
+                    currentBytes += `r=${relays.join(',')}&`.length;
+                } else {
+                    errorMessage.textContent = 'At least one relay is required. Please uncheck the custom relays if you don\'t plan to use any.';
+                    errorMessage.style.color = 'red';
+                    errorMessage.style.fontSize = '0.6rem';
+                    scrollToMessage(errorMessage);  // Scroll to error message
+                    return;
+                }
+            }
+
+            // Final adjustments
+            console.log("Generated URL: ", url);
+            url = url.slice(0, -1); // Remove the trailing '&'
+            currentBytes -= 1; // Adjust for the removed '&'
+            const remainingBytes = maxBytes - currentBytes;
+
+            if (urlOutput) {
+                urlOutput.textContent = url;
+            } else {
+                console.error("urlOutput element not found!");
+            }
+            byteCounter.textContent = `Remaining bytes: ${remainingBytes} (Current bytes: ${currentBytes})`;
+            byteCounter.style.color = remainingBytes >= 0 ? 'green' : 'red';
+        }
+
+
+        function copyURL() {
+            const selectedNtag = document.querySelector('input[name="ntag_type"]:checked');
+            const ntagGroup = document.querySelector('.ntag-group');
+
+            if (!selectedNtag) {
+                errorMessage.textContent = 'Please select an NTAG type to build a URL.';
+                errorMessage.style.color = 'red';
+                errorMessage.style.fontSize = '0.6rem';
+                scrollToMessage(errorMessage);  // Scroll to error message
+                
+                // Scroll and focus to the NTAG group for user attention
+                ntagGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                ntagGroup.focus();
+                return;
+            }
+
+            const hashtags = hashtagInputs.map(input => input.value).filter(Boolean);
+            if (hashtags.length === 0) {
+                errorMessage.textContent = 'You must include at least one hashtag';
+                errorMessage.style.color = 'orange';
+                errorMessage.style.fontSize = '0.6rem';
+                scrollToMessage(errorMessage);  // Scroll to error message
+                return;
+            }
+
+            if (includeRelaysCheckbox.checked) {
+                const relays = relayInputs.map(input => input.value).filter(Boolean);
+                if (relays.length === 0) {
+                    errorMessage.textContent = 'At least one relay is required. Please uncheck the custom relays if you don\'t plan to use any and only use the default.';
+                    errorMessage.style.color = 'orange';
+                    errorMessage.style.fontSize = '0.6rem';
+                    scrollToMessage(errorMessage);  // Scroll to error message
+                    return;
+                }
+            }
+
+            if (customCharactersCheckbox.checked) {
+                const charactersValue = parseInt(charactersInput.value);
+                if (isNaN(charactersValue) || charactersValue < 1 || charactersValue > 5000) {
+                    errorMessage.textContent = 'Invalid characters limit. Please enter a value between 1 and 5000.';
+                    errorMessage.style.color = 'orange';
+                    errorMessage.style.fontSize = '0.6rem';
+                    scrollToMessage(errorMessage)
+                    return;
+                }
+            }
+
+            const url = urlOutput.textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                errorMessage.textContent = 'URL has been copied to the clipboard.';
+                errorMessage.style.color = 'green';
+            }).catch(err => {
+                console.error('Failed to copy URL: ', err);
+                errorMessage.textContent = 'Failed to copy URL.';
+                errorMessage.style.color = 'red';
+            });
+        }
+
+        // Function to set all radio buttons z-index. I had issues with z-index and JS was the only way to hide them 
+        // behind the qr-modal. also if I did hide the relay radio btns, they stopped working when qr-modal was 
+        // not displayed. (other checkboxes and radio btns worked ok but not radio btns in relays). That's why I used JS just for that
+        // CSS is hard!
+
+        // Function to toggle z-index for radio buttons and .url-output-container
+        function toggleModalDependentElements(isModalActive) {
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            const urlOutputContainer = document.querySelector('.url-output-container');
+
+            // Toggle z-index for radio buttons
+            radioButtons.forEach(radio => {
+                radio.style.zIndex = isModalActive ? '-1' : '';
+            });
+
+            // Toggle z-index for .url-output-container
+            if (urlOutputContainer) {
+                urlOutputContainer.style.zIndex = isModalActive ? '0' : '';
+            }
+}
+
+        // Close modal X button
+        document.querySelectorAll('.close-modal').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const modal = event.target.closest('.modal');  // Get the closest modal
+                if (modal) {
+                    modal.style.display = 'none';
+                    
+                    // Uncheck associated checkboxes if nothing is selected
+                    if (modal.id === 'avatar-modal' && !selectedAvatarIndex) {
+                        includeAvatarCheckbox.checked = false;  // Uncheck avatar checkbox
+                        avatarLabel.innerHTML = 'Avatar Styles';  // Reset label
+                    }
+                    
+                    if (modal.id === 'background-modal' && !selectedBackgroundIndex) {
+                        includeBackgroundCheckbox.checked = false;  // Uncheck background checkbox
+                    }
+
+                    if (modal.id === 'font-modal' && !selectedFontIndex) {
+                        includeFontCheckbox.checked = false;  // Uncheck font checkbox
+                    }
+                }
+            });
+        });
+
+
+
+        document.getElementById('qr_button').addEventListener('click', function () {
+        const selectedNtag = document.querySelector('input[name="ntag_type"]:checked');
+        const ntagGroup = document.querySelector('.ntag-group');
+        const url = urlOutput.textContent;
+
+        if (!selectedNtag) {
+        errorMessage.textContent = 'Please select an NTAG type to generate a QR code.';
+        errorMessage.style.color = 'red';
+        
+        // Scroll and focus to the NTAG group for user attention
+        ntagGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        ntagGroup.focus();
+        return;
+    }
+
+        if (!url) {
+            errorMessage.textContent = 'Generate a URL before creating a QR code.';
+            errorMessage.style.color = 'red';
+            return;
+        }
+
+        const qrCodeContainer = document.getElementById('qr-code');
+        qrCodeContainer.innerHTML = ''; // Clear existing QR code
+
+        // Create QR Code using EasyQRCodeJS
+        new QRCode(qrCodeContainer, {
+            text: url,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            logo: "img/QRcode_logo/nostrUniverse.png", // Add your logo URL here
+            logoWidth: 75,
+            logoHeight: 75,
+            // title: "Post to Nostr",
+            titleFont: "bold 16px Arial",
+            titleColor: "#000000",
+            titleBackgroundColor: "#ffffff",
+            titleHeight: 30,
+            titleTop: 15,
+        });
+
+        // Open modal and update dependent elements
+        document.getElementById('qr-modal').style.display = 'flex';
+        toggleModalDependentElements(true);
+    });
+
+    document.getElementById('close_qr_button').addEventListener('click', function () {
+        document.getElementById('qr-modal').style.display = 'none';
+        // Restore dependent elements
+        toggleModalDependentElements(false);
+    });
+
+    document.getElementById('save_qr_button').addEventListener('click', function () {
+        const qrCanvas = document.querySelector('#qr-code canvas');
+        const link = document.createElement('a');
+        link.href = qrCanvas.toDataURL('image/png');
+        link.download = 'QR_Code.png';
+        link.click();
+    });
+
+    document.getElementById('share_qr_button').addEventListener('click', async function () {
+        const qrCanvas = document.querySelector('#qr-code canvas');
+        const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'QR_Code.png', { type: 'image/png' });
+
+        try {
+            await navigator.share({
+                files: [file],
+                title: 'QR Code',
+                text: 'Scan this QR Code!',
+            });
+        } catch (err) {
+            console.error('Sharing failed:', err.message);
+        }
+    });
+
+
+    function scrollToMessage(messageElement) {
+    if (messageElement.textContent.trim() !== '') {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+        function getRandomRelay() {
+            return relayList[Math.floor(Math.random() * relayList.length)];
+        }
+
+        document.getElementById('toggle-description').addEventListener('click', function() {
+        const description = document.querySelector('.maker-what-text');
+        description.classList.toggle('hidden');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            applyStoredFont();  // Apply font from local storage
+            updateBackground(); // Initialize background slider
+            applyStoredBackground(); // Apply stored background on page load
+            updateURL(); // Ensure the URL is updated on page load
+        });
+
+        // Fetch relay list from API
+        fetch('https://api.nostr.watch/v1/online')
+        .then(response => response.json())
+        .then(data => {
+            relayList = data;
+
+            // Re-enable buttons only if "include_relays" checkbox is checked
+            const includeRelaysChecked = includeRelaysCheckbox.checked;
+            randomRelayButtons.forEach(button => {
+                button.disabled = !includeRelaysChecked;
+            });
+        })
+        .catch(error => {
+            console.error('Failed to fetch relays:', error);
+        });
+
+
+        // Initialize URL
+        updateURL();
+    </script>
+</body>
+
+
+</html>

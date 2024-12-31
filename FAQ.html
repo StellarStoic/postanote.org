@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FAQ</title>
+
+    <!-- Favicon for most browsers -->
+    <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
+    
+    <!-- PNG icons for better resolution -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon_io/favicon-16x16.png">
+    
+    <!-- Apple Touch Icon (for iOS) -->
+    <link rel="apple-touch-icon" href="/img/favicon_io/apple-touch-icon.png">
+    
+    <!-- Web Manifest (for PWAs) -->
+    <link rel="manifest" href="/img/favicon_io/site.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <script src="backgroundImages.js"></script>
+    <script src="background.js"></script>
+    <script src="fontList.js"></script>  
+    <script src="font.js"></script>  
+    <style>
+
+
+    </style>
+</head>
+
+<body>
+    <div id="dim-overlay" class="dim-overlay"></div>
+
+    <div class="FAQcontainer">
+        <div class="FAQheader">
+            <h1>FAQ</h1>
+            <h3>what this button do?</h3>
+            <h4> Is Comming in the near future! </h4>
+        </div>
+        <div class="content">
+            <p class="content-paragraph">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin euismod, vel tempor magna vulputate.</p>
+            <p class="content-paragraph">Quisque in semper ipsum. Donec id erat sed urna tempor venenatis. Nulla risus aliquet.</p>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2 class="faq-header-selection">FAQ (Frequently Asked Questions)</h2>
+            <div class="faq-question" onclick="toggleFaq('faq1')"><a href="#faq1">Who's behind this?</a></div>
+            <div id="faq1" class="faq-answer">
+                <p>It's me StellarStoic on <a href="https://njump.me/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" style="color: #f903fd;"><strong>Nostr</strong></a> and ...<a href="https://nosta.me/nprofile1qqsqqqqqqp0fmkspg7w8d305ln96a0jw0ptwqtuwskkm5pddv2kkjfcpp4mhxue69uhkummn9ekx7mqpzemhxue69uhhyetvv9ujumn0wd68ytnzv9hxgn5ehlv" style="color: #f903fd"><strong>Nostr</strong></a></p>
+                <p>But you can also find me on <a href="https://signal.org/"style="color: #01b0fb;"> SIGNAL as <strong>stellarstoic.01</strong></a> or on <a href="https://t.me/stellarstoic" style="color: #01b0fb;">TELEGRAM also as <strong>@stellarstoic</strong></a></p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq2')"><a href="#faq2">Why do we use it?</a></div>
+            <div id="faq2" class="faq-answer">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio.</p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq3')"><a href="#faq3">Where can I get some?</a></div>
+            <div id="faq3" class="faq-answer">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce nec tellus.</p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq4')"><a href="#faq4">What is the origin of Lorem Ipsum?</a></div>
+            <div id="faq4" class="faq-answer">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quam felis.</p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq5')"><a href="#faq5">Is Lorem Ipsum random text?</a></div>
+            <div id="faq5" class="faq-answer">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam rhoncus.</p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq6')"><a href="#faq6">Where can I find Lorem Ipsum?</a></div>
+            <div id="faq6" class="faq-answer">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ullamcorper.</p>
+            </div>
+
+            <div class="faq-question" onclick="toggleFaq('faq7')"><a href="#faqNTAGtype">Is NTAG memory showing wrong values?</a></div>
+            <div id="faq7" class="faq-answer">
+                <h3>NTAG memory has been set with a carefull reading of the documentation papers (1. & 2.).</h3>
+
+                <h2>NTAG Memory Comparison</h2>
+
+<table>
+    <tr>
+        <th>NTAG Type</th>
+        <th>Total Memory</th>
+        <th>User Memory</th>
+        <th>Max NDEF (Writable Data)</th>
+        <th>Max Text (Char.)</th>
+        <th>Max URL (Char.)</th>
+        <th>Use Case</th>
+    </tr>
+    <tr>
+        <td>NTAG 203</td>
+        <td>168 bytes</td>
+        <td>144 bytes</td>
+        <td>~137 bytes</td>
+        <td>137</td>
+        <td>135</td>
+        <td>Short URLs, automation</td>
+    </tr>
+    <tr>
+        <td>NTAG 213</td>
+        <td>180 bytes</td>
+        <td>144 bytes</td>
+        <td>~137 bytes</td>
+        <td>137</td>
+        <td>135</td>
+        <td>Basic vCards, small automation</td>
+    </tr>
+    <tr>
+        <td>NTAG 215</td>
+        <td>540 bytes</td>
+        <td>504 bytes</td>
+        <td>~492 bytes</td>
+        <td>492</td>
+        <td>490</td>
+        <td>Amiibo, longer vCards</td>
+    </tr>
+    <tr>
+        <td>NTAG 216</td>
+        <td>924 bytes</td>
+        <td>888 bytes</td>
+        <td>~868 bytes</td>
+        <td>868</td>
+        <td>866</td>
+        <td>Large records, WiFi configs</td>
+    </tr>
+    <tr>
+        <td>NTAG 413 DNA</td>
+        <td>416 bytes</td>
+        <td>404 bytes</td>
+        <td>~398 bytes</td>
+        <td>398</td>
+        <td>396</td>
+        <td>Secure URLs, anti-counterfeit</td>
+    </tr>
+    <tr>
+        <td>NTAG 424 DNA</td>
+        <td>928 bytes</td>
+        <td>916 bytes</td>
+        <td>~888 bytes</td>
+        <td>888</td>
+        <td>886</td>
+        <td>Secure vCards, payments</td>
+    </tr>
+</table>
+            </div>
+                <!-- New FAQ Question -->
+                <div class="faq-question" onclick="toggleFaq('faqFont')"><a href="#faqFont">What font does this website use?</a></div>
+                <div id="faqFont" class="faq-answer">
+                    <p>The current font used on this website is <a id="fontLink" href="#" target="_blank">loading...</a>.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="footerDynamic">
+        <a href="about.html">About</a> | 
+        <a href="FAQ.html">FAQ</a> | 
+        <a href="urlmkr.html">URLmkr</a>
+        <!-- <button id="showHistoryBtn"  title="a History data of all the posted notes from this device">Show History</button> -->
+    </footer>
+
+    <script>
+        function toggleFaq(faqId) {
+            // Close all faq answers
+            const answers = document.querySelectorAll('.faq-answer');
+            answers.forEach(answer => {
+                if (answer.id !== faqId) {
+                    answer.style.display = 'none';
+                }
+            });
+
+            // Toggle the selected faq answer
+            const selectedFaq = document.getElementById(faqId);
+            if (selectedFaq.style.display === 'block') {
+                selectedFaq.style.display = 'none';
+            } else {
+                selectedFaq.style.display = 'block';
+            }
+        }
+
+        // Function to display the current font
+        function displayCurrentFont() {
+            const selectedFontIndex = localStorage.getItem('selectedFontIndex') || 1;
+            const fontName = fontList[selectedFontIndex].split(':')[0];  // Extract font name only
+            const fontLink = `https://fonts.bunny.net/family/${fontName.replace(/\s+/g, '+')}`;
+
+            const fontAnchor = document.getElementById('fontLink');
+            fontAnchor.textContent = fontName;
+            fontAnchor.href = fontLink;
+        }
+
+        // Initialize font display
+        displayCurrentFont();
+
+    </script>
+</body>
+<script src="footer.js"></script>
+</html>

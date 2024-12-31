@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NostrPostr</title>
+
+    <!-- Favicon for most browsers -->
+    <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
+    
+    <!-- PNG icons for better resolution -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon_io/favicon-16x16.png">
+    
+    <!-- Apple Touch Icon (for iOS) -->
+    <link rel="apple-touch-icon" href="/img/favicon_io/apple-touch-icon.png">
+    
+    <!-- Web Manifest (for PWAs) -->
+    <link rel="manifest" href="/img/favicon_io/site.webmanifest">    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+    <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="backgroundImages.js"></script>
+    <script src="background.js"></script>
+    <script src="font.js"></script>
+    <script src="fontList.js"></script>                                                                                                                     
+</head>
+
+<body>
+    <div id="dim-overlay" class="dim-overlay"></div>
+    <div>
+        <!-- <i id="changeIdIcon" class="fas fa-sync-alt" title="change ID"></i> -->
+        <img id="avatarIcon" class="avatar-icon" src="" alt="Avatar" title="Change ID">
+        <h1 id="mainTitle">Freedom to Speak</h1>
+        <h4 id="subTitle">No Names. Just Unfiltered Truth</h4>
+    </div>
+    <!-- <textarea id="userMessage" maxlength="280" oninput="adjustHeight(this)"></textarea> -->
+    <div class="editor-container">
+        <textarea id="userMessage" maxlength="280" oninput="updateMarkdown()" placeholder="Type your message..."></textarea>
+        <div id="markdownPreview" class="overlay markdown-preview"></div>
+    </div>
+    <div id="charCount">0/280</div>
+    <button id="sendMessageBtn" disabled>Send
+        <img src="https://user-images.githubusercontent.com/99301796/219719339-5eff628c-3470-4cc3-81eb-404f8902de9f.gif"/>
+    </button>
+    <p id="statusMessage"></p>
+    <p id="relayWarning" style="color:red; display:none; background-color: rgba(0, 0, 0, 0.672);">
+        Possible connection error! <br>
+        None of the relays are available please try later. <br>
+        <span style="color: rgb(239, 219, 0);">Would you like to try the default relays listed bellow?</span> <br>
+        <span style="color: #00ff5599;">relay.nostr.band, relay.damus.io,
+        njump.me, relay.snort.social and nos.lol?</span> <br>
+        
+        <button id="useDefaultRelaysBtn" style="background-color: #00ff5599; color: white; border: none; border-radius: 5px; cursor: pointer;">Yes</button>
+    </p>
+    <div id="eventDetails"></div>
+    
+    <footer class="footerDynamic">
+        <a href="about.html">About</a> | 
+        <a href="FAQ.html">FAQ</a> | 
+        <a href="urlmkr.html">URLmkr</a> | 
+        <button id="showHistoryBtn"  title="a History data of all the posted notes from this device">Show History</button>
+    </footer>
+    
+    <!-- Modal for private key storage -->
+    <div id="privateKeyModal">
+        <div id="modalContent">
+            <p id="privateKeyModalParagraph">A random Nostr ID was created.
+                <br><br>
+                Do you want to store the private keys of this random ID into your device memory, for further use in other clients if needed?
+                <br><br>
+                By clicking YES, the private key will be stored locally and can be retrieved or downloaded.
+                <br><br>
+                Visit showHistory at the bottom of the page for more details to review your current or previous ID's activity.
+
+            </p>
+            <button id="acceptBtn">Yes</button>
+            <button id="declineBtn">No</button>
+        </div>
+    </div>
+
+<!-- Modal for viewing notes -->
+<div id="notesModal">
+    <div id="notesModalContent">
+        <div id="notesHeader">
+            <button id="downloadDataBtn">Download Data</button>
+        </div>
+        <div id="dynamicContent"></div> <!-- Dynamic content (notes) goes here -->
+        <div class="panic-container">
+            <button id="wipeStorageBtn">
+                ❌ Delete All Data (Panic)
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    // Function to load JSON files
+async function loadJson(file) {
+    const response = await fetch(file);
+    return response.json();
+}
+
+const avatarStyles = {
+    1: 'croodles',
+    2: 'adventurer-neutral',
+    3: 'avataaars',
+    4: 'avataaars-neutral',
+    5: 'big-ears',
+    6: 'big-ears-neutral',
+    7: 'big-smile',
+    8: 'bottts',
+    9: 'bottts-neutral',
+    10: 'adventurer',
+    11: 'croodles-neutral',
+    12: 'fun-emoji',
+    13: 'icons',
+    14: 'identicon',
+    15: 'initials',
+    16: 'lorelei',
+    17: 'lorelei-neutral',
+    18: 'micah',
+    19: 'miniavs',
+    20: 'notionists',
+    21: 'notionists-neutral',
+    22: 'open-peeps',
+    23: 'personas',
+    24: 'pixel-art',
+    25: 'pixel-art-neutral',
+    26: 'shapes',
+    27: 'thumbs',
+    28: 'dylan',
+    29: 'glass',
+    30: 'rings'
+};
+
+// Function to generate DiceBear avatar URL from public key
+function getAvatarUrl(pubkey) {
+    const { a } = getQueryParams();  // Get avatar style from URL
+    const seed = encodeURIComponent(pubkey);  // Use the public key directly as the seed
+
+    // Determine avatar style from URL or fallback to croodles
+    const avatarStyle = avatarStyles[a] || 'croodles';  // Fallback to croodles if invalid
+
+    return `https://api.dicebear.com/9.x/${avatarStyle}/svg?seed=${seed}`;
+}
+
+// Function to update the avatar
+function updateAvatar() {
+    const avatar = document.getElementById('avatarIcon');
+    
+    // Generate URL based on public key and chosen avatar style
+    const avatarUrl = pub
+        ? getAvatarUrl(pub) + `&cacheBust=${Date.now()}`  // Bust cache to force new fetch
+        : getAvatarUrl('placeholder');
+    
+    avatar.src = avatarUrl;
+    console.log('Updated Avatar URL:', avatarUrl);
+}
+
+// OnClick - Handle ID Change with Confirmation
+document.getElementById("avatarIcon").onclick = function () {
+    if (confirm("Are you sure you want to generate a new ID? This will replace your current one.")) {
+        generateNewKeys();
+        // updateAvatar();
+        alert('New ID generated.');
+    } else {
+        alert('ID generation cancelled.');
+    }
+};
+
+function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        f: params.get('f') || '',  // Font selection parameter
+        t: params.get('t') || 'Decentralize and empower', // Title
+        s: params.get('s') || 'Share your vision', // Subtitle
+        m: params.get('m') || '', // Message
+        h: params.get('h') ? params.get('h').split(',').filter(Boolean) : [], // Hashtag
+        r: params.get('r') ? params.get('r').split(',') : [], // Relay
+        l: parseInt(params.get('l')) || 280, // Length of a message
+        b: params.get('b') || '', // Background
+        p: params.get('p') || '',  // Prohibit or Priv key signing note only 1 time
+        a: parseInt(params.get('a')) || 1  // Avatar style (defaults to 1)
+    };
+}
+
+
+function setDynamicContent() {
+    const { t, s, m, h, r, l, b } = getQueryParams();
+    document.getElementById('mainTitle').textContent = t;
+    document.getElementById('subTitle').textContent = s;
+
+    const userMessage = document.getElementById('userMessage');
+    userMessage.setAttribute('data-hashtags', h.join(','));
+    userMessage.setAttribute('maxlength', l);
+
+    if (m) {
+        userMessage.value = m;
+        userMessage.disabled = true;
+        document.getElementById('sendMessageBtn').disabled = false;
+    }
+
+    document.getElementById('charCount').textContent = `0/${l}`;
+
+    if (r.length > 0) {
+        setRelays(r);
+    } else {
+        setRelays([
+        "wss://relay.nostr.band",
+        "wss://relay.damus.io",
+        "wss://njump.me",
+        "wss://relay.snort.social",
+        "wss://nos.lol"
+        ]);
+    }
+
+    if (b && backgroundImages[b]) {
+        document.body.style.backgroundImage = `url('img/background/${backgroundImages[b]}')`;
+        document.body.style.backgroundRepeat = 'repeat';
+    }
+
+}
+
+function setRelays(customRelays) {
+    relaySubscriptions = [];
+    sockets.forEach(socket => socket.close());
+    sockets = [];
+    let allRelaysFailed = true;
+
+    customRelays.forEach(url => {
+        let socket = new WebSocket(url);
+        socket.onmessage = async function (m) {
+            var [, i, e] = JSON.parse(m.data),
+                { kind, c } = e || {};
+            if (!e || e === true) return;
+            console.log("msg:", e);
+        };
+        socket.onopen = async function (e) {
+            console.log("connected to " + url);
+            allRelaysFailed = false;
+            var i = b2h(utils.randomPrivateKey()).substring(0, 16),
+                f = { authors: [pub] },
+                sub = ["REQ", i, f];
+            console.log("Subscription:", sub);
+            socket.send(JSON.stringify(sub));
+            relaySubscriptions.push({ socket, url });
+        };
+        socket.onerror = function (e) {
+            console.log(`Failed to connect to ${url}`);
+        };
+        sockets.push(socket);
+    });
+
+    setTimeout(() => {
+        if (allRelaysFailed) {
+            document.getElementById('relayWarning').style.display = 'block';
+        }
+    }, 5000);
+}
+
+var h2b = (h) => Uint8Array.from(h.match(/.{1,2}/g).map((b) => parseInt(b, 16))),
+    b2h = (b) => b.reduce((s, b) => s + b.toString(16).padStart(2, "0"), ""),
+    { schnorr, utils } = nobleSecp256k1,
+    sha256 = utils.sha256,
+    pk,
+    pub,
+    storePrivateKey = false,
+    sockets = [],
+    relaySubscriptions = [];
+
+
+async function generateNewKeys() {
+    pk = b2h(utils.randomPrivateKey());
+    pub = nobleSecp256k1.getPublicKey(pk, true).substring(2);
+    
+    const avatarUrl = getAvatarUrl(pub);  // Generate avatar URL based on pubkey
+    const randomName = await generateRandomName()
+    
+    // Store keys and avatar URL in localStorage
+    localStorage.setItem('nostr_pk', pk);
+    localStorage.setItem('nostr_pub', pub);
+    localStorage.setItem('avatar_url', avatarUrl);  // Store avatar URL
+    localStorage.setItem('nostr_name', randomName);  // Store the generated name
+    
+    // Store in HEX.json for record keeping
+    const fileName = `HEX${pub}.json`;
+    const eventData = {
+        pubkey: pub,
+        pk: pk,
+        avatar: avatarUrl,
+        name: randomName,  // Store the name in the local storage for this key
+        created_at: Math.floor(Date.now() / 1000)
+    };
+    localStorage.setItem(fileName, JSON.stringify(eventData));
+    
+    // **Post Metadata to Relays (NIP-05 kind 0)**
+    postMetadata(pub, avatarUrl, randomName);
+
+    // **Update .well-known/nostr.json on the server**
+    await updateNostrJson(randomName, pub);
+    
+    updateAvatar();
+    document.getElementById('privateKeyModal').style.display = 'block';
+    console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
+
+    // Clear URL parameters and refresh the page
+    clearUrlAndReload()
+}
+
+// Fallback - Generate random string for errors
+function generateRandomFallback() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+// Function to generate random name from adjectives and nouns
+async function generateRandomName() {
+    try {
+        const adjectives = await loadJson('adjectives.json');
+        const nouns = await loadJson('nouns.json');
+        
+        const randomNumber = String(Math.floor(Math.random() * 21) + 1).padStart(2, '0');  // 01 to 21
+        const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+        const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+        
+        return `${randomAdjective}_${randomNoun}_${randomNumber}`;
+    } catch (error) {
+        console.error('Error generating random name:', error);
+        return generateRandomFallback();  // Return random string if JSON fails
+    }
+}
+
+// Kind 0
+async function postMetadata() {
+    let name = localStorage.getItem('nostr_name');  // Get the name from localStorage
+    const avatarUrl = localStorage.getItem('avatar_url') || getAvatarUrl(pub);  // Fetch existing avatar or regenerate
+
+    // If name is missing, generate and store it
+    if (!name) {
+    name = await generateRandomName();
+    localStorage.setItem('nostr_name', name);
+    }
+
+    const nostrName = `_@postanote.org`;  // Create nip05 address
+    // const nostrName = `${name.toLowerCase()}@postanote.org`;  // Create nip05 address <- Future unique names added to the .well-known folder
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    // Metadata structure
+    const metadata = {
+        lud16: nostrName,  // lightning address as name@postanote.org)
+        lud06: "",  // Empty for now Old lightning addresses style
+        picture: avatarUrl,
+        name: name,
+        about: "Apparently, I'm one of the Nostriches posting random thoughts and notes the plebs set me up for. I didn't know I signed up for this, but here we are.",
+        website: "https://postanote.org",
+        banner: "https://i.ibb.co/Qc5BWcb/Notes-fallin-from-the-sky.webp",
+        display_name: name,
+        nip05: nostrName,
+        pubkey: pub,
+        npub: "",
+        created_at: currentTime,
+
+
+        // is_deleted: false
+    };
+
+    const metadataEvent = {
+        pubkey: pub,
+        content: JSON.stringify(metadata),  // Stringified JSON as required by NIP-01
+        created_at: currentTime,
+        kind: 0,  // Kind 0 for metadata
+        tags: [
+            ["alt", `Random Nostrich ${name} who's avatar was created with dicebear.com API`],
+            // ["i", `nostr:${name}`, b2h(await sha256(new TextEncoder().encode(name)))]
+        ]
+    };
+
+    // Generate event ID and signature
+    metadataEvent.id = b2h(await sha256(new TextEncoder().encode(JSON.stringify([
+        0,
+        metadataEvent.pubkey,
+        metadataEvent.created_at,
+        metadataEvent.kind,
+        metadataEvent.tags,
+        metadataEvent.content
+    ]))));
+
+    metadataEvent.sig = await schnorr.sign(metadataEvent.id, pk);
+
+    // Send to relays
+    relaySubscriptions.forEach(({ socket, url }) => {
+        socket.send(JSON.stringify(["EVENT", metadataEvent]));
+        console.log(`Metadata event sent to ${url}`);
+    });
+
+    console.log("Metadata event:", metadataEvent);
+    
+    // Update the HEX.json for the generated profile
+    const fileName = `HEX${pub}.json`;
+    const storedProfile = JSON.parse(localStorage.getItem(fileName)) || {};
+    storedProfile.nostr_name = name;
+    localStorage.setItem(fileName, JSON.stringify(storedProfile));
+
+    // Post to .well-known/nostr.json (via fetch or server-side script)
+    updateNostrJson(name, pub);
+}
+
+async function updateNostrJson(name, pubkey) {
+    const wellKnownData = {
+        names: {
+            [name]: pubkey
+        }
+    };
+
+    try {
+        const response = await fetch('/.well-known/nostr.json', {
+            method: 'POST',  // Or PUT, depending on server config
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(wellKnownData)
+        });
+
+        if (response.ok) {
+            console.log("nostr.json updated successfully.");
+        } else {
+            console.error("Failed to update nostr.json.");
+        }
+    } catch (error) {
+        console.error("Error updating nostr.json:", error);
+    }
+}
+
+function loadKeys() {
+    const storedPk = localStorage.getItem('nostr_pk');
+    const storedPub = localStorage.getItem('nostr_pub');
+    const storedStorePrivateKey = localStorage.getItem('store_private_key') === 'true';
+
+    if (storedPk && storedPub) {
+        pk = storedPk;
+        pub = storedPub;
+        storePrivateKey = storedStorePrivateKey;
+
+        // Retrieve avatar URL from HEX.json
+        const storedData = localStorage.getItem(`HEX${pub}.json`);
+        if (storedData) {
+            const parsedData = JSON.parse(storedData);
+            const avatarUrl = parsedData.avatar || getAvatarUrl(pub);  // Fallback to generate if missing
+            localStorage.setItem('avatar_url', avatarUrl);  // Ensure avatar URL is stored
+        }
+
+        updateAvatar();
+        console.log("Keys and avatar loaded from storage.");
+    } else {
+        generateNewKeys();
+    }
+}
+
+document.getElementById("avatarIcon").onclick = function () {
+    if (confirm("Are you sure you want to generate a new random ID? This will replace your current one you are using.\n\n\
+All your previous IDs used with this domain are stored locally with all other detail. You can easily reuse them in other Nostr clients if needed.\n\n\
+To access your history in your device memory, please look up for the showHistory button on the bottom of the page.")) {
+        generateNewKeys();
+        alert('New ID generated.');
+    } else {
+        alert('ID generation cancelled.');
+    }
+};
+
+// function updateMarkdown() {
+//     const userInput = document.getElementById('userMessage').value;
+//     const previewArea = document.getElementById('markdownPreview');
+
+//     // Use Marked to parse and render markdown
+//     const parsedMarkdown = marked.parse(userInput);
+
+//     // Display markdown as HTML in the overlay div
+//     previewArea.innerHTML = parsedMarkdown.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+// }
+
+// Hashing the content to prevent posting duplicates
+// Simple SHA-256 hashing function
+async function hashContent(content) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// Save hash to localStorage
+function saveHash(hash) {
+    let hashes = JSON.parse(localStorage.getItem('posted_hashes')) || [];
+    hashes.push(hash);
+    localStorage.setItem('posted_hashes', JSON.stringify(hashes));
+}
+
+// Check if the content hash already exists
+function isDuplicateContent(hash) {
+    const hashes = JSON.parse(localStorage.getItem('posted_hashes')) || [];
+    return hashes.includes(hash);
+}
+
+// Clear URL parameters and refresh page
+function clearUrlAndReload() {
+    window.history.replaceState({}, document.title, window.location.pathname);
+    location.reload();
+}
+
+
+document.getElementById("sendMessageBtn").onclick = async () => {
+
+    // 1. Prevent Posting Without ID
+    if (!localStorage.getItem('nostr_pk')) {
+    alert('No private key found. Please generate a new ID with pressing OK btn.');
+    generateNewKeys();  // Regenerate the key if needed
+    return;  // Stop execution if no key is present
+    }
+
+    // 2. Proceed with Message Sending Logic
+    const um = document.getElementById("userMessage").value,
+        embeddedHashtags = document.getElementById("userMessage").getAttribute('data-hashtags').split(',').filter(Boolean),
+        additionalHashtags = ['postanote'], // hardcoded hashtags. these will be always included when messages are created and posted from your custom domain instance
+        allHashtags = [...embeddedHashtags, ...additionalHashtags].map(tag => `#${tag.trim()}`).join(' '),
+        fullMessage = `${um} ${allHashtags}`
+
+        // Hash the content
+        const contentHash = await hashContent(fullMessage);
+        
+        // Check for duplicates
+        if (isDuplicateContent(contentHash)) {
+            if (confirm('This exact message was already posted! Posting the same content repeatedly is not allowed. Reload the page to continue.')) {
+                clearUrlAndReload();
+            }
+            return;
+        }
+
+        const tags = allHashtags.split(' ').filter(Boolean).map(tag => ['t', tag.replace('#', '')]),
+        ev = { content: fullMessage, created_at: Math.floor(Date.now() / 1000), kind: 1, tags: tags, pubkey: pub }, // <- Here I can add additional attributes that needed to be signed
+        sev = await signEvent(ev, pk);
+
+        // Reorder attributes of the signed event here (optional)
+        const orderedEvent = {
+            content: sev.content,
+            created_at: sev.created_at,
+            id: sev.id,
+            kind: sev.kind,
+            pubkey: sev.pubkey,
+            sig: sev.sig,
+            tags: sev.tags
+            // add more if necessary
+        };
+    
+    console.log("signedEvent:", sev);
+    relaySubscriptions.forEach(({ socket, url }) => {
+        socket.send(JSON.stringify(["EVENT", orderedEvent])); // Send reordered event
+        console.log(`Event sent to ${url}`, orderedEvent);
+    });
+
+    // Save hash to prevent duplicate posts
+    saveHash(contentHash);
+
+    // 3. Update the status message
+    const statusMessage = document.getElementById("statusMessage");
+    statusMessage.textContent = "Message has been sent.";
+
+    // 4. Clear Previous Event Details
+    const eventDetails = document.getElementById("eventDetails");
+    eventDetails.innerHTML = ""; // Clear previous content _ Comment out this line if we need to append all posted notes in the screen session
+
+    // 5. Show New Event Details
+    eventDetails.innerHTML += `
+        <pre>${JSON.stringify(sev, null, 2)}</pre>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
+            <button class="copy-btn" onclick="copyMessageId('${sev.id}')" title="copy the event ID">Copy Note ID</button>
+            <button class="copy-btn" onclick="window.open('https://njump.me/${sev.id}', '_blank')" title="View this event on njump.me">👀 njump.me</button>
+        </div>
+    `;
+    eventDetails.style.display = 'block';
+
+    // 6. Smooth Scroll to Status Message
+    statusMessage.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'  // Scroll to center the element
+    });
+
+    saveEvent(sev);
+
+    // 7. Delete Private Key if store_private_key is set to false
+    const shouldDeleteKey = localStorage.getItem('store_private_key') === 'false';
+        if (shouldDeleteKey) {
+            console.log('Deleting private key (nostr_pk) from storage...');
+            localStorage.removeItem('nostr_pk');
+        }
+
+    // 8. Delete Key Based on URL Parameter ?p=1 (but only if store_private_key is false)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('p') === '1') {
+        const storePrivateKey = localStorage.getItem('store_private_key') === 'true';
+        
+        // Only delete if the user DID NOT agree to store the key
+        if (!storePrivateKey) {
+            console.log('Deleting private key (nostr_pk) due to URL parameter ?p=1');
+            localStorage.removeItem('nostr_pk');
+        } else {
+            console.log('Skipping nostr_pk deletion (store_private_key=true)');
+        }
+    }
+};
+
+// async function signEvent(ev, pk) {
+//     var ed = JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]);
+//     ev.id = b2h(await sha256(new TextEncoder().encode(ed)));
+//     ev.sig = await schnorr.sign(ev.id, pk);
+//     return ev;
+// }
+
+async function signEvent(ev, pk) {
+    const ed = JSON.stringify([
+        0,  // Nostr spec prefix (for signing)
+        ev.pubkey,
+        ev.created_at,
+        ev.kind,
+        ev.tags,
+        ev.content
+    ]);
+    
+    ev.id = b2h(await sha256(new TextEncoder().encode(ed)));  // Hash the event to create the ID
+    ev.sig = await schnorr.sign(ev.id, pk);  // Sign the ID with the private key
+
+    return ev;  // Return the signed event
+}
+
+
+function copyMessageId(messageId) {
+    navigator.clipboard.writeText(messageId).then(() => {
+        alert('Message ID copied to clipboard');
+    });
+}
+
+function adjustHeight(el) {
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight) + 'px';
+}
+
+function saveEvent(event) {
+    const fileName = `HEX${pub}.json`;
+    let storedData = localStorage.getItem(fileName);
+    let events = [];
+
+    if (storedData) {
+        storedData = JSON.parse(storedData);
+        events = storedData.events || [];
+    }
+
+    // Attach identity metadata directly to the event
+    event.avatar = localStorage.getItem('avatar_url') || '';
+    event.nostr_name = localStorage.getItem('nostr_name') || '';
+
+    events.push({
+        ...event,
+        subscribedRelays: relaySubscriptions.map(subscription => subscription.url) // Add this line to include the relays
+    });
+
+    if (storePrivateKey) {
+        localStorage.setItem(fileName, JSON.stringify({ events, pk }));
+    } else {
+        localStorage.setItem(fileName, JSON.stringify({ events }));
+    }
+}
+
+// Function to generate bright colors from public key
+function generateColorFromPubKey(pubkey) {
+    const hash = Array.from(pubkey).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hue = hash % 360;  // Full spectrum of colors
+    const saturation = 70 + (hash % 20);  // Bright saturation (70-90%)
+    const lightness = 50 + ((hash >> 3) % 20);  // Mid brightness (50-70%)
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+function loadStoredEvents() {
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('HEX'));
+    const notesModalContent = document.getElementById('notesModalContent'); // Only dynamic content is affected
+    const panicContainer = document.querySelector('.panic-container');
+
+    // Clear modal content
+    notesModalContent.innerHTML = '';
+
+    // Re-add the download button
+    const downloadButton = document.createElement('button');
+    downloadButton.id = 'downloadDataBtn';
+    downloadButton.textContent = 'Download history';
+    downloadButton.style = 'background-color: #ff00006e; color: #efefef; border: none; border-radius: 5px; cursor: pointer;';
+    downloadButton.onclick = function () {
+        console.log('Download button clicked');
+        downloadData();
+    };
+    notesModalContent.appendChild(downloadButton);
+
+
+    // Gather and prepare all events sorted by public key's latest event timestamp
+    let allIdentities = [];
+
+    keys.forEach(key => {
+        const storedData = JSON.parse(localStorage.getItem(key));
+        const events = storedData.events || [];
+        const storedPk = storedData.pk;
+        const pubkey = key.replace('HEX', '');
+
+        // Attach public key and color to each identity
+        if (events.length > 0) {
+            const latestTimestamp = Math.max(...events.map(e => e.created_at));
+            allIdentities.push({
+                pubkey: pubkey,
+                events: events.sort((a, b) => b.created_at - a.created_at),  // Sort events within the identity
+                pk: storedPk,
+                color: generateColorFromPubKey(pubkey),
+                latestTimestamp: latestTimestamp
+            });
+        }
+    });
+
+    // Sort identities by the latest note timestamp (newest first)
+    allIdentities.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+    // Display each identity and its sorted notes
+    allIdentities.forEach(identity => {
+        const { pubkey, events, pk, color } = identity;
+
+        // Create div for this identity
+        const keyDiv = document.createElement('div');
+        keyDiv.innerHTML = `<h5>(${events.length}) Notes from ${pubkey}</h5>`;
+        keyDiv.style.color = color;
+
+        // Add private key span right after the identity label
+        if (pk) {
+            const pkSpan = document.createElement('span');
+            pkSpan.textContent = 'Hidden private key ******************************';
+            pkSpan.title = 'Click to reveal the private key';
+            pkSpan.style.cursor = 'pointer';
+            pkSpan.style.display = 'block';
+            pkSpan.style.marginTop = '10px';
+
+            // Countdown span (for visual countdown)
+            const countdownSpan = document.createElement('span');
+            countdownSpan.style.marginLeft = '10px';
+            countdownSpan.style.color = 'red';
+            countdownSpan.id = `countdown-${pubkey}`;
+
+            pkSpan.onclick = () => {
+                if (confirm(`Reveal secret key for ${pubkey}?`)) {
+                    pkSpan.textContent = pk;
+                    let countdown = 10;
+
+                    // Show countdown at the top
+                    let countdownOverlay = document.getElementById('countdownOverlay');
+                    if (!countdownOverlay) {
+                        countdownOverlay = document.createElement('div');
+                        countdownOverlay.id = 'countdownOverlay';
+                        countdownOverlay.style.position = 'fixed';
+                        countdownOverlay.style.top = '50%';
+                        countdownOverlay.style.left = '50%';
+                        countdownOverlay.style.transform = 'translateX(-50%)';
+                        countdownOverlay.style.fontSize = '2rem';
+                        countdownOverlay.style.color = '#ff0000';
+                        countdownOverlay.style.zIndex = '1001';
+                        countdownOverlay.style.display = 'block';
+                        document.body.appendChild(countdownOverlay);
+                    }
+
+                    countdownOverlay.textContent = `${countdown}s`;
+
+                    const countdownInterval = setInterval(() => {
+                        countdown -= 1;
+                        if (countdown > 0) {
+                            countdownOverlay.textContent = `${countdown}s`;
+                        } else {
+                            clearInterval(countdownInterval);
+                            pkSpan.textContent = '******************************';
+                            countdownOverlay.style.display = 'none';
+                        }
+                    }, 1000);
+                }
+            };
+
+            keyDiv.appendChild(pkSpan);
+        }
+
+        // Append each event under the identity
+        events.forEach(event => {
+            const eventPre = document.createElement('pre');
+            eventPre.textContent = JSON.stringify(event, null, 2);
+            eventPre.style.borderLeft = `5px solid ${color}`;  // Color left border of each event
+            keyDiv.appendChild(eventPre);
+        });
+
+        notesModalContent.appendChild(keyDiv);
+    });
+
+        // Ensure the panic button is always at the bottom
+        if (panicContainer) {
+        notesModalContent.parentNode.appendChild(panicContainer);
+    }
+
+    console.log('Checking button after loadStoredEvents:');
+    console.log(document.getElementById('downloadDataBtn'));
+}
+
+document.getElementById('wipeStorageBtn').onclick = function () {
+    if (confirm('⚠️ Are you sure you want to delete ALL your previous activity on this domain? This action cannot be undone.')) {
+        if (confirm('❗️ Are you 100% sure?\n\n\
+This will permanently wipe all your previous activity!\n\n\
+You can still go back by clicking CANCEL button and export your history via showHistory which you can find on the bottom of the page.\n\n\
+This was your last warning! By clicking OK, you will wipe your previous interactions with this page.')) {
+            localStorage.clear();
+            alert('All data has been erased.');
+            location.reload();  // Reload to reflect changes
+        } else {
+            alert('Wipe cancelled.');
+        }
+    } else {
+        alert('Wipe cancelled.');
+    }
+};
+
+// Show the modal with sorted notes
+document.getElementById("showHistoryBtn").onclick = function () {
+    loadStoredEvents();
+    const modal = document.getElementById('notesModal');
+    modal.style.display = 'block';
+    console.log('Modal visibility:', modal.style.display);
+};
+
+// Close modal when clicking outside the content
+document.getElementById('notesModal').onclick = function (event) {
+    if (event.target === this) {
+        this.style.display = 'none';
+    }
+};
+
+
+function updatePreview() {
+    const userInput = document.getElementById('userMessage').value;
+    const previewArea = document.getElementById('previewArea');
+
+    // Use Marked.js to parse markdown input
+    const parsedMarkdown = marked.parse(userInput);
+
+    // Render the parsed markdown in the preview area
+    previewArea.innerHTML = parsedMarkdown;
+}
+
+function downloadData() {
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('HEX'));
+    let allData = {};
+
+    keys.forEach(key => {
+        const storedData = JSON.parse(localStorage.getItem(key));
+        allData[key] = storedData;
+    });
+
+    const dataStr = JSON.stringify(allData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `account_data_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Button exists:', document.getElementById('downloadDataBtn'));
+    const btnStyle = getComputedStyle(document.getElementById('downloadDataBtn'));
+    console.log('Button visibility:', btnStyle.display, btnStyle.visibility);
+});
+
+
+// download the user data in .JSON
+document.addEventListener('DOMContentLoaded', () => {
+    const downloadButton = document.getElementById('downloadDataBtn');
+    if (downloadButton) {
+        downloadButton.onclick = function () {
+            console.log('Download button clicked'); // Confirm click
+            downloadData();
+        };
+    } else {
+        console.error('Download button not found!');
+    }
+});
+
+
+document.getElementById("userMessage").oninput = function () {
+    const um = document.getElementById("userMessage").value;
+    const charCount = document.getElementById("charCount");
+    const sendMessageBtn = document.getElementById("sendMessageBtn");
+    const userMessage = document.getElementById("userMessage");
+    const maxLength = userMessage.getAttribute('maxlength');
+
+    charCount.textContent = `${um.length}/${maxLength}`;
+
+    if (um.trim().length === 0 || um.length > maxLength) {
+        sendMessageBtn.disabled = true;
+    } else {
+        sendMessageBtn.disabled = false;
+    }
+
+    if (um.length >= maxLength) {
+        userMessage.style.borderBottom = '5px solid red';
+    } else {
+        userMessage.style.borderBottom = '5px solid #00ff55';
+    }
+
+    adjustHeight(this);
+};
+
+document.getElementById("useDefaultRelaysBtn").onclick = function () {
+    document.getElementById('relayWarning').style.display = 'none';
+    setRelays([
+    "wss://relay.nostr.band",
+    "wss://relay.damus.io",
+    "wss://njump.me",
+    "wss://relay.snort.social",
+    "wss://nos.lol"
+    ]);
+};
+
+document.getElementById("acceptBtn").onclick = function () {
+    storePrivateKey = true;
+    document.getElementById('privateKeyModal').style.display = 'none';
+    localStorage.setItem('store_private_key', storePrivateKey);
+    localStorage.setItem('nostr_pk', pk);
+};
+
+document.getElementById("declineBtn").onclick = function () {
+    storePrivateKey = false;
+    document.getElementById('privateKeyModal').style.display = 'none';
+    localStorage.setItem('store_private_key', storePrivateKey);
+};
+
+
+
+// Load keys and set dynamic content based on URL parameters
+loadKeys();
+setDynamicContent();
+updateAvatar();
+
+
+// Show the modal on first load
+if (!localStorage.getItem('privateKeyAsked')) {
+    document.getElementById('privateKeyModal').style.display = 'block';
+    localStorage.setItem('privateKeyAsked', 'true');
+}
+
+</script>
+<script src="footer.js"></script>       
+
+</body>
+
+</html>
