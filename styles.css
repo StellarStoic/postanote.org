@@ -101,8 +101,8 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     position: relative;
     top: 30px;
     left: 15px;
-    width: 100px;  /* Adjust size as needed */
-    height: 100px;
+    width: 200px;  /* Adjust size as needed */
+    height: 200px;
     border-radius: 50%;
     cursor: pointer;
     transition: transform 0.3s ease;
@@ -110,6 +110,17 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 
 .avatar-icon:hover {
     transform: scale(1.1);  /* Slight zoom on hover */
+}
+
+.nostr-name {
+    position:static;
+    font-size: 1rem;  /* Slightly larger text */
+    width: auto;
+    text-align: center;  /* Centered below the avatar */
+    margin-top: -10px;  /* Space between avatar and name */
+    color: #a6a6a6;  /* Neutral dark color */
+    padding: 2px 5px;  /* Optional: Adds some padding around the text */
+    border-radius: 4px;  /* Optional: Rounds the edges of the background */
 }
 
 /* #imageUploadIcon {

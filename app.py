@@ -38,7 +38,7 @@ def update_nostr_json():
 
         # Create LNURLP file for each new name
         for name, pubkey in data['names'].items():
-            lnurlp_content =  '''{"callback":"https://livingroomofsatoshi.com/api/v1/lnurl/payreq/2ef0b1ef-ec6e-43b0-ba78-90f7c59cc95f","maxSendable":100000000000,"minSendable":1000,"metadata":[["text/plain","Pay to Wallet of Satoshi user: latterswiss19"],["text/identifier","By zapping me you are supporting the postanote.org project. Thank you"]],"commentAllowed":32,"tag":"payRequest","allowsNostr": true,"nostrPubkey":"be1d89794bf92de5dd64c1e60f6a2c70c140abac9932418fee30c5c637fe9479"}'''
+            lnurlp_content =  '''{"callback":"https://livingroomofsatoshi.com/api/v1/lnurl/payreq/2ef0b1ef-ec6e-43b0-ba78-90f7c59cc95f","maxSendable":100000000000,"minSendable":1000,"metadata":"[[\"text/plain\",\"We're grateful for your kindness in supporting the postanote.org project through the received Zaps. Your generosity will make a positive impact on this initiative.\"],[\"text/identifier\",\"latterswiss19@walletofsatoshi.com\"]]","commentAllowed":32,"tag":"payRequest","allowsNostr":true,"nostrPubkey":"be1d89794bf92de5dd64c1e60f6a2c70c140abac9932418fee30c5c637fe9479"}'''
 
             # Ensure lnurlp directory exists
             os.makedirs(LNURLP_DIR, exist_ok=True)
