@@ -175,8 +175,8 @@ function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
         f: params.get('f') || '',  // Font selection parameter
-        t: params.get('t') || 'Decentralize and empower', // Title
-        s: params.get('s') || 'Share your vision', // Subtitle
+        t: params.get('t') || 'Freedom to Speak', // Title
+        s: params.get('s') || 'No Names. Just Unfiltered Truth', // Subtitle
         m: params.get('m') || '', // Message
         h: params.get('h') ? params.get('h').split(',').filter(Boolean) : [], // Hashtag
         r: params.get('r') ? params.get('r').split(',') : [], // Relay
