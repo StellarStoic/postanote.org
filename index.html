@@ -303,6 +303,9 @@ async function generateNewKeys() {
     await updateNostrJson(randomName, pub);
     
     updateAvatar();
+
+    // --- Force modal display regardless of the state ---
+    localStorage.removeItem('privateKeyAsked');  // Clear flag so modal always shows
     document.getElementById('privateKeyModal').style.display = 'block';
     console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
 
