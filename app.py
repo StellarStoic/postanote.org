@@ -23,6 +23,11 @@ def update_nostr_json():
                 existing_data = json.load(f)
         except FileNotFoundError:
             existing_data = {"names": {}}
+            
+        # Overwrite Protection - Check if name exists
+        for name, pubkey in data['names'].items():
+            if name in existing_data['names']:
+                return jsonify({"error": f"Name '{name}' already exists and cannot be overwritten."}), 409
 
         # Update nostr.json with new names/pubkeys
         existing_data['names'].update(data['names'])
@@ -39,6 +44,11 @@ def update_nostr_json():
             os.makedirs(LNURLP_DIR, exist_ok=True)
 
             lnurlp_path = os.path.join(LNURLP_DIR, name)
+            
+            # Overwrite Protection - Check if LNURLP file exists
+            if os.path.exists(lnurlp_path):
+                return jsonify({"error": f"LNURLP for '{name}' already exists."}), 409
+            
             with open(lnurlp_path, 'w') as lnurlp_file:
                 json.dump(lnurlp_content, lnurlp_file, indent=2)
 
