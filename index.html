@@ -347,8 +347,8 @@ async function postMetadata() {
     localStorage.setItem('nostr_name', name);
     }
 
-    const nostrName = `_@postanote.org`;  // Create nip05 address
-    // const nostrName = `${name.toLowerCase()}@postanote.org`;  // Create nip05 address <- Future unique names added to the .well-known folder
+    // const nostrName = `_@postanote.org`;  // Create nip05 address
+    const nostrName = `${name.toLowerCase()}@postanote.org`;  // Create nip05 address <- Future unique names added to the .well-known folder
     const currentTime = Math.floor(Date.now() / 1000);
 
     // Metadata structure
