@@ -118,7 +118,7 @@ const avatarStyles = {
     12: "fun-emoji",
     13: "icons",
     14: "identicon",
-    15: "initials",
+    15: "rings",
     16: "lorelei",
     17: "lorelei-neutral",
     18: "micah",
@@ -133,17 +133,26 @@ const avatarStyles = {
     27: "thumbs",
     28: "dylan",
     29: "glass",
-    30: "rings",
+    // 30: "initials",
 };
 
 // Function to generate DiceBear avatar URL from public key
 function getAvatarUrl(pubkey) {
-    const { a } = getQueryParams(); // Get avatar style from URL
-    const seed = encodeURIComponent(pubkey); // Use the public key directly as the seed
+    const storedAvatarUrl = localStorage.getItem("avatar_url");
 
-    // Determine avatar style from URL or fallback to croodles
-    const avatarStyle = avatarStyles[a] || "croodles"; // Fallback to croodles if invalid
+    // If avatar exists in localStorage, return it
+    if (storedAvatarUrl) {
+        return storedAvatarUrl;
+    }
 
+    // Otherwise, get avatar style from query parameters (for new IDs)
+    const { a } = getQueryParams(); 
+    const seed = encodeURIComponent(pubkey);
+
+    // Determine avatar style or fallback to croodles
+    const avatarStyle = avatarStyles[a] || "croodles";
+
+    // Return generated URL
     return `https://api.dicebear.com/9.x/${avatarStyle}/svg?seed=${seed}`;
 }
 
@@ -298,6 +307,9 @@ var h2b = (h) =>
     relaySubscriptions = [];
 
 async function generateNewKeys() {
+    // Clear existing avatar URL to ensure a new one is generated
+    localStorage.removeItem("avatar_url");
+
     pk = b2h(utils.randomPrivateKey());
     pub = nobleSecp256k1.getPublicKey(pk, true).substring(2);
 
@@ -611,19 +623,27 @@ document.getElementById("avatarIcon").onclick = function () {
 };
 
 function checkIfPostsExist() {
-    const keys = Object.keys(localStorage).filter((key) =>
-        key.startsWith("HEX")
-    );
-    let hasPosts = false;
+    const currentPubKey = localStorage.getItem("nostr_pub");
+    if (!currentPubKey) {
+        console.log("No current pubkey found.");
+        return false;
+    }
 
-    keys.forEach((key) => {
-        const storedData = JSON.parse(localStorage.getItem(key));
-        if (storedData.events && storedData.events.length > 0) {
-            hasPosts = true;
-        }
-    });
+    const fileName = `HEX${currentPubKey}.json`;
+    const storedData = localStorage.getItem(fileName);
+    if (!storedData) {
+        console.log("No entry found for current pubkey.");
+        return false;
+    }
 
-    return hasPosts;
+    const parsedData = JSON.parse(storedData);
+    if (parsedData.events && parsedData.events.length > 0) {
+        console.log("Events found for current pubkey.");
+        return true;
+    } else {
+        console.log("No events found for this account.");
+        return false;
+    }
 }
 
 // Hashing the content to prevent posting duplicates
@@ -889,6 +909,11 @@ function loadStoredEvents() {
         const storedPk = storedData.pk;
         const pubkey = key.replace("HEX", "");
 
+        // Extract nostr_name from the first event, fallback if not available
+        const nostrName = events.length > 0
+            ? events[0].nostr_name || "Unknown Nostr User"
+            : "Unknown Nostr User";
+
         // Attach public key and color to each identity
         if (events.length > 0) {
             const latestTimestamp = Math.max(
@@ -900,6 +925,7 @@ function loadStoredEvents() {
                 pk: storedPk,
                 color: generateColorFromPubKey(pubkey),
                 latestTimestamp: latestTimestamp,
+                nostrName: nostrName,  // Attach nostr_name from the first event
             });
         }
     });
@@ -909,11 +935,12 @@ function loadStoredEvents() {
 
     // Display each identity and its sorted notes
     allIdentities.forEach((identity) => {
-        const { pubkey, events, pk, color } = identity;
+        const { pubkey, events, pk, color, nostrName } = identity;
 
         // Create div for this identity
         const keyDiv = document.createElement("div");
-        keyDiv.innerHTML = `<h5>(${events.length}) Notes from ${pubkey}</h5>`;
+        keyDiv.innerHTML = `<h5>(${events.length}) posted notes as ${nostrName}@postanote.org\n
+${pubkey}</h5>`;
         keyDiv.style.color = color;
 
         // Add private key span right after the identity label
