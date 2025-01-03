@@ -306,6 +306,7 @@ async function generateNewKeys() {
     localStorage.setItem("nostr_pub", pub);
     localStorage.setItem("avatar_url", avatarUrl); // Store avatar URL
     localStorage.setItem("nostr_name", randomName); // Store the generated name
+    localStorage.setItem("acc_created_at", Math.floor(Date.now() / 1000)); // Store current account birthday
 
     // Store in HEX.json for record keeping
     const fileName = `HEX${pub}.json`;
@@ -330,6 +331,7 @@ async function generateNewKeys() {
     localStorage.removeItem("privateKeyAsked"); // Clear flag so modal always shows
     document.getElementById("privateKeyModal").style.display = "block";
     console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
+    console.log(localStorage.getItem("acc_created_at"));
 
     // Clear URL parameters and refresh the page
     clearUrlAndReload();
@@ -532,32 +534,14 @@ function checkIfPostsExist() {
     }
 }
 
-// Pull created_at from the Most Recent Event:
+// Get Account Creation Time from acc_created_at (not event-based)
 function getAccountCreationTime() {
-    const currentPubKey = localStorage.getItem("nostr_pub");
-    if (!currentPubKey) return null;
-
-    const fileName = `HEX${currentPubKey}.json`;
-    const storedData = localStorage.getItem(fileName);
-
-    if (!storedData) return null;
-
-    let parsedData;
-    try {
-        parsedData = JSON.parse(storedData);
-    } catch (error) {
-        console.error("Error parsing stored data:", error);
+    const accountCreationTime = localStorage.getItem("acc_created_at");
+    if (!accountCreationTime) {
+        console.log("No account creation time found in localStorage.");
         return null;
     }
-
-    // If events exist, get the earliest event timestamp
-    if (parsedData.events && parsedData.events.length > 0) {
-        const firstEvent = parsedData.events[0];
-        return firstEvent.created_at || null; // Use the created_at from the first post
-    }
-
-    // Fallback if no events
-    return parsedData.created_at || null;
+    return parseInt(accountCreationTime, 10);  // Ensure it's an integer
 }
 
 // checks the age of the current account.
@@ -571,7 +555,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 21000 - ageInSeconds;
+    const remainingSeconds = 21000 - ageInSeconds; // 350 minutes = 21000 seconds
 
     console.log("Account Age (seconds):", ageInSeconds);
     console.log(
@@ -588,9 +572,10 @@ document.getElementById("avatarIcon").onclick = function () {
     const hasPosts = checkIfPostsExist();
     const remainingMinutes = checkAccountAge();
 
-    // console.log("Remaining Minutes:", remainingMinutes);  // Debugging
+    console.log("Remaining Minutes:", remainingMinutes);  // Debugging
     console.log("Has Posts:", hasPosts); // Debugging
 
+    // Check if account is too new
     if (remainingMinutes > 0 && remainingMinutes < 21000000) {
         alert(
             `Your account is too new to generate a new ID. Please retry after ${remainingMinutes} minute(s).`
