@@ -195,6 +195,8 @@ document.getElementById("avatarIcon").onclick = function () {
     }
 };
 
+const randomAvatarStyle = Math.floor(Math.random() * Object.keys(avatarStyles).length) + 1;
+
 function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
@@ -207,7 +209,8 @@ function getQueryParams() {
         l: parseInt(params.get("l")) || 280, // Length of a message
         b: params.get("b") || "", // Background
         p: params.get("p") || "", // Prohibit or Priv key signing note only 1 time
-        a: parseInt(params.get("a")) || 1, // Avatar style (defaults to 1)
+        // a: parseInt(params.get("a")) || 1, // Avatar style (defaults to 1)
+        a: parseInt(params.get("a")) || randomAvatarStyle // Avatar style (defaults to random)
     };
 }
 
@@ -656,7 +659,7 @@ document.getElementById("sendMessageBtn").onclick = async () => {
     // 1. Prevent Posting Without ID
     if (!localStorage.getItem("nostr_pk")) {
         alert(
-            "No private key found. please generate a new ID with pressing OK btn."
+            "No private key found. please generate a new ID by pressing OK btn."
         );
         generateNewKeys(); // Regenerate the key if needed
         return; // Stop execution if no key is present
