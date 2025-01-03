@@ -173,6 +173,12 @@ function updateNostrNameDisplay() {
     }
 }
 
+function applyRandomTiltForNostrName() {
+    const nostrName = document.getElementById('nostrNameDisplay');
+    const randomTilt = Math.floor(Math.random() * 31) - 15;  // Tilt between -30 to 30 degrees
+    nostrName.style.transform = `rotate(${randomTilt}deg)`;
+}
+
 
 // OnClick - Handle ID Change with Confirmation
 document.getElementById("avatarIcon").onclick = function () {
@@ -1133,7 +1139,11 @@ document.getElementById("declineBtn").onclick = function () {
 };
 
 
-document.addEventListener("DOMContentLoaded", updateNostrNameDisplay);
+// Apply tilt after name update
+document.addEventListener('DOMContentLoaded', () => {
+    updateNostrNameDisplay();
+    applyRandomTiltForNostrName();
+});
 
 // Load keys and set dynamic content based on URL parameters
 loadKeys();

@@ -100,12 +100,12 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 .avatar-icon { /* avatar */
     position: relative;
     top: 30px;
-    left: 15px;
-    width: 200px;  /* Adjust size as needed */
-    height: 200px;
+    /* left: 15px; */
+    width: 160px;  /* Adjust size as needed */
+    height: 160px;
     border-radius: 50%;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: transform 0.7s ease;
 }
 
 .avatar-icon:hover {
@@ -113,14 +113,18 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 }
 
 .nostr-name {
-    position:static;
-    font-size: 1rem;  /* Slightly larger text */
-    width: auto;
-    text-align: center;  /* Centered below the avatar */
-    margin-top: -10px;  /* Space between avatar and name */
-    color: #a6a6a6;  /* Neutral dark color */
-    padding: 2px 5px;  /* Optional: Adds some padding around the text */
-    border-radius: 4px;  /* Optional: Rounds the edges of the background */
+    position: relative;
+    display: block;
+    max-width: fit-content;
+    background-color: #0202025a;
+    font-size: 0.8rem;
+    color: #bdbdbd;
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.729);
+    z-index: 2;
+    transition: 1s ease-in; 
 }
 
 /* #imageUploadIcon {
