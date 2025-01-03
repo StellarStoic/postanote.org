@@ -81,7 +81,7 @@
 
     <div class="maker-title-and-what">
         <div class="maker-title">
-            <h1><span style="font-size: 1rem;">postanote.org </span> URL Maker</h1>
+            <h1><span style="font-size: 0.9rem;">postanote.org </span> URL Maker</h1>
         </div>
         <div class="maker-subtitle">
             <h3 id="toggle-description">What this tool does?</h3>
@@ -180,6 +180,15 @@
     <hr class="hrLine">
 
     <div class="form-group">
+        <label for="include_p">
+            Add longer text (p) <input type="checkbox" id="include_p">
+        </label>
+        <textarea id="p_input" placeholder="Let me tell you a story..." disabled></textarea>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
         <label for="include_message">
             Include Fixed Custom Message <input type="checkbox" id="include_message">
         </label>
@@ -193,14 +202,14 @@
         <input type="number" id="characters_input" placeholder="(1-5000)" min="1" max="5000" disabled>
     </div>
 
-    <hr class="hrLine">
+    <!-- <hr class="hrLine">
 
     <div class="form-group">
         <label for="prevent_reuse">
             Prevent Reusing IDs
             <input type="checkbox" id="prevent_reuse" title="This will prevent posting notes more than 1 time per pubKey. Use with caution because it deletes the current privKey from local storage">
         </label>
-    </div>
+    </div> -->
 
     <hr class="hrLine">
 
@@ -251,15 +260,17 @@
         const fontModal = document.getElementById('font-modal');
         const fontGrid = document.getElementById('font-grid');
         let selectedFontIndex = localStorage.getItem('selectedFontIndex') || null;
-        const preventReuseCheckbox = document.getElementById('prevent_reuse');  // Get the checkbox
+        // const preventReuseCheckbox = document.getElementById('prevent_reuse');  // Get the checkbox
         const ntagRadios = document.querySelectorAll('input[name="ntag_type"]');
         const includeH1Checkbox = document.getElementById('include_h1');
         const includeH3Checkbox = document.getElementById('include_h3');
+        const include_p_Checkbox = document.getElementById('include_p');
         const includeMessageCheckbox = document.getElementById('include_message');
         const includeRelaysCheckbox = document.getElementById('include_relays');
         const customCharactersCheckbox = document.getElementById('custom_characters');
         const h1Input = document.getElementById('h1_input');
         const h3Input = document.getElementById('h3_input');
+        const p_Input = document.getElementById('p_input');
         const messageInput = document.getElementById('message_input');
         const charactersInput = document.getElementById('characters_input');
         const hashtagInputs = [document.getElementById('hashtag1'), document.getElementById('hashtag2'), document.getElementById('hashtag3')];
@@ -445,6 +456,17 @@ function resetAvatar() {
     updateURL();
 }
 
+        include_p_Checkbox.addEventListener('change', function () {
+            p_Input.disabled = !this.checked;
+            if (this.checked) {
+                p_Input.style.height = '60vh';  // Resize input box to a larger height
+                p_Input.style.width = '95%';     // Optional: Adjust width for better input
+            } else {
+                p_Input.style.height = 'auto';   // Reset to default size
+                p_Input.style.width = '50%';
+            }
+        });
+
         // Font selection logic
         includeFontCheckbox.addEventListener('change', function () {
             if (this.checked) {
@@ -530,21 +552,41 @@ function resetAvatar() {
             updateURL();
         });
 
+        include_p_Checkbox.addEventListener('change', function () {
+            p_Input.disabled = !this.checked;
+            updateURL();
+        });
+
         includeMessageCheckbox.addEventListener('change', function () {
         const isChecked = this.checked;
         messageInput.disabled = !isChecked;
-        customCharactersCheckbox.disabled = isChecked; // Disable the checkbox for custom characters
-        charactersInput.disabled = isChecked; // Also disable the input for character limit if message is included
 
         if (isChecked) {
-            customCharactersCheckbox.checked = false; 
-            warningMessage.textContent = 'Characters limit is disabled when a fixed custom message is included.';
-            warningMessage.style.color = 'orange';
-            warningMessage.style.fontSize = '0.6rem';  // Adjust font size here (e.g., 1rem, 16px, etc.)
-            scrollToMessage(warningMessage);  // Scroll to warning message
+        messageInput.style.height = '40vh';  // Expand height when enabled
+        messageInput.style.width = '95%';    // Widen for easier input
+        messageInput.style.verticalAlign = 'top';
         } else {
-            warningMessage.textContent = '';
+            messageInput.style.height = 'auto';  // Shrink when disabled
+            messageInput.style.width = '50%';
         }
+
+        customCharactersCheckbox.disabled = isChecked; // Disable the checkbox for custom characters
+        customCharactersCheckbox.disabled = isChecked; // Also disable the input for character limit if message is included
+        charactersInput.disabled = isChecked;
+
+        if (isChecked) {
+            customCharactersCheckbox.checked = false;
+        }
+
+        // if (isChecked) {
+        //     customCharactersCheckbox.checked = false; 
+        //     warningMessage.textContent = 'Characters limit is disabled when a fixed custom message is included.';
+        //     warningMessage.style.color = 'orange';
+        //     warningMessage.style.fontSize = '0.6rem';  // Adjust font size here (e.g., 1rem, 16px, etc.)
+        //     scrollToMessage(warningMessage);  // Scroll to warning message
+        // } else {
+        //     warningMessage.textContent = '';
+        // }
 
         updateURL();
     });
@@ -562,17 +604,17 @@ function resetAvatar() {
     });
 
 
-    preventReuseCheckbox.addEventListener('change', function () {
-    if (this.checked) {
-        warningMessage.textContent = 'Be careful with this!';
-        warningMessage.style.color = 'orange';
-        warningMessage.style.fontSize = '0.6rem';
-        scrollToMessage(warningMessage);  // Scroll to warning message
-    } else {
-        warningMessage.textContent = '';  // Clear warning if unchecked
-    }
-    updateURL();
-});
+//     preventReuseCheckbox.addEventListener('change', function () {
+//     if (this.checked) {
+//         warningMessage.textContent = 'Be careful with this!';
+//         warningMessage.style.color = 'orange';
+//         warningMessage.style.fontSize = '0.6rem';
+//         scrollToMessage(warningMessage);  // Scroll to warning message
+//     } else {
+//         warningMessage.textContent = '';  // Clear warning if unchecked
+//     }
+//     updateURL();
+// });
 
 
         function initializeRelayInputs() {
@@ -611,6 +653,7 @@ function resetAvatar() {
 
         h1Input.addEventListener('input', updateURL);
         h3Input.addEventListener('input', updateURL);
+        p_Input.addEventListener('input', updateURL);
         messageInput.addEventListener('input', updateURL);
         charactersInput.addEventListener('input', updateURL);
         hashtagInputs.forEach(input => input.addEventListener('input', updateURL));
@@ -746,6 +789,14 @@ function resetAvatar() {
                 currentBytes += `s=${encodedH3Value}&`.length;
             }
 
+            // Add paragraph (p)
+            if (include_p_Checkbox.checked) {
+                const p_Value = p_Input.value;
+                const encoded_p_Value = encodeURIComponent(p_Value);
+                url += `p=${encoded_p_Value}&`;
+                currentBytes += `p=${encoded_p_Value}&`.length;
+            }
+
             // Add custom message
             if (includeMessageCheckbox.checked && !customCharactersCheckbox.checked) {
                 const messageValue = messageInput.value;
@@ -768,20 +819,20 @@ function resetAvatar() {
                 currentBytes += `l=${charactersValue}&`.length;
             }
 
-            // Add Prevent Reuse Parameter (p=1)
-            if (preventReuseCheckbox.checked) {
-                url += `p=1&`;
-                currentBytes += `p=1&`.length;
+            // // Add Prevent Reuse Parameter (p=1)
+            // if (preventReuseCheckbox.checked) {
+            //     url += `p=1&`;
+            //     currentBytes += `p=1&`.length;
 
-                // Warning for Prevent Reuse
-                warningMessage.textContent = 'Be careful with this. This prevents posting more then once by deleting private key after posting!';
-                warningMessage.style.color = 'red';
-                warningMessage.style.fontSize = '0.6rem';
-                scrollToMessage(errorMessage);  // Scroll to error message
+            //     // Warning for Prevent Reuse
+            //     warningMessage.textContent = 'Be careful with this. This prevents posting more then once by deleting private key after posting!';
+            //     warningMessage.style.color = 'red';
+            //     warningMessage.style.fontSize = '0.6rem';
+            //     scrollToMessage(errorMessage);  // Scroll to error message
 
-            } else {
-                warningMessage.textContent = '';  // Clear warning if unchecked
-            }
+            // } else {
+            //     warningMessage.textContent = '';  // Clear warning if unchecked
+            // }
 
             // Add hashtags
             const hashtags = hashtagInputs.map(input => {

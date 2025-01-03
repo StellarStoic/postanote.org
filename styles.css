@@ -64,6 +64,7 @@ h3 {
     font-size: 3rem;
 }
 
+
 h4 {
     font-family: var(--main-font);
     font-size: 2rem;
@@ -127,6 +128,29 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     transition: 1s ease-in; 
 }
 
+.customParagraph {
+    max-width: 80vw;
+}
+
+#paragraphContainer {
+    margin-bottom: 2rem;  /* Space below the paragraph and link */
+}
+
+#readMoreLink {
+    display: inline-block;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+#readMoreLink:hover {
+    color: #9e5dbc;
+    text-decoration: underline;
+}
+
 /* #imageUploadIcon {
     position: absolute;
     top: 10px;
@@ -137,7 +161,7 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 } */
 
 #messageArea {
-    position: relative;
+    position: fixed;
     width: 85%;
     max-width: 920px;
     margin: 0 auto;
@@ -204,7 +228,7 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 }
 
 textarea#userMessage {
-    width: 85%;
+    width: 75%;
     font-family:'Courier New', Courier, monospace;
     max-width: 920px;
     height: auto;
@@ -494,7 +518,7 @@ footer a:hover {
     }
 
     textarea#userMessage {
-        width: 90%;
+        width: 90vw;
         font-size: 1.3rem;
         padding: 10px;
     }
@@ -682,6 +706,7 @@ button {
 }
 
 .avatars-attribute, a{
+
     text-decoration: dashed;
 }
 
@@ -820,18 +845,40 @@ button {
 }
 
 .maker-what-text p{
-    font-size: 2.2em;
+    width: auto;
+    font-size: 1.5em;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 3em;
+    font-size: 2.5em;
     margin: 5%;
 }
 
-.form-group input[type="text"],
+textarea {
+    width: 70%;
+    height: 100px;
+    padding: 10px;
+    font-size: 1rem;
+    resize: vertical;  /* Allow only vertical resizing */
+    box-sizing: border-box;  /* Ensure padding doesn't affect size */
+    vertical-align: top;  /* Ensure text starts from the top */
+    line-height: 1.5;  /* Improve readability */
+}
+
+.form-group input[type="text"]{
+    font-family: monospace;
+    font-size: 1.6rem;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 85%;
+    max-width: 60vw;
+    /* margin-right: 20; */
+}
+
 .form-group textarea {
     font-family: monospace;
     font-size: 1.6rem;
@@ -839,7 +886,7 @@ button {
     margin-top: 10px;
     margin-bottom: 10px;
     width: 85%;
-    max-width: 550px;
+    max-width: 75vw;
     /* margin-right: 20; */
 }
 
@@ -930,6 +977,11 @@ small {
 
 
 @media (max-width: 600px) {
+
+    #textarea {
+        max-width: 90vw;
+    }
+
     .ntag-group {
         font-size: 3rem;
         display: flex;
