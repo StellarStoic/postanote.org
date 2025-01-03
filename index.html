@@ -18,6 +18,7 @@
     <!-- Web Manifest (for PWAs) -->
     <link rel="manifest" href="/img/favicon_io/site.webmanifest">    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
     <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -92,6 +93,15 @@
                 ❌ Delete All Data (Panic) ❌
             </button>
         </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;">
+    <div style="z-index: 10001; background: #fff; padding: 20px; border-radius: 8px; text-align: center;">
+        <div id="qr-code"></div>
+        <div id="qr-title">Scan with Nostr app</div>
+        <button id="close_qr_button" class="copy-button" style="background: #ff4d4d;">Close</button>
     </div>
 </div>
 
@@ -865,6 +875,53 @@ function saveEvent(event) {
     }
 }
 
+function generateQRCode(pk) {
+    const qrCodeContainer = document.getElementById("qr-code");
+    qrCodeContainer.innerHTML = "";  // Clear previous QR codes
+
+    // Generate URL for private key import (adjust as necessary)
+    const importUrl = `nostr:npub/${pk}`;
+
+    // Create QR Code using EasyQRCodeJS
+    new QRCode(qrCodeContainer, {
+        text: importUrl,
+        width: 500,
+        height: 500,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        logo: "img/QRcode_logo/nostrUniverse.png",  // Add your logo URL here
+        logoWidth: 75,
+        logoHeight: 75,
+        title: "Import private key to Nostr app",
+        // titleFont: "2em",
+        titleColor: "#000000",
+        titleBackgroundColor: "#ffffff",
+        titleHeight: 30,
+        titleTop: 15,
+    });
+
+    // Temporarily hide notesModal to avoid overlay issues
+    document.getElementById("notesModal").style.display = "none";
+
+    // Temporarily hide nostrNameDisplay
+    document.getElementById("nostrNameDisplay").style.display = "none";
+    document.getElementById('qr-modal').style.display = 'flex';
+
+    // Show QR modal
+    document.getElementById('qr-modal').style.display = 'flex';
+}
+
+// Close QR modal and restore notesModal
+document.getElementById('close_qr_button').addEventListener('click', function () {
+    document.getElementById('qr-modal').style.display = 'none';
+    
+    // Reopen the notesModal
+    document.getElementById("notesModal").style.display = "block";
+
+    // add back nostr_name
+    document.getElementById("nostrNameDisplay").style.display = "block";
+});
+
 // Function to generate bright colors from public key
 function generateColorFromPubKey(pubkey) {
     const hash = Array.from(pubkey).reduce(
@@ -943,6 +1000,13 @@ function loadStoredEvents() {
 ${pubkey}</h5>`;
         keyDiv.style.color = color;
 
+        // Create wrapper div for flex alignment
+        const pkContainer = document.createElement("div");
+        pkContainer.style.display = "flex";
+        pkContainer.style.alignItems = "center";  // Vertically align
+        pkContainer.style.justifyContent = "space-between";  // Push QR to the right
+        pkContainer.style.width = "100%";        
+
         // Add private key span right after the identity label
         if (pk) {
             const pkSpan = document.createElement("span");
@@ -952,6 +1016,20 @@ ${pubkey}</h5>`;
             pkSpan.style.cursor = "pointer";
             pkSpan.style.display = "block";
             pkSpan.style.marginTop = "10px";
+            pkSpan.style.flex = "1";  // Allow span to take up remaining space
+
+            // QR code icon
+            const qrIcon = document.createElement("img");
+            qrIcon.src = "img/QRcode_logo/qr-code-icon.png";  // Use your QR icon path
+            qrIcon.style.width = "75px";
+            qrIcon.style.cursor = "pointer";
+            qrIcon.style.marginLeft = "10px";
+            qrIcon.title = "Generate QR Code for easy import into your nostr app";
+            qrIcon.style.zIndex = "10001";
+
+            qrIcon.onclick = () => {
+                generateQRCode(pk);
+            };
 
             // Countdown span (for visual countdown)
             const countdownSpan = document.createElement("span");
@@ -997,7 +1075,12 @@ ${pubkey}</h5>`;
                 }
             };
 
-            keyDiv.appendChild(pkSpan);
+        // Append private key and QR icon to the flex container
+        pkContainer.appendChild(pkSpan);
+        pkContainer.appendChild(qrIcon);
+
+        // Append the flex container to the modal content
+        keyDiv.appendChild(pkContainer);
         }
 
         // Append each event under the identity
