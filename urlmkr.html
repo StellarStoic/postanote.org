@@ -514,6 +514,12 @@ function resetAvatar() {
 
         // Apply font dynamically
         function applyFont(index) {
+            console.log('Font List:', fontList);
+            if (!fontList || !fontList[index]) {
+                console.error('Font not found at index:', index);
+                return;
+            }
+
             const fontUrl = `https://fonts.bunny.net/css?family=${fontList[index]}`;
             const existingLink = document.querySelector('#dynamic-font');
 
@@ -672,10 +678,14 @@ function resetAvatar() {
         const relayInvalidChars = /[^a-zA-Z0-9://.-]/;
         const hashtagInvalidChars = /[^a-zA-Z0-9]/;
 
+
         function validateInput(input, area, regex) {
             const match = input.match(regex);
             if (match) {
                 errorMessage.textContent = `Invalid character detected in the ${area}: '${match[0]}' is not a valid URL character. Please remove it. # character is added programmatically for the end user`;
+                errorMessage.style.color = 'red';  // Make the error message red
+                errorMessage.style.fontSize = '0.8rem';
+                scrollToMessage(errorMessage);  // Scroll to the error message
                 return false;
             }
             return true;
