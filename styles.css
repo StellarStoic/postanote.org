@@ -334,7 +334,29 @@ pre {
 
 #eventDetails {
     width: 95%;
+    margin-bottom: 100px;
+    font-size: 0.6rem;
+}
+
+#eventDetails h3 {
     font-size: 0.7rem;
+    margin-right: 50px;
+}
+
+
+.close-event-btn {
+    display: block;
+    margin-left: 50px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: background-color 0.3s ease;
+}
+
+.close-event-btn:hover {
+    background-color: #d61111;
 }
 
 .copy-btn {
