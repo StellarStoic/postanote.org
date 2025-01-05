@@ -47,15 +47,21 @@ async function fetchNote1Event(eventId, relays, note1String) {
     let eventFetched = false;
     const paragraph = document.querySelector('#customParagraph');
 
-    // CHANGED: Immediately replace note1 string with placeholder
+    // Replace note1 string with colored placeholder
     if (paragraph.innerHTML.includes(note1String)) {
-        paragraph.innerHTML = paragraph.innerHTML.replace(note1String, '[Event catching...]');
+        paragraph.innerHTML = paragraph.innerHTML.replace(
+            note1String,
+            '<span style="color:rgb(173, 185, 143);">[Event catching...]</span>'
+        );
     }
 
-    // Timeout to replace if fetching fails
+    // Timeout to replace if fetching fails (with soft red)
     const timeoutId = setTimeout(() => {
         if (!eventFetched) {
-            paragraph.innerHTML = paragraph.innerHTML.replace('[Event catching...]', '[Event not found]');
+            paragraph.innerHTML = paragraph.innerHTML.replace(
+                '<span style="color: orange;">[Event catching...]</span>',
+                '<span style="color: #FF6347;">[Event not found]</span>'  // Soft red (Tomato color)
+            );
         }
     }, 10000);  // 10-second timeout for fallback
 
@@ -127,10 +133,10 @@ async function toggleLike(eventId, pubkey) {
         kind: 7,
         tags: [
             ["e", eventId],  // Event ID being liked
-            ["p", pubkey],   // Pubkey of the event creator
-            ["emoji", "+"]
+            ["p", pubkey]   // Pubkey of the event creator
+            // ["emoji", "+"]
         ],
-        content: ""
+        content: "+"
     };
 
     // Sign and Send the Event
@@ -241,21 +247,67 @@ function propagateReaction(event) {
     // Use relays from URL if they exist; fallback to default relays
     const relayList = relayParam.length ? relayParam : defaultRelays;
 
-    relayList.forEach(relay => {
+    let relaysTried = 0;
+    let relaysFailed = 0;
+
+    for (const relay of relayList) {
         try {
             const socket = new WebSocket(relay);
 
             socket.onopen = () => {
                 socket.send(JSON.stringify(["EVENT", event]));
                 console.log(`Reaction propagated to ${relay}`);
-                socket.close();
+            };
+
+            socket.onmessage = (message) => {
+                const data = JSON.parse(message.data);
+                console.log(`Relay response from ${relay}:`, data);
+
+                // Check if relay returned 'OK' and propagate to others if not
+                if (data[0] === 'OK' && data[2] === true) {
+                    socket.close();
+                } else {
+                    relaysFailed++;
+                }
             };
 
             socket.onerror = (error) => {
                 console.error(`Failed to send reaction to ${relay}:`, error);
+                relaysFailed++;
             };
+
+            socket.onclose = () => {
+                relaysTried++;
+                console.log(`Connection to ${relay} closed.`);
+                // Retry default relays if all custom relays fail
+                if (relaysTried === relayList.length && relaysFailed > 0) {
+                    console.warn("All custom relays failed. Retrying with default relays...");
+                    fallbackToDefaultRelaysForReactions(event);
+                }
+            };
+
         } catch (error) {
             console.error(`WebSocket Error for ${relay}:`, error);
+            relaysFailed++;
+        }
+    }
+}
+
+// Fallback to Default Relays if Custom Relays Fail
+function fallbackToDefaultRelaysForReactions(event) {
+    defaultRelays.forEach(relay => {
+        try {
+            const socket = new WebSocket(relay);
+            socket.onopen = () => {
+                socket.send(JSON.stringify(["EVENT", event]));
+                console.log(`Reaction propagated to default relay: ${relay}`);
+                socket.close();
+            };
+            socket.onerror = (error) => {
+                console.error(`Default relay failed: ${relay}`, error);
+            };
+        } catch (error) {
+            console.error(`Error sending to default relay ${relay}:`, error);
         }
     });
 }
