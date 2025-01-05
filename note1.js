@@ -137,9 +137,11 @@ async function toggleLike(eventId, pubkey) {
     const signedEvent = await signEvent(reactionEvent, privateKey);
     propagateReaction(signedEvent);
 
-    // CHANGED: Always switch to the "liked" icon
+    // CHANGED: Disable the like button after liking
     likeIcon.src = "img/othrIcon/like_1.png";
-    likeIcon.dataset.liked = "true";  // Set as liked
+    likeIcon.dataset.liked = "true";
+    likeIcon.style.pointerEvents = "none";  // Disable clicks
+    likeIcon.title = "Already Liked";
 }
 
 // CHANGED: Update liked events in localStorage (persistent)
@@ -169,6 +171,7 @@ function syncLikedEventsToHex(publicKey) {
 
     // Retrieve liked events from localStorage
     const likedEvents = JSON.parse(localStorage.getItem("liked_events")) || [];
+    console.log("Liked Events in localStorage:", likedEvents);
 
     // Merge liked events back into HEX file
     data.likedEvents = likedEvents;
@@ -221,8 +224,9 @@ function saveEvent(event) {
     data.events.push(event);
 
     // Preserve liked events by syncing them back
-    const likedEvents = JSON.parse(localStorage.getItem("liked_events")) || [];
-    data.likedEvents = likedEvents;
+    data.likedEvents = data.likedEvents || [];
+    const localLikedEvents = JSON.parse(localStorage.getItem("liked_events")) || [];
+    data.likedEvents = [...new Set([...data.likedEvents, ...localLikedEvents])];
 
     // Save updated HEX file
     localStorage.setItem(fileName, JSON.stringify(data));
@@ -299,9 +303,37 @@ function displayNote1Event(eventData, note1String) {
             </div>
         </div>
     `;
+    
 
-    paragraph.innerHTML = `${beforeNote}${noteBox}${afterNote}`;
-}
+    // Update paragraph with fetched event
+    paragraph.innerHTML = pContent.replace('[Event catching...]', noteBox);
+
+    // Ensure likes are applied after event is displayed
+    markLikedEvents();
+
+    }
+
+    // Apply liked events to icons after display
+    function markLikedEvents() {
+        const publicKey = localStorage.getItem("nostr_pub");
+        const fileName = `HEX${publicKey}.json`;
+        const storedData = localStorage.getItem(fileName);
+    
+        if (storedData) {
+            const data = JSON.parse(storedData);
+            if (data.likedEvents) {
+                data.likedEvents.forEach(eventId => {
+                    const likeIcon = document.getElementById(`like-icon-${eventId}`);
+                    if (likeIcon) {
+                        likeIcon.src = "img/othrIcon/like_1.png";
+                        likeIcon.dataset.liked = "true";
+                        likeIcon.style.pointerEvents = "none";  // Disable clicks
+                        likeIcon.title = "Already Liked";
+                    }
+                });
+            }
+        }
+    }
 
 // Toggle function for showing/hiding JSON details
 function toggleDetails(eventId) {
@@ -326,19 +358,27 @@ document.addEventListener('click', (event) => {
     });
 });
 
-// On page load, extract and handle note1 from the p= attribute
+// On page load, extract and handle note1 from the p= attribute and if there's no note1 string display p= as is
 window.onload = () => {
     const params = new URLSearchParams(window.location.search);
     const pValue = params.get('p') || '';
     const relayParam = params.getAll('r');
+    
+    const customParagraph = document.getElementById('customParagraph');
 
-    const result = decodeNote1(pValue);
-    if (result) {
-        const { eventId, note1String } = result;
-        fetchNote1Event(eventId, relayParam, note1String);
+    if (!pValue.includes('note1')) {
+        // No note1 string, simply display the paragraph as normal
+        customParagraph.textContent = pValue || "Welcome to NostrPostr!";
     } else {
-        const customParagraph = document.getElementById('customParagraph');
-        if (customParagraph) {
+        const note1Matches = pValue.match(/note1\w+/g) || [];
+        if (note1Matches.length > 0) {
+            note1Matches.forEach(note1String => {
+                const { eventId } = decodeNote1(note1String) || {};
+                if (eventId) {
+                    fetchNote1Event(eventId, relayParam, note1String);
+                }
+            });
+        } else {
             customParagraph.textContent = "No valid note1 found in URL.";
         }
     }
@@ -353,13 +393,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (storedData) {
         const data = JSON.parse(storedData);
         if (data.likedEvents) {
-            data.likedEvents.forEach(eventId => {
-                const likeIcon = document.getElementById(`like-icon-${eventId}`);
-                if (likeIcon) {
-                    likeIcon.src = "img/othrIcon/like_1.png";
-                    likeIcon.dataset.liked = "true";
-                }
-            });
+            setTimeout(() => {
+                data.likedEvents.forEach(eventId => {
+                    const likeIcon = document.getElementById(`like-icon-${eventId}`);
+                    if (likeIcon) {
+                        likeIcon.src = "img/othrIcon/like_1.png";
+                        likeIcon.dataset.liked = "true";
+                    }
+                });
+            }, 500);  // 500ms delay);
         }
     }
 });
