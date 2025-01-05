@@ -556,7 +556,8 @@ function loadKeys() {
         updateAvatar();
         console.log("Keys and avatar loaded from storage.");
     } else {
-        generateNewKeys();
+        // generateNewKeys();
+        console.log("No keys in localStorage. Keys must be generated separately.");
     }
 }
 
@@ -803,8 +804,8 @@ document.getElementById("sendMessageBtn").onclick = async () => {
     // 5. Show New Event Details
     eventDetails.innerHTML += `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3>Note Details</h3>
                 <button class="close-event-btn" onclick="closeEventSentDetails()" title="Close this section">❌</button>
+                <h3>Event Details</h3>
             </div>
             <pre>${JSON.stringify(sev, null, 2)}</pre>
             <div style="display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
@@ -1281,7 +1282,7 @@ loadKeys();
 setDynamicContent();
 updateAvatar();
 
-// check if keys already exist:
+// Prevent key generation from happening twice
 document.addEventListener('DOMContentLoaded', () => {
     const pkExists = localStorage.getItem("nostr_pk");
     const pubExists = localStorage.getItem("nostr_pub");
@@ -1291,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("No existing keys found. Generating new keys...");
         generateNewKeys();
     } else {
-        // If keys exist, load them and don't prompt for key storage
+        // If keys exist, load them
         loadKeys();
         console.log("Existing keys loaded.");
     }
