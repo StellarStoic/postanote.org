@@ -405,15 +405,6 @@ async function generateNewKeys() {
     // clearUrlAndReload();
 }
 
-// Fallback - Generate random string for errors
-function generateRandomFallback() {
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    return Array.from(
-        { length: 10 },
-        () => chars[Math.floor(Math.random() * chars.length)]
-    ).join("");
-}
-
 // Function to generate random name from adjectives and nouns
 async function generateRandomName() {
     try {
@@ -1290,11 +1281,21 @@ loadKeys();
 setDynamicContent();
 updateAvatar();
 
-// Show the modal on first load
-if (!localStorage.getItem("privateKeyAsked")) {
-    document.getElementById("privateKeyModal").style.display = "block";
-    localStorage.setItem("privateKeyAsked", "true");
-}
+// check if keys already exist:
+document.addEventListener('DOMContentLoaded', () => {
+    const pkExists = localStorage.getItem("nostr_pk");
+    const pubExists = localStorage.getItem("nostr_pub");
+
+    if (!pkExists || !pubExists) {
+        // If no keys exist, generate new ones
+        console.log("No existing keys found. Generating new keys...");
+        generateNewKeys();
+    } else {
+        // If keys exist, load them and don't prompt for key storage
+        loadKeys();
+        console.log("Existing keys loaded.");
+    }
+});
 
 
 </script>
