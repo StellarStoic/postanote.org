@@ -204,20 +204,20 @@ function applyRandomTiltForNostrName() {
 }
 
 
-// OnClick - Handle ID Change with Confirmation
-document.getElementById("avatarIcon").onclick = function () {
-    if (
-        confirm(
-            "Are you sure you want to generate a new ID? This will replace your current one."
-        )
-    ) {
-        generateNewKeys();
-        // updateAvatar();
-        alert("New ID generated.");
-    } else {
-        alert("Cancelled.");
-    }
-};
+// // OnClick - Handle ID Change with Confirmation
+// document.getElementById("avatarIcon").onclick = function () {
+//     if (
+//         confirm(
+//             "Are you sure you want to generate a new ID? This will replace your current one."
+//         )
+//     ) {
+//         generateNewKeys();
+//         // updateAvatar();
+//         alert("New ID generated.");
+//     } else {
+//         alert("Cancelled.");
+//     }
+// };
 
 const randomAvatarStyle = Math.floor(Math.random() * Object.keys(avatarStyles).length) + 1;
 
@@ -309,6 +309,16 @@ function setDynamicContent() {
         document.body.style.backgroundImage = `url('img/background/${backgroundImages[b]}')`;
         document.body.style.backgroundRepeat = "repeat";
     }
+
+    // if (sendMessageBtn.disabled) {
+    // sendMessageBtn.title = "Please use this tool with custom websites and not random posting";
+    // }
+
+    if (!urlParams.toString()) {
+    sendMessageBtn.title = "Send button disabled. Build s custom website with URLmkr tool for posting.";
+    avatarIcon.title = "Avatar disabled. ID change is only allowed on custom websites. Build one with URLmkr";
+}
+
 }
 
 function setRelays(customRelays) {
@@ -618,7 +628,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 86 - ageInSeconds; // 24h
+    const remainingSeconds = 86400 - ageInSeconds; // 24h
     // const remainingSeconds = 86400 - ageInSeconds; // 24h
 
     console.log("Account Age (seconds):", ageInSeconds);
@@ -633,35 +643,44 @@ function checkAccountAge() {
 
 // Avatar click handler with countdown message
 document.getElementById("avatarIcon").onclick = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Block new ID generation without URL parameters
+    if (!urlParams.toString()) {
+        alert("Cannot generate new ID if not used with custom sites.");
+        return;
+    }
+
     const hasPosts = checkIfPostsExist();
     const remainingMinutes = checkAccountAge();
 
-    console.log("Remaining Minutes:", remainingMinutes);  // Debugging
-    console.log("Has Posts:", hasPosts); // Debugging
+    console.log("Remaining Minutes:", remainingMinutes);
+    console.log("Has Posts:", hasPosts);
 
     // Check if account is too new
     if (remainingMinutes > 0 && remainingMinutes < 21000000) {
         alert(
             `Your account is too new to generate a new ID. Please retry after ${remainingMinutes} minute(s).`
         );
-        return; // Block new ID creation if ID is not old enough
+        return;
     } else if (remainingMinutes >= 21000000) {
         alert(
             "Your account is not eligible to generate a new ID yet. Please post something first."
         );
-        return; // Block if no account or posts exist
+        return;
     }
 
     if (!hasPosts) {
         alert("You must post at least once before generating a new ID.");
-        return; // Block if no posts
+        return;
     }
 
+    // Confirm ID regeneration
     if (
         confirm(
-            "Are you sure you want to generate a new random ID? This will replace your current one you are using.\n\n\
-    All your previous IDs used with this domain are stored locally with all other detail. You can easily reuse them in other Nostr clients if needed.\n\n\
-    To access your history in your device memory, please look up for the showHistory button on the bottom of the page."
+            "Are you sure you want to generate a new random ID? This will replace your current one.\n\n\
+All your previous IDs used with this domain are stored locally with all other details. You can easily reuse them in other Nostr clients if needed.\n\n\
+To access your history in your device memory, please check the showHistory button at the bottom of the page."
         )
     ) {
         generateNewKeys();
@@ -670,6 +689,7 @@ document.getElementById("avatarIcon").onclick = function () {
         alert("Cancelled.");
     }
 };
+
 
 function checkIfPostsExist() {
     const currentPubKey = localStorage.getItem("nostr_pub");
@@ -725,6 +745,24 @@ function isDuplicateContent(hash) {
 // }
 
 document.getElementById("sendMessageBtn").onclick = async () => {
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Block if no query parameters exist
+    if (!urlParams.toString()) {
+        alert("Cannot send messages. Please use custom websites to use this tool");
+        return;  // Prevent further execution
+    }
+
+    // Proceed if parameters exist
+    if (!localStorage.getItem("nostr_pk")) {
+        alert(
+            "No private key found. Please generate a new ID by pressing OK."
+        );
+        generateNewKeys();
+        return;
+    }
+
     // 1. Prevent Posting Without ID
     if (!localStorage.getItem("nostr_pk")) {
         alert(
@@ -1302,6 +1340,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const sendMessageBtn = document.getElementById("sendMessageBtn");
+    const avatarIcon = document.getElementById("avatarIcon");
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (!urlParams.toString()) {
+        sendMessageBtn.disabled = true;
+        avatarIcon.style.pointerEvents = "none";
+        avatarIcon.style.opacity = "0.5";
+        console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
+    } else {
+        sendMessageBtn.disabled = false;
+        avatarIcon.style.pointerEvents = "auto";
+        avatarIcon.style.opacity = "0.5";
+    }
+});
 
 </script>
 <script src="footer.js"></script>       
