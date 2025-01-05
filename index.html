@@ -25,7 +25,9 @@
     <script src="backgroundImages.js"></script>
     <script src="background.js"></script>
     <script src="font.js"></script>
-    <script src="fontList.js"></script>                                                                                                                     
+    <script src="fontList.js"></script>  
+    <script src="bech32.js"></script>                                                                                                                   
+    <script src="note1.js"></script>                                                                                                                     
 </head>
 
 <body>
@@ -400,8 +402,8 @@ async function generateNewKeys() {
     console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
     console.log(localStorage.getItem("acc_created_at"));
 
-    // Clear URL parameters and refresh the page
-    clearUrlAndReload();
+    // // Clear URL parameters and refresh the page
+    // clearUrlAndReload();
 }
 
 // Fallback - Generate random string for errors
@@ -622,7 +624,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 21000 - ageInSeconds; // 350 minutes = 21000 seconds
+    const remainingSeconds = 210 - ageInSeconds; // 350 minutes = 21000 seconds
 
     console.log("Account Age (seconds):", ageInSeconds);
     console.log(
@@ -721,11 +723,11 @@ function isDuplicateContent(hash) {
     return hashes.includes(hash);
 }
 
-// Clear URL parameters and refresh page
-function clearUrlAndReload() {
-    window.history.replaceState({}, document.title, window.location.pathname);
-    location.reload();
-}
+// // Clear URL parameters and refresh page
+// function clearUrlAndReload() {
+//     window.history.replaceState({}, document.title, window.location.pathname);
+//     location.reload();
+// }
 
 document.getElementById("sendMessageBtn").onclick = async () => {
     // 1. Prevent Posting Without ID
@@ -757,10 +759,11 @@ document.getElementById("sendMessageBtn").onclick = async () => {
     if (isDuplicateContent(contentHash)) {
         if (
             confirm(
-                "This exact message was already posted! Posting the same content repeatedly is not allowed. Reload the page to continue."
+                "This exact message was already posted! Posting the same content repeatedly is not allowed."
             )
         ) {
-            clearUrlAndReload();
+            // clearUrlAndReload();
+            console.log("duplicate post prevented")
         }
         return;
     }
@@ -809,14 +812,14 @@ document.getElementById("sendMessageBtn").onclick = async () => {
 
     // 5. Show New Event Details
     eventDetails.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3>Note Details</h3>
+                <button class="close-event-btn" onclick="closeEventSentDetails()" title="Close this section">❌</button>
+            </div>
             <pre>${JSON.stringify(sev, null, 2)}</pre>
             <div style="display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
-                <button class="copy-btn" onclick="copyMessageId('${
-                    sev.id
-                }')" title="copy the event ID">Copy Note ID</button>
-                <button class="copy-btn" onclick="window.open('https://njump.me/${
-                    sev.id
-                }', '_blank')" title="View this event on njump.me">👀 njump.me</button>
+                <button class="copy-btn" onclick="copyMessageId('${sev.id}')" title="copy the event ID">Copy Note ID</button>
+                <button class="copy-btn" onclick="window.open('https://njump.me/${sev.id}', '_blank')" title="View this event on njump.me">👀 njump.me</button>
             </div>
         `;
     eventDetails.style.display = "block";
@@ -825,6 +828,14 @@ document.getElementById("sendMessageBtn").onclick = async () => {
     statusMessage.scrollIntoView({
         behavior: "smooth",
         block: "center", // Scroll to center the element
+    });
+
+    // 7. Attach click outside to close the eventDetails
+    document.addEventListener('click', function (e) {
+        const eventDetails = document.getElementById("eventDetails");
+        if (eventDetails.style.display === "block" && !eventDetails.contains(e.target)) {
+            closeEventSentDetails();
+        }
     });
 
     saveEvent(sev);
@@ -836,6 +847,14 @@ document.getElementById("sendMessageBtn").onclick = async () => {
             localStorage.removeItem('nostr_pk');
         }
 };
+
+// Close the (after posting) Event Details 
+function closeEventSentDetails() {
+    const eventDetails = document.getElementById("eventDetails");
+    const statusMessage = document.getElementById("statusMessage");
+    eventDetails.style.display = "none";
+    statusMessage.style.display = "none";
+}
 
 // async function signEvent(ev, pk) {
 //     var ed = JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]);

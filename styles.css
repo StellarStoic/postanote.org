@@ -128,12 +128,71 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     transition: 1s ease-in; 
 }
 
-.customParagraph {
-    max-width: 80vw;
+#paragraphContainer {
+    font-size: 0.6rem;
+    margin-bottom: 2rem;  /* Space below the paragraph and link */
 }
 
-#paragraphContainer {
-    margin-bottom: 2rem;  /* Space below the paragraph and link */
+/* for embeded note1 nnostr events */
+.note-box {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: transparent;
+    max-width: 600px;
+    position: relative;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.like-icon {
+    margin-right: auto; /* Pushes the like icon to the left */
+}
+
+.details-icon {
+    margin-left: auto; /* Pushes the details icon to the right */
+}
+
+.note-details {
+    display: none;
+    font-size: 0.6rem;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: transparent;
+    margin-top: 10px;
+}
+
+.note-details.visible {
+    display: block;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.like-icon {
+    margin-right: auto;
+}
+
+.details-icon {
+    margin-left: auto;
+}
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 #readMoreLink {
@@ -503,8 +562,8 @@ footer a:hover {
 #showHistoryBtn:hover {
     color: #b7ed22;
 }
-
-@media (max-width: 600px) {
+    /* Mobile specific styling for index.html */
+@media (max-width: 768px) {
     body {
         font-size: 26px;
     }
