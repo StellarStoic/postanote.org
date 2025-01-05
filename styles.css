@@ -141,6 +141,8 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     background-color: transparent;
     max-width: 600px;
     position: relative;
+    word-wrap: break-word; /* Forces wrapping */
+    overflow-wrap: break-word; /* Fallback for better compatibility */
 }
 
 .note-header {
@@ -148,12 +150,6 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-}
-
-.icon {
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
 }
 
 .like-icon {
