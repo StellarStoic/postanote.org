@@ -362,12 +362,14 @@ var h2b = (h) =>
 async function generateNewKeys() {
     // Clear existing avatar URL to ensure a new one is generated
     localStorage.removeItem("avatar_url");
+    localStorage.removeItem("liked_events");  // Clear liked events to prevent adoption by the new ID
+    localStorage.removeItem("posted_hashes");  // Clear liked events to prevent adoption by the new ID
 
     pk = b2h(utils.randomPrivateKey());
     pub = nobleSecp256k1.getPublicKey(pk, true).substring(2);
 
     const avatarUrl = getAvatarUrl(pub); // Generate avatar URL based on pubkey
-    const randomName = await generateRandomName();
+    const randomName = await generateRandomName(); // Generate random nostr_name
 
     // Store keys and avatar URL in localStorage
     localStorage.setItem("nostr_pk", pk);
@@ -394,12 +396,13 @@ async function generateNewKeys() {
     await updateNostrJson(randomName, pub);
 
     updateAvatar();
+    updateNostrNameDisplay();  // Update the nostr_name display immediately
+    console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
+    console.log("Generated name:", randomName);
 
     // --- Force modal display regardless of the state ---
     localStorage.removeItem("privateKeyAsked"); // Clear flag so modal always shows
     document.getElementById("privateKeyModal").style.display = "block";
-    console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
-    console.log(localStorage.getItem("acc_created_at"));
 
     // // Clear URL parameters and refresh the page
     // clearUrlAndReload();
@@ -615,7 +618,8 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 86400 - ageInSeconds; // 24h
+    const remainingSeconds = 86 - ageInSeconds; // 24h
+    // const remainingSeconds = 86400 - ageInSeconds; // 24h
 
     console.log("Account Age (seconds):", ageInSeconds);
     console.log(
