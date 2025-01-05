@@ -80,7 +80,6 @@
                 By clicking YES, the private key will be stored locally and can be retrieved by downloading it.
                 <br><br>
                 Visit showHistory at the bottom of the page for more details to review your current or previous ID's activities on this domain.
-
             </p>
             <button id="acceptBtn">Yes</button>
             <button id="declineBtn">No</button>
@@ -624,7 +623,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 210 - ageInSeconds; // 350 minutes = 21000 seconds
+    const remainingSeconds = 86400 - ageInSeconds; // 24h
 
     console.log("Account Age (seconds):", ageInSeconds);
     console.log(
