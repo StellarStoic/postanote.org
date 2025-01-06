@@ -449,6 +449,16 @@ async function postMetadata() {
         localStorage.setItem("nostr_name", name);
     }
 
+    // Array of banner URLs
+    const bannerUrls = [
+        "https://i.ibb.co/Qc5BWcb/Notes-fallin-from-the-sky.webp",
+        "https://i.ibb.co/JnscKRr/bookclub.webp",
+        "https://i.ibb.co/hf3pMzd/papernotes.webp"
+    ];
+
+    // Pick a random banner URL
+    const randomBanner = bannerUrls[Math.floor(Math.random() * bannerUrls.length)];
+
     // const nostrName = `_@postanote.org`;  // Create nip05 address
     const nostrName = `${name.toLowerCase()}@postanote.org`; // Create nip05 address <- Future unique names added to the .well-known folder
     const currentTime = Math.floor(Date.now() / 1000);
@@ -461,7 +471,7 @@ async function postMetadata() {
         name: name,
         about: "Apparently, I'm one of the Nostriches posting random thoughts and notes the plebs set me up for. I didn't know I signed up for this, but here we are.",
         website: "https://postanote.org",
-        banner: "https://i.ibb.co/Qc5BWcb/Notes-fallin-from-the-sky.webp",
+        banner: randomBanner,  // Use random banner
         display_name: name,
         nip05: nostrName,
         pubkey: pub,
@@ -479,7 +489,7 @@ async function postMetadata() {
         tags: [
             [
                 "alt",
-                `Random Nostrich ${name} who's avatar was created with dicebear.com API`,
+                `Random Nostrich ${name} who's avatar was created with dicebear.com API for use in postanote.org`,
             ],
             // ["i", `nostr:${name}`, b2h(await sha256(new TextEncoder().encode(name)))]
         ],
