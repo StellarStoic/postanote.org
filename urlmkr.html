@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="backgroundImages.js"></script>
+    <script src="bech32.js"></script>   
     <script src="fontList.js"></script>
     <script src="font.js"></script>
 </head>
@@ -138,6 +139,15 @@
             <span id="avatar-label">Avatar Styles</span>
             <input type="checkbox" id="include_avatar">
         </label>
+    </div>
+
+    <hr class="hrLine">
+
+    <div class="form-group">
+        <label for="include_ln">
+            Add LN Address (LUD-06 or LUD-16) <input type="checkbox" id="include_ln">
+        </label>
+        <input type="text" id="ln_input" placeholder="Enter LN Address (LUD-06 or LUD-16)" disabled>
     </div>
 
     <hr class="hrLine">
@@ -303,6 +313,14 @@
         let selectedAvatarIndex = null;
         const todaySeed = new Date().toISOString().split('T')[0];  // Seed for consistency
 
+        // Enable/Disable LN address input when checkbox is toggled
+        const includeLnCheckbox = document.getElementById('include_ln');
+        const lnInput = document.getElementById('ln_input');
+        let validationTimeout; // for not be banned by their server
+        // Regex for LUD-16 (email style) and LUD-06 (LNURL style)
+        const lud16Regex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        const lud06Regex = /^lnurl1[0234567][0-9a-z]{1,}$/;
+
 
         ntagRadios.forEach(radio => {
             radio.addEventListener('change', updateURL);
@@ -466,6 +484,126 @@ function resetAvatar() {
                 p_Input.style.width = '50%';
             }
         });
+
+
+// Checkbox Change - Enable/Disable Input
+includeLnCheckbox.addEventListener('change', function () {
+    lnInput.disabled = !this.checked;
+    lnInput.style.backgroundColor = '';  // Reset background
+    warningMessage.textContent = '';
+
+    if (this.checked) {
+        lnInput.focus();
+        lnInput.addEventListener('input', handleLnInputChange);  // Attach dynamic URL update
+        lnInput.addEventListener('paste', handleLnInputChange);
+    } else {
+        lnInput.removeEventListener('input', handleLnInputChange);
+        lnInput.removeEventListener('paste', handleLnInputChange);
+    }
+
+    // Immediately update URL to reflect the checkbox state
+    updateURL();
+});
+
+// Update URL as the LN address is typed or pasted
+function handleLnInputChange() {
+    // Call URL update immediately when typing
+    updateURL();
+
+    // Perform validation asynchronously
+    if (validationTimeout) clearTimeout(validationTimeout);
+    validationTimeout = setTimeout(validateLn, 500);
+}
+
+// Debounced Validation (Prevents Over-Validation)
+function debounceValidateLn() {
+    if (validationTimeout) clearTimeout(validationTimeout);
+    validationTimeout = setTimeout(validateLn, 500);  // Validate after 500ms
+}
+
+// LUD-06 and LUD-16 Validation Handler
+async function validateLn() {
+    const lnAddress = lnInput.value.trim();
+    if (!lnAddress) {
+        lnInput.style.backgroundColor = '';  // Reset if empty
+        warningMessage.textContent = '';
+        return;
+    }
+
+    lnInput.style.backgroundColor = '#fff7c1';  // Yellow - Pending Check
+
+    let isValid = false;
+    if (lud16Regex.test(lnAddress)) {
+        isValid = await validateLud16(lnAddress);
+    } else if (lud06Regex.test(lnAddress)) {
+        isValid = await validateLud06(lnAddress);
+    } else {
+        warningMessage.textContent = 'Invalid Lightning Address format.';
+        lnInput.style.backgroundColor = '#fbb3ae';  // Red - Invalid Format
+    }
+
+    setValidationColor(isValid);
+}
+
+// Set Background Color Based on Validation
+function setValidationColor(isValid) {
+    lnInput.style.backgroundColor = isValid ? '#d4f78c' : '#fbb3ae';  // Green or Red
+}
+
+// LUD-16 Validation
+async function validateLud16(address) {
+    const [name, domain] = address.split('@');
+    const url = `https://${domain}/.well-known/lnurlp/${name}`;
+
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.status === 'OK') {
+                warningMessage.textContent = '';  // Clear any previous warnings
+                return true;
+            }
+        } else if (response.status === 404) {
+            warningMessage.textContent = `Lightning Address not found at: ${url}`;
+        }
+    } catch (error) {
+        warningMessage.textContent = `Validation failed: ${error.message}`;
+    }
+    return false;
+}
+
+// LUD-06 Validation (LNURL)
+async function validateLud06(lnurl) {
+    try {
+        const decoded = lnurlDecode(lnurl);
+        const response = await fetch(decoded);
+        const data = await response.json();
+        return data && data.status === 'OK';
+    } catch (error) {
+        warningMessage.textContent = `LNURL validation failed: ${error.message}`;
+        return false;
+    }
+}
+
+// Decode LNURL (for LUD-06)
+function lnurlDecode(lnurl) {
+    try {
+        const words = bech32.decode(lnurl).words;
+        const buffer = bech32.fromWords(words);
+        return new TextDecoder().decode(buffer);
+    } catch (error) {
+        console.error('Failed to decode LNURL:', error);
+        return null;
+    }
+}
+
+// Simple Reverse String Function (for URL inclusion)
+function reverseString(str) {
+    return str.split('').reverse().join('');
+}
+// lightning END
+
+
 
         // Font selection logic
         includeFontCheckbox.addEventListener('change', function () {
@@ -768,6 +906,14 @@ function resetAvatar() {
                 url += `a=${selectedAvatarIndex}&`;
                 currentBytes += `a=${selectedAvatarIndex}&`.length;
             }
+
+            // Update LN value (even if empty, include 'ln=')
+            if (includeLnCheckbox.checked) {
+                const lnValue = lnInput.value ? encodeURIComponent(reverseString(lnInput.value)) : '';
+                url += `ln=${lnValue}&`;
+                currentBytes += `ln=${lnValue}&`.length;
+            }
+            
 
             // Font selection
             if (selectedFontIndex) {
