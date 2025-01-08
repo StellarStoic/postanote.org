@@ -145,9 +145,9 @@
 
     <div class="form-group">
         <label for="include_ln">
-            Add LN Address (LUD-06 or LUD-16) <input type="checkbox" id="include_ln">
+            Add Lightning Address <span style="font-size: 0.4em;">LUD-16 only</span> <input type="checkbox" id="include_ln">
         </label>
-        <input type="text" id="ln_input" placeholder="Enter LN Address (LUD-06 or LUD-16)" disabled>
+        <input type="text" id="ln_input" placeholder="one@satoshi.si" disabled>
     </div>
 
     <hr class="hrLine">
@@ -317,9 +317,8 @@
         const includeLnCheckbox = document.getElementById('include_ln');
         const lnInput = document.getElementById('ln_input');
         let validationTimeout; // for not be banned by their server
-        // Regex for LUD-16 (email style) and LUD-06 (LNURL style)
-        const lud16Regex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-        const lud06Regex = /^lnurl1[0234567][0-9a-z]{1,}$/;
+        // Regex for LUD-16 (email style)
+        const lud16Regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 
         ntagRadios.forEach(radio => {
@@ -489,39 +488,30 @@ function resetAvatar() {
 // Checkbox Change - Enable/Disable Input
 includeLnCheckbox.addEventListener('change', function () {
     lnInput.disabled = !this.checked;
-    lnInput.style.backgroundColor = '';  // Reset background
+    lnInput.style.backgroundColor = '';
     warningMessage.textContent = '';
 
     if (this.checked) {
         lnInput.focus();
-        lnInput.addEventListener('input', handleLnInputChange);  // Attach dynamic URL update
+        lnInput.addEventListener('input', handleLnInputChange);
         lnInput.addEventListener('paste', handleLnInputChange);
     } else {
         lnInput.removeEventListener('input', handleLnInputChange);
         lnInput.removeEventListener('paste', handleLnInputChange);
     }
 
-    // Immediately update URL to reflect the checkbox state
+    // Immediately update the URL when checkbox is toggled
     updateURL();
 });
 
 // Update URL as the LN address is typed or pasted
 function handleLnInputChange() {
-    // Call URL update immediately when typing
     updateURL();
-
-    // Perform validation asynchronously
     if (validationTimeout) clearTimeout(validationTimeout);
-    validationTimeout = setTimeout(validateLn, 500);
+    validationTimeout = setTimeout(validateLn, 1000);  // Debounced Validation
 }
 
-// Debounced Validation (Prevents Over-Validation)
-function debounceValidateLn() {
-    if (validationTimeout) clearTimeout(validationTimeout);
-    validationTimeout = setTimeout(validateLn, 500);  // Validate after 500ms
-}
-
-// LUD-06 and LUD-16 Validation Handler
+// LUD-16 Validation Handler
 async function validateLn() {
     const lnAddress = lnInput.value.trim();
     if (!lnAddress) {
@@ -530,19 +520,18 @@ async function validateLn() {
         return;
     }
 
-    lnInput.style.backgroundColor = '#fff7c1';  // Yellow - Pending Check
+    lnInput.style.backgroundColor = '#fff7c1';  // Yellow for pending validation
 
-    let isValid = false;
     if (lud16Regex.test(lnAddress)) {
-        isValid = await validateLud16(lnAddress);
-    } else if (lud06Regex.test(lnAddress)) {
-        isValid = await validateLud06(lnAddress);
+        const isValid = await validateLud16(lnAddress);
+        setValidationColor(isValid);
     } else {
-        warningMessage.textContent = 'Invalid Lightning Address format.';
-        lnInput.style.backgroundColor = '#fbb3ae';  // Red - Invalid Format
+        warningMessage.textContent = 'Invalid LN address format.';
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);  // Scroll to warning message
+        setValidationColor(false);
     }
-
-    setValidationColor(isValid);
 }
 
 // Set Background Color Based on Validation
@@ -552,50 +541,85 @@ function setValidationColor(isValid) {
 
 // LUD-16 Validation
 async function validateLud16(address) {
-    const [name, domain] = address.split('@');
+    const lnAddress = address.trim();  // Trim spaces from input
+    const [name, domain] = lnAddress.split('@');
+
+    // If invalid characters exist, stop further validation
+    if (!lud16Regex.test(lnAddress)) {
+        warningMessage.textContent = 'Invalid LN address format.';
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);  // Scroll to warning message
+        lnInput.style.backgroundColor = '#f9a999';  // Red - Invalid
+        return false;
+    }
+
     const url = `https://${domain}/.well-known/lnurlp/${name}`;
 
     try {
         const response = await fetch(url);
-        if (response.ok) {
-            const data = await response.json();
-            if (data && data.status === 'OK') {
-                warningMessage.textContent = '';  // Clear any previous warnings
+
+        if (response.status === 404) {
+            warningMessage.textContent = `Wallet not found at: ${url}`;
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';
+            scrollToMessage(warningMessage);  // Scroll to warning message
+            lnInput.style.backgroundColor = '#f9a999';  // Red - Invalid
+            return false;
+        }
+
+        const data = await response.json();
+
+        if (response.ok && data) {
+            // 1. Check for status: 'OK' first
+            if (data.status === 'OK') {
+                infoMessage.textContent = `Wallet verified: ${data.metadata?.[1]?.[1] || 'Valid'}`;
+                infoMessage.style.color = 'white';
+                infoMessage.style.fontSize = '0.6rem';
+                scrollToMessage(infoMessage);  // Scroll to warning message
+                lnInput.style.backgroundColor = '#d4fa99';  // Green
                 return true;
             }
-        } else if (response.status === 404) {
-            warningMessage.textContent = `Lightning Address not found at: ${url}`;
+
+            // 2. Fallback to essential lnurlp active wallet fields
+            const requiredKeys = ['callback', 'tag'];
+            const optionalKeys = ['minSendable', 'maxSendable'];
+            const hasRequiredKeys = requiredKeys.every(key => key in data);
+            const hasOptionalKeys = optionalKeys.some(key => key in data);
+
+            if (hasRequiredKeys && hasOptionalKeys) {
+                infoMessage.textContent = 'Wallet verified based on certain criteria.';
+                infoMessage.style.color = 'white';
+                infoMessage.style.fontSize = '0.6rem';
+                scrollToMessage(infoMessage);  // Scroll to warning message
+                lnInput.style.backgroundColor = '#d4fa99';  // Green
+                return true;
+            }
+
+            // 3. Handle missing fields
+            const missingKeys = requiredKeys.filter(key => !(key in data));
+            warningMessage.textContent = `Missing fields: ${missingKeys.join(', ')}. Validation failed.`;
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';
+            scrollToMessage(warningMessage);  // Scroll to warning message
+            lnInput.style.backgroundColor = '#f9a999';  // Red
+        } else {
+            warningMessage.textContent = `Validation error at: ${url}`;
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';
+            scrollToMessage(warningMessage);  // Scroll to warning message
         }
     } catch (error) {
-        warningMessage.textContent = `Validation failed: ${error.message}`;
+        warningMessage.textContent = `Network error: ${error.message}`;
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);  // Scroll to warning message
+        lnInput.style.backgroundColor = '#f9a999';  // Red
+        console.error(`Validation error: ${error.message}`);
     }
     return false;
 }
 
-// LUD-06 Validation (LNURL)
-async function validateLud06(lnurl) {
-    try {
-        const decoded = lnurlDecode(lnurl);
-        const response = await fetch(decoded);
-        const data = await response.json();
-        return data && data.status === 'OK';
-    } catch (error) {
-        warningMessage.textContent = `LNURL validation failed: ${error.message}`;
-        return false;
-    }
-}
-
-// Decode LNURL (for LUD-06)
-function lnurlDecode(lnurl) {
-    try {
-        const words = bech32.decode(lnurl).words;
-        const buffer = bech32.fromWords(words);
-        return new TextDecoder().decode(buffer);
-    } catch (error) {
-        console.error('Failed to decode LNURL:', error);
-        return null;
-    }
-}
 
 // Simple Reverse String Function (for URL inclusion)
 function reverseString(str) {
