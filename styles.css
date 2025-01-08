@@ -1070,24 +1070,47 @@ small {
 
 /*about*/
 
-#about-header {
-    font-family: var(--main-font);
-    font-size: 1.5rem;
+#main-content {
+    max-width: 80vw;
+    margin: 5% auto;
+    padding: 40px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 15%;
 }
 
-#mission-section {
-    font-family: var(--main-font);
-    font-size: 1.5rem;
+#about-header h1 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
-.content-paragraph {
-    font-family: var(--main-font);
-    font-size: 1rem;
-    text-align: left;
-    width: 80%;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+#about-header h2 {
+    font-size: 1.5rem;
+    text-align: center;
+    color: #b0b0b0;
+    margin-bottom: 40px;
+}
+
+#mission-section h3 {
+    font-size: 2rem;
+    margin-top: 40px;
+    color: #603d75;
+    text-align: center;
+}
+
+/* .content-paragraph {
+    line-height: 1.8;
+    text-align: justify;
+    font-size: 1.2rem;
+    margin: 20px auto;
+    max-width: 800px;
+} */
+
+#about-p {
+    margin-bottom: 30px;
+    left: 20px;
 }
 
 /*FAQ*/
@@ -1108,7 +1131,7 @@ small {
 
 .content-paragraph {
     text-align: left;
-    width: 80%;
+    width: 95%;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
