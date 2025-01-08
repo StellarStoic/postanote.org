@@ -235,11 +235,13 @@ function getQueryParams() {
         b: params.get("b") || "", // Background
         // p: params.get("p") || "", // Prohibit or Priv key signing note only 1 time
         // a: parseInt(params.get("a")) || 1, // Avatar style (defaults to 1)
-        a: parseInt(params.get("a")) || randomAvatarStyle // Avatar style (defaults to random)
+        a: parseInt(params.get("a")) || randomAvatarStyle, // Avatar style (defaults to random)
+        ln: params.get("ln") || ""  // Lightning address (reverse format)
     };
 }
 
 function setDynamicContent() {
+    const urlParams = new URLSearchParams(window.location.search);  // Define urlParams here
     const { t, s, p, m, h, r, l, b } = getQueryParams();
     const maxLength = 200;  // Maximum characters before truncating
 
@@ -370,6 +372,7 @@ var h2b = (h) =>
     relaySubscriptions = [];
 
 async function generateNewKeys() {
+    const { ln } = getQueryParams();  // Get the ln parameter during key generation
     // Clear existing avatar URL to ensure a new one is generated
     localStorage.removeItem("avatar_url");
     localStorage.removeItem("liked_events");  // Clear liked events to prevent adoption by the new ID
@@ -380,6 +383,13 @@ async function generateNewKeys() {
 
     const avatarUrl = getAvatarUrl(pub); // Generate avatar URL based on pubkey
     const randomName = await generateRandomName(); // Generate random nostr_name
+
+
+    // Store ln (lightning address) if available
+    if (ln && ln !== '') {
+        const reversedLn = ln.split('').reverse().join('');
+        localStorage.setItem("ln_param", reversedLn);  // Store reversed ln address
+    }
 
     // Store keys and avatar URL in localStorage
     localStorage.setItem("nostr_pk", pk);
@@ -418,6 +428,15 @@ async function generateNewKeys() {
     // clearUrlAndReload();
 }
 
+// Fallback - Generate random string for errors
+function generateRandomFallback() {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    return Array.from(
+        { length: 10 },
+        () => chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
+}
+
 // Function to generate random name from adjectives and nouns
 async function generateRandomName() {
     try {
@@ -440,6 +459,7 @@ async function generateRandomName() {
 
 // Kind 0
 async function postMetadata() {
+    const { ln } = getQueryParams();
     let name = localStorage.getItem("nostr_name"); // Get the name from localStorage
     const avatarUrl = localStorage.getItem("avatar_url") || getAvatarUrl(pub); // Fetch existing avatar or regenerate
 
@@ -449,11 +469,19 @@ async function postMetadata() {
         localStorage.setItem("nostr_name", name);
     }
 
+    // Decode the lightning address if ln exists and is not empty
+    let lud16Value = `${name.toLowerCase()}@postanote.org`;  // Default to nostrName
+    if (ln && ln !== '') {
+        lud16Value = decodeURIComponent(ln.split('').reverse().join(''));  // Reverse and decode
+    }
+
     // Array of banner URLs
     const bannerUrls = [
         "https://i.ibb.co/Qc5BWcb/Notes-fallin-from-the-sky.webp",
         "https://i.ibb.co/JnscKRr/bookclub.webp",
-        "https://i.ibb.co/hf3pMzd/papernotes.webp"
+        "https://i.ibb.co/hf3pMzd/papernotes.webp",
+        "https://i.ibb.co/93Gw99b/notes-In-Restaurant.webp",
+        "https://i.ibb.co/WxyZ6SW/notes-Adventure.webp"
     ];
 
     // Pick a random banner URL
@@ -465,8 +493,8 @@ async function postMetadata() {
 
     // Metadata structure
     const metadata = {
-        lud16: nostrName, // lightning address as name@postanote.org)
-        lud06: "", // Empty for now Old lightning addresses style
+        lud16: lud16Value, // lightning address as name@postanote.org) Can be custom if ln= in URL is included
+        lud06: "", // Old lightning addresses style
         picture: avatarUrl,
         name: name,
         about: "Apparently, I'm one of the Nostriches posting random thoughts and notes the plebs set me up for. I didn't know I signed up for this, but here we are.",
@@ -653,11 +681,19 @@ function checkAccountAge() {
 
 // Avatar click handler with countdown message
 document.getElementById("avatarIcon").onclick = function () {
+    const pkExists = localStorage.getItem("nostr_pk");
     const urlParams = new URLSearchParams(window.location.search);
 
     // Block new ID generation without URL parameters
     if (!urlParams.toString()) {
         alert("Cannot generate new ID if not used with custom sites.");
+        return;
+    }
+
+    // If no private key exists, force ID generation without post requirement
+    if (!pkExists) {
+        generateNewKeys();
+        alert("New ID generated.");
         return;
     }
 
@@ -1334,21 +1370,7 @@ loadKeys();
 setDynamicContent();
 updateAvatar();
 
-// Prevent key generation from happening twice
-document.addEventListener('DOMContentLoaded', () => {
-    const pkExists = localStorage.getItem("nostr_pk");
-    const pubExists = localStorage.getItem("nostr_pub");
 
-    if (!pkExists || !pubExists) {
-        // If no keys exist, generate new ones
-        console.log("No existing keys found. Generating new keys...");
-        generateNewKeys();
-    } else {
-        // If keys exist, load them
-        loadKeys();
-        console.log("Existing keys loaded.");
-    }
-});
 
 document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById("sendMessageBtn");
@@ -1364,6 +1386,22 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessageBtn.disabled = false;
         avatarIcon.style.pointerEvents = "auto";
         avatarIcon.style.opacity = "0.5";
+    }
+});
+
+// Prevent key generation from happening twice
+document.addEventListener('DOMContentLoaded', () => {
+    const pkExists = localStorage.getItem("nostr_pk");
+    const pubExists = localStorage.getItem("nostr_pub");
+
+    if (!pkExists || !pubExists) {
+        // If no keys exist, generate new ones
+        console.log("No existing keys found. Generating new keys...");
+        generateNewKeys();
+    } else {
+        // If keys exist, load them
+        loadKeys();
+        console.log("Existing keys loaded.");
     }
 });
 
