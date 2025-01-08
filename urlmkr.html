@@ -145,7 +145,7 @@
 
     <div class="form-group">
         <label for="include_ln">
-            Add Lightning Address <span style="font-size: 0.4em;">LUD-16 only</span> <input type="checkbox" id="include_ln">
+            Add Lightning Address <span style="font-size: 0.35em; padding: 10px;">LUD-16 only</span> <input type="checkbox" id="include_ln">
         </label>
         <input type="text" id="ln_input" placeholder="one@satoshi.si" disabled>
     </div>
@@ -485,6 +485,8 @@ function resetAvatar() {
         });
 
 
+// Lightning start
+
 // Checkbox Change - Enable/Disable Input
 includeLnCheckbox.addEventListener('change', function () {
     lnInput.disabled = !this.checked;
@@ -510,6 +512,40 @@ function handleLnInputChange() {
     if (validationTimeout) clearTimeout(validationTimeout);
     validationTimeout = setTimeout(validateLn, 1000);  // Debounced Validation
 }
+
+// Restrict invalid characters in LN input (no spaces or invalid symbols)
+lnInput.addEventListener('keypress', function (event) {
+    const allowedChars = /^[a-zA-Z0-9._%+@-]+$/;
+    const key = String.fromCharCode(event.keyCode || event.which);
+
+    if (!allowedChars.test(key)) {
+        event.preventDefault();  // Block invalid characters
+        warningMessage.textContent = `Invalid character detected: '${key}'`;
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);
+    } else {
+        warningMessage.textContent = '';  // Clear message if valid
+    }
+});
+
+// Prevent pasting invalid characters
+lnInput.addEventListener('paste', function (event) {
+    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+    const allowedChars = /^[a-zA-Z0-9._%+@-]+$/;
+
+    const invalidChars = pastedText.split('').filter(char => !allowedChars.test(char));
+
+    if (invalidChars.length > 0) {
+        event.preventDefault();  // Block paste if invalid characters are detected
+        warningMessage.textContent = `Invalid character(s) detected: '${invalidChars.join('')}'. Please paste a valid LN address.`;
+        warningMessage.style.color = 'orange';
+        warningMessage.style.fontSize = '0.6rem';
+        scrollToMessage(warningMessage);
+    } else {
+        warningMessage.textContent = '';  // Clear message if valid
+    }
+});
 
 // LUD-16 Validation Handler
 async function validateLn() {
