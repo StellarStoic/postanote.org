@@ -62,6 +62,11 @@
         <button id="useDefaultRelaysBtn" style="background-color: #00ff5599; color: white; border: none; border-radius: 5px; cursor: pointer;">Yes</button>
     </p>
     <div id="eventDetails"></div>
+
+    <div id="warningMessage" style="display: none; color: red; text-align: center;  margin: 20px;">
+        Posting is only available on custom websites. If you'd like to create one, use 
+        <a href="urlmkr.html" style="color: rgb(30, 255, 0);  text-decoration: underline;">URLmkr</a>.
+    </div>
     
     <footer class="footerDynamic">
         <a href="about.html">About</a> | 
@@ -1375,6 +1380,7 @@ updateAvatar();
 document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById("sendMessageBtn");
     const avatarIcon = document.getElementById("avatarIcon");
+    const warningMessage = document.getElementById("warningMessage");
     const urlParams = new URLSearchParams(window.location.search);
 
     if (!urlParams.toString()) {
@@ -1382,12 +1388,70 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarIcon.style.pointerEvents = "none";
         avatarIcon.style.opacity = "0.5";
         console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
+
+        // Show the warning message
+        warningMessage.style.display = "block";
+        console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
     } else {
-        sendMessageBtn.disabled = false;
+        // Allow `oninput` to handle enabling/disabling the button
+        const userMessage = document.getElementById("userMessage");
+        if (userMessage.value.trim().length === 0) {
+            sendMessageBtn.disabled = true; // Ensure the button stays disabled for empty messages
+        }
         avatarIcon.style.pointerEvents = "auto";
-        avatarIcon.style.opacity = "0.5";
+        avatarIcon.style.opacity = "1"; // Re-enable the avatar icon if URL params exist
     }
 });
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const sendMessageBtn = document.getElementById("sendMessageBtn");
+//     const avatarIcon = document.getElementById("avatarIcon");
+//     const userMessage = document.getElementById("userMessage");
+//     const charCount = document.getElementById("charCount");
+//     const urlParams = new URLSearchParams(window.location.search);
+
+//     const maxLength = userMessage.getAttribute("maxlength");
+
+//     // Function to validate the message and update the button state
+//     function validateMessage() {
+//         const um = userMessage.value;
+
+//         charCount.textContent = `${um.length}/${maxLength}`;
+
+//         if (um.trim().length === 0 || um.length > maxLength || !urlParams.toString()) {
+//             sendMessageBtn.disabled = true; // Disable button if message is invalid or no URL params
+//             sendMessageBtn.title = "Send button disabled.";
+//         } else {
+//             sendMessageBtn.disabled = false; // Enable button if message is valid and URL params exist
+//         }
+
+//         // Update message input styling for length
+//         if (um.length >= maxLength) {
+//             userMessage.style.borderBottom = "5px solid red";
+//         } else {
+//             userMessage.style.borderBottom = "5px solid #00ff55";
+//         }
+
+//         adjustHeight(userMessage); // Adjust textarea height dynamically
+//     }
+
+//     // Check for URL parameters and update avatar and send button state
+//     if (!urlParams.toString()) {
+//         sendMessageBtn.disabled = true;
+//         avatarIcon.style.pointerEvents = "none";
+//         avatarIcon.style.opacity = "0.5";
+//         sendMessageBtn.title = "Send button disabled. Please use a custom website with URL parameters to post.";
+//         avatarIcon.title = "Changing ID is disabled. ID changes are only allowed on custom websites.";
+//         console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
+//     } else {
+//         avatarIcon.style.pointerEvents = "auto";
+//         avatarIcon.style.opacity = "1";
+//         validateMessage(); // Run initial validation
+//     }
+
+//     // Attach input listener to validate message dynamically
+//     userMessage.oninput = validateMessage;
+// });
 
 // Prevent key generation from happening twice
 document.addEventListener('DOMContentLoaded', () => {
