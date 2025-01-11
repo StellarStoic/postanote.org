@@ -63,7 +63,7 @@
     </p>
     <div id="eventDetails"></div>
 
-    <div id="warningMessage" style="display: none; color: red; text-align: center;  margin: 20px;">
+    <div id="warningMessage" style="display: none; color: red; text-align: center;  margin: 20px; margin-bottom: 10%;">
         Posting is only available on custom websites. If you'd like to create one, use 
         <a href="urlmkr.html" style="color: rgb(30, 255, 0);  text-decoration: underline;">URLmkr</a>.
     </div>
@@ -75,7 +75,7 @@
         <button id="showHistoryBtn"  title="a History data of all the posted notes from this device">Show History</button>
     </footer>
     
-    <!-- Modal for private key storage -->
+    <!-- Modal for private key storage
     <div id="privateKeyModal">
         <div id="modalContent">
             <p id="privateKeyModalParagraph">A random Nostr ID was created.
@@ -89,7 +89,7 @@
             <button id="acceptBtn">Yes</button>
             <button id="declineBtn">No</button>
         </div>
-    </div>
+    </div> -->
 
 <!-- Modal for viewing notes -->
 <div id="notesModal">
@@ -425,12 +425,30 @@ async function generateNewKeys() {
     console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
     console.log("Generated name:", randomName);
 
-    // --- Force modal display regardless of the state ---
-    localStorage.removeItem("privateKeyAsked"); // Clear flag so modal always shows
-    document.getElementById("privateKeyModal").style.display = "block";
+    // // --- Force modal display regardless of the state ---
+    // localStorage.removeItem("privateKeyAsked"); // Clear flag so modal always shows
+    // document.getElementById("privateKeyModal").style.display = "block";
 
     // // Clear URL parameters and refresh the page
     // clearUrlAndReload();
+
+    // --- Replace Modal with Alert ---
+    const storeKeyResponse = confirm(
+        "A random Nostr ID was created.\n\n" +
+        "Do you want to store the private key in your device memory for future use in other clients?\n\n" +
+        "By clicking 'OK', the private key will be stored locally on your device. To access it later, visit the 'Show History' button at the bottom of the page."
+    );
+
+    if (storeKeyResponse) {
+        storePrivateKey = true;
+        localStorage.setItem("store_private_key", storePrivateKey);
+        localStorage.setItem("nostr_pk", pk);
+        alert("Private key stored successfully!");
+    } else {
+        storePrivateKey = false;
+        localStorage.setItem("store_private_key", storePrivateKey);
+        alert("Private key was not stored.");
+    }
 }
 
 // Fallback - Generate random string for errors
@@ -671,7 +689,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 86400 - ageInSeconds; // 24h
+    const remainingSeconds = 86 - ageInSeconds; // 24h
     // const remainingSeconds = 86400 - ageInSeconds; // 24h
 
     console.log("Account Age (seconds):", ageInSeconds);
@@ -722,7 +740,8 @@ document.getElementById("avatarIcon").onclick = function () {
     }
 
     if (!hasPosts) {
-        alert("You must post at least once before generating a new ID.");
+        alert("You must post at least once before generating a new ID.\n\n\
+If you need a suggestion just post GM or GN ");
         return;
     }
 
@@ -808,7 +827,9 @@ document.getElementById("sendMessageBtn").onclick = async () => {
     // Proceed if parameters exist
     if (!localStorage.getItem("nostr_pk")) {
         alert(
-            "No private key found. Please generate a new ID by pressing OK."
+            "No private key found.\n\n\
+Private keys are needed to sign messages\n\n\
+Please generate a new ID by pressing OK."
         );
         generateNewKeys();
         return;
@@ -1350,18 +1371,18 @@ document.getElementById("useDefaultRelaysBtn").onclick = function () {
     ]);
 };
 
-document.getElementById("acceptBtn").onclick = function () {
-    storePrivateKey = true;
-    document.getElementById("privateKeyModal").style.display = "none";
-    localStorage.setItem("store_private_key", storePrivateKey);
-    localStorage.setItem("nostr_pk", pk);
-};
+// document.getElementById("acceptBtn").onclick = function () {
+//     storePrivateKey = true;
+//     document.getElementById("privateKeyModal").style.display = "none";
+//     localStorage.setItem("store_private_key", storePrivateKey);
+//     localStorage.setItem("nostr_pk", pk);
+// };
 
-document.getElementById("declineBtn").onclick = function () {
-    storePrivateKey = false;
-    document.getElementById("privateKeyModal").style.display = "none";
-    localStorage.setItem("store_private_key", storePrivateKey);
-};
+// document.getElementById("declineBtn").onclick = function () {
+//     storePrivateKey = false;
+//     document.getElementById("privateKeyModal").style.display = "none";
+//     localStorage.setItem("store_private_key", storePrivateKey);
+// };
 
 
 // Apply tilt after name update
