@@ -38,7 +38,7 @@
         <h1 id="mainTitle">Freedom to Speak</h1>
         <h4 id="subTitle">No Names. Just Unfiltered Truth</h4>
         <div id="paragraphContainer">
-            <p id="customParagraph" style="margin-top: 1rem;"></p>
+            <p id="customParagraph" style="margin-top: 1rem;" data-full-content=""></p>
             <a href="#" id="readMoreLink" style="display: none;">Read more</a>
         </div>
     </div>
@@ -74,22 +74,6 @@
         <a href="urlmkr.html">URLmkr</a> | 
         <button id="showHistoryBtn"  title="a History data of all the posted notes from this device">Show History</button>
     </footer>
-    
-    <!-- Modal for private key storage
-    <div id="privateKeyModal">
-        <div id="modalContent">
-            <p id="privateKeyModalParagraph">A random Nostr ID was created.
-                <br><br>
-                Do you want to store the private keys of this mew random ID into your device memory, for future use in other clients if needed?
-                <br><br>
-                By clicking YES, the private key will be stored locally and can be retrieved by downloading it.
-                <br><br>
-                Visit showHistory at the bottom of the page for more details to review your current or previous ID's activities on this domain.
-            </p>
-            <button id="acceptBtn">Yes</button>
-            <button id="declineBtn">No</button>
-        </div>
-    </div> -->
 
 <!-- Modal for viewing notes -->
 <div id="notesModal">
@@ -100,7 +84,7 @@
         <div id="dynamicContent"></div> <!-- Dynamic content (notes) goes here -->
         <div class="panic-container">
             <button id="wipeStorageBtn">
-                ❌ Delete All Data (Panic) ❌
+                ❌ Delete All Data (Panic Btn) ❌
             </button>
         </div>
     </div>
@@ -208,22 +192,6 @@ function applyRandomTiltForNostrName() {
     nostrName.style.transform = `rotate(${randomTilt}deg)`;
 }
 
-
-// // OnClick - Handle ID Change with Confirmation
-// document.getElementById("avatarIcon").onclick = function () {
-//     if (
-//         confirm(
-//             "Are you sure you want to generate a new ID? This will replace your current one."
-//         )
-//     ) {
-//         generateNewKeys();
-//         // updateAvatar();
-//         alert("New ID generated.");
-//     } else {
-//         alert("Cancelled.");
-//     }
-// };
-
 const randomAvatarStyle = Math.floor(Math.random() * Object.keys(avatarStyles).length) + 1;
 
 function getQueryParams() {
@@ -238,7 +206,6 @@ function getQueryParams() {
         r: params.get("r") ? params.get("r").split(",") : [], // Relay
         l: parseInt(params.get("l")) || 280, // Length of a message
         b: params.get("b") || "", // Background
-        // p: params.get("p") || "", // Prohibit or Priv key signing note only 1 time
         // a: parseInt(params.get("a")) || 1, // Avatar style (defaults to 1)
         a: parseInt(params.get("a")) || randomAvatarStyle, // Avatar style (defaults to random)
         ln: params.get("ln") || ""  // Lightning address (reverse format)
@@ -253,38 +220,37 @@ function setDynamicContent() {
     document.getElementById("mainTitle").textContent = t;
     document.getElementById("subTitle").textContent = s;
 
-    const customParagraph = document.getElementById("customParagraph");
+    const paragraph = document.getElementById("customParagraph");
     const readMoreLink = document.getElementById("readMoreLink");
 
     if (p) {
-        if (p.length > maxLength) {
-            let expanded = false;  // Track if text is expanded
+        paragraph.setAttribute('data-full-content', p); // Store full content
+        console.log("Content before truncation on page load:", paragraph.innerHTML);
+        truncateParagraph(paragraph); // Truncate initially
+        readMoreLink.style.display = "inline";
 
-            // Initial truncation
-            customParagraph.textContent = p.substring(0, maxLength) + "...";
-            readMoreLink.textContent = "Read more";
-            readMoreLink.style.display = "inline";
+        readMoreLink.onclick = (e) => {
+            e.preventDefault();
+            const expanded = paragraph.getAttribute('data-expanded') === "true";
 
-            readMoreLink.onclick = (e) => {
-                e.preventDefault();
-                expanded = !expanded;  // Toggle state
+            if (expanded) {
+                truncateParagraph(paragraph); // Collapse
+                readMoreLink.textContent = "Read more";
+                paragraph.setAttribute('data-expanded', "false");
+            } else {
+                paragraph.innerHTML = paragraph.getAttribute('data-full-content'); // Expand
+                readMoreLink.textContent = "Close";
+                paragraph.setAttribute('data-expanded', "true");
+                markLikedEvents(); // Mark likes on expanded content
+            }
+        };
 
-                if (expanded) {
-                    customParagraph.textContent = p;  // Expand to full text
-                    readMoreLink.textContent = "Close";  // Change link to "Close"
-                } else {
-                    customParagraph.textContent = p.substring(0, maxLength) + "...";
-                    readMoreLink.textContent = "Read more";  // Revert to "Read more"
-                }
-            };
-        } else {
-            customParagraph.textContent = p;
-            readMoreLink.style.display = "none";  // Hide the link if text is short
-        }
-        customParagraph.style.display = "block";
+        // Mark likes for initially visible events
+        markLikedEvents();
+
     } else {
-        customParagraph.style.display = "none";
-        readMoreLink.style.display = "none";
+        paragraph.textContent = "Welcome to Nostr and  stuff! It might work or not and that's the beauty of it.";
+        readMoreLink.style.display = "none"; // Hide "Read more" if no content
     }
 
 
@@ -326,6 +292,32 @@ function setDynamicContent() {
     avatarIcon.title = "Avatar disabled. ID change is only allowed on custom websites. Build one with URLmkr";
 }
 
+}
+
+function truncateParagraph(paragraph) {
+    const maxLength = 200; // Limit for truncation
+    const fullContent = paragraph.getAttribute('data-full-content');
+
+    console.log("Full content for truncation:", fullContent);
+
+    if (!fullContent) return;
+
+    // Temporarily remove note1 placeholders for clean truncation
+    const tempContent = fullContent.replace(/<div class="note-box">[\s\S]*?<\/div>/g, '[note1]');
+    let truncatedText = tempContent.length > maxLength
+        ? `${tempContent.substring(0, maxLength)}...`
+        : tempContent;
+
+    // Reinsert note1 placeholders into truncated content
+    let displayContent = truncatedText;
+    const noteBoxes = [...fullContent.matchAll(/<div class="note-box">[\s\S]*?<\/div>/g)];
+    noteBoxes.forEach(noteBox => {
+        displayContent = displayContent.replace('[note1]', noteBox[0]);
+    });
+
+    paragraph.innerHTML = displayContent;
+    paragraph.setAttribute('data-expanded', "false");
+    console.log("Final truncated content:", paragraph.innerHTML);
 }
 
 function setRelays(customRelays) {
@@ -414,10 +406,10 @@ async function generateNewKeys() {
     };
     localStorage.setItem(fileName, JSON.stringify(eventData));
 
-    // **Post Metadata to Relays (NIP-05 kind 0)**
+    // Post Metadata to Relays (NIP-05 kind 0)
     postMetadata(pub, avatarUrl, randomName);
 
-    // **Update .well-known/nostr.json on the server**
+    // Update .well-known/nostr.json on the server
     await updateNostrJson(randomName, pub);
 
     updateAvatar();
@@ -425,14 +417,7 @@ async function generateNewKeys() {
     console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
     console.log("Generated name:", randomName);
 
-    // // --- Force modal display regardless of the state ---
-    // localStorage.removeItem("privateKeyAsked"); // Clear flag so modal always shows
-    // document.getElementById("privateKeyModal").style.display = "block";
-
-    // // Clear URL parameters and refresh the page
-    // clearUrlAndReload();
-
-    // --- Replace Modal with Alert ---
+    // --- Modal for Key generation with Alert ---
     const storeKeyResponse = confirm(
         "A random Nostr ID was created.\n\n" +
         "Do you want to store the private key in your device memory for future use in other clients?\n\n" +
@@ -689,7 +674,7 @@ function checkAccountAge() {
     }
 
     const ageInSeconds = currentTime - accountCreationTime;
-    const remainingSeconds = 86 - ageInSeconds; // 24h
+    const remainingSeconds = 86400 - ageInSeconds; // 24h
     // const remainingSeconds = 86400 - ageInSeconds; // 24h
 
     console.log("Account Age (seconds):", ageInSeconds);
@@ -808,11 +793,6 @@ function isDuplicateContent(hash) {
     return hashes.includes(hash);
 }
 
-// // Clear URL parameters and refresh page
-// function clearUrlAndReload() {
-//     window.history.replaceState({}, document.title, window.location.pathname);
-//     location.reload();
-// }
 
 document.getElementById("sendMessageBtn").onclick = async () => {
 
@@ -835,7 +815,7 @@ Please generate a new ID by pressing OK."
         return;
     }
 
-    // 1. Prevent Posting Without ID
+    // Prevent Posting Without ID
     if (!localStorage.getItem("nostr_pk")) {
         alert(
             "No private key found. please generate a new ID by pressing OK btn."
@@ -867,7 +847,6 @@ Please generate a new ID by pressing OK."
                 "This exact message was already posted! Posting the same content repeatedly is not allowed."
             )
         ) {
-            // clearUrlAndReload();
             console.log("duplicate post prevented")
         }
         return;
@@ -907,15 +886,15 @@ Please generate a new ID by pressing OK."
     // Save hash to prevent duplicate posts
     saveHash(contentHash);
 
-    // 3. Update the status message
+    // Update the status message
     const statusMessage = document.getElementById("statusMessage");
     statusMessage.textContent = "Message has been sent.";
 
-    // 4. Clear Previous Event Details
+    // Clear Previous Event Details
     const eventDetails = document.getElementById("eventDetails");
     eventDetails.innerHTML = ""; // Clear previous content _ Comment out this line if we need to append all posted notes in the screen session
 
-    // 5. Show New Event Details
+    // Show New Event Details
     eventDetails.innerHTML += `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <button class="close-event-btn" onclick="closeEventSentDetails()" title="Close this section">❌</button>
@@ -929,13 +908,13 @@ Please generate a new ID by pressing OK."
         `;
     eventDetails.style.display = "block";
 
-    // 6. Smooth Scroll to Status Message
+    // Smooth Scroll to Status Message
     statusMessage.scrollIntoView({
         behavior: "smooth",
         block: "center", // Scroll to center the element
     });
 
-    // 7. Attach click outside to close the eventDetails
+    // Attach click outside to close the eventDetails
     document.addEventListener('click', function (e) {
         const eventDetails = document.getElementById("eventDetails");
         if (eventDetails.style.display === "block" && !eventDetails.contains(e.target)) {
@@ -946,7 +925,7 @@ Please generate a new ID by pressing OK."
     saveEvent(sev);
 
    // **Delete private key if store_private_key is false**
-   const shouldDeleteKey = localStorage.getItem('store_private_key') === 'false';
+    const shouldDeleteKey = localStorage.getItem('store_private_key') === 'false';
         if (shouldDeleteKey) {
             console.log('Deleting private key (nostr_pk) from storage...');
             localStorage.removeItem('nostr_pk');
@@ -960,13 +939,6 @@ function closeEventSentDetails() {
     eventDetails.style.display = "none";
     statusMessage.style.display = "none";
 }
-
-// async function signEvent(ev, pk) {
-//     var ed = JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]);
-//     ev.id = b2h(await sha256(new TextEncoder().encode(ed)));
-//     ev.sig = await schnorr.sign(ev.id, pk);
-//     return ev;
-// }
 
 async function signEvent(ev, pk) {
     const ed = JSON.stringify([
@@ -1371,20 +1343,6 @@ document.getElementById("useDefaultRelaysBtn").onclick = function () {
     ]);
 };
 
-// document.getElementById("acceptBtn").onclick = function () {
-//     storePrivateKey = true;
-//     document.getElementById("privateKeyModal").style.display = "none";
-//     localStorage.setItem("store_private_key", storePrivateKey);
-//     localStorage.setItem("nostr_pk", pk);
-// };
-
-// document.getElementById("declineBtn").onclick = function () {
-//     storePrivateKey = false;
-//     document.getElementById("privateKeyModal").style.display = "none";
-//     localStorage.setItem("store_private_key", storePrivateKey);
-// };
-
-
 // Apply tilt after name update
 document.addEventListener('DOMContentLoaded', () => {
     updateNostrNameDisplay();
@@ -1395,8 +1353,6 @@ document.addEventListener('DOMContentLoaded', () => {
 loadKeys();
 setDynamicContent();
 updateAvatar();
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById("sendMessageBtn");
@@ -1423,56 +1379,6 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarIcon.style.opacity = "1"; // Re-enable the avatar icon if URL params exist
     }
 });
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     const sendMessageBtn = document.getElementById("sendMessageBtn");
-//     const avatarIcon = document.getElementById("avatarIcon");
-//     const userMessage = document.getElementById("userMessage");
-//     const charCount = document.getElementById("charCount");
-//     const urlParams = new URLSearchParams(window.location.search);
-
-//     const maxLength = userMessage.getAttribute("maxlength");
-
-//     // Function to validate the message and update the button state
-//     function validateMessage() {
-//         const um = userMessage.value;
-
-//         charCount.textContent = `${um.length}/${maxLength}`;
-
-//         if (um.trim().length === 0 || um.length > maxLength || !urlParams.toString()) {
-//             sendMessageBtn.disabled = true; // Disable button if message is invalid or no URL params
-//             sendMessageBtn.title = "Send button disabled.";
-//         } else {
-//             sendMessageBtn.disabled = false; // Enable button if message is valid and URL params exist
-//         }
-
-//         // Update message input styling for length
-//         if (um.length >= maxLength) {
-//             userMessage.style.borderBottom = "5px solid red";
-//         } else {
-//             userMessage.style.borderBottom = "5px solid #00ff55";
-//         }
-
-//         adjustHeight(userMessage); // Adjust textarea height dynamically
-//     }
-
-//     // Check for URL parameters and update avatar and send button state
-//     if (!urlParams.toString()) {
-//         sendMessageBtn.disabled = true;
-//         avatarIcon.style.pointerEvents = "none";
-//         avatarIcon.style.opacity = "0.5";
-//         sendMessageBtn.title = "Send button disabled. Please use a custom website with URL parameters to post.";
-//         avatarIcon.title = "Changing ID is disabled. ID changes are only allowed on custom websites.";
-//         console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
-//     } else {
-//         avatarIcon.style.pointerEvents = "auto";
-//         avatarIcon.style.opacity = "1";
-//         validateMessage(); // Run initial validation
-//     }
-
-//     // Attach input listener to validate message dynamically
-//     userMessage.oninput = validateMessage;
-// });
 
 // Prevent key generation from happening twice
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,3 +1,6 @@
+
+let fullContentCache = ""; // Track the full content for toggling
+
 // Default relays if none are specified
 const defaultRelays = [
     "wss://relay.nostr.band",
@@ -120,10 +123,10 @@ async function toggleLike(eventId, pubkey) {
         return;
     }
 
-    // CHANGED: Update local liked_events
+    // Update local liked_events
     updateLocalLikedEvents(eventId);
 
-    // CHANGED: Sync to HEX{pubkey}.json
+    // Sync to HEX{pubkey}.json
     syncLikedEventsToHex(publicKey);
 
     // Construct Reaction Event (NIP-25)
@@ -143,14 +146,14 @@ async function toggleLike(eventId, pubkey) {
     const signedEvent = await signEvent(reactionEvent, privateKey);
     propagateReaction(signedEvent);
 
-    // CHANGED: Disable the like button after liking
+    // Disable the like button after liking
     likeIcon.src = "img/othrIcon/like_1.png";
     likeIcon.dataset.liked = "true";
     likeIcon.style.pointerEvents = "none";  // Disable clicks
     likeIcon.title = "Already Liked";
 }
 
-// CHANGED: Update liked events in localStorage (persistent)
+// Update liked events in localStorage (persistent)
 function updateLocalLikedEvents(eventId) {
     let likedEvents = JSON.parse(localStorage.getItem("liked_events")) || [];
 
@@ -163,7 +166,7 @@ function updateLocalLikedEvents(eventId) {
     localStorage.setItem("liked_events", JSON.stringify(likedEvents));
 }
 
-// CHANGED: Sync liked events to HEX{pubkey}.json
+// Sync liked events to HEX{pubkey}.json
 function syncLikedEventsToHex(publicKey) {
     const fileName = `HEX${publicKey}.json`;
     let storedData = localStorage.getItem(fileName);
@@ -238,7 +241,6 @@ function saveEvent(event) {
     localStorage.setItem(fileName, JSON.stringify(data));
 }
 
-// Send the Signed Reaction Event to Relays (Prioritize URL relays)
 // Send the Signed Reaction Event to Relays (Prioritize URL relays)
 function propagateReaction(event) {
     const params = new URLSearchParams(window.location.search);
@@ -329,13 +331,16 @@ async function signEvent(event, privateKey) {
 // Display the fetched note1 event in the paragraph section
 function displayNote1Event(eventData, note1String) {
     const paragraph = document.querySelector('#customParagraph');
-    const pContent = paragraph.innerHTML;
 
-    // CHANGED: Ensure replacement happens only if placeholder exists
-    const [beforeNote, afterNote] = pContent.includes('[Event catching...]')
-        ? pContent.split('[Event catching...]')
-        : pContent.split(note1String);
+    // Preserve the original full content if not already saved
+    if (!paragraph.getAttribute('data-full-content')) {
+        paragraph.setAttribute('data-full-content', paragraph.innerHTML);
+    }
 
+    // Get the current full content
+    const fullContent = paragraph.getAttribute('data-full-content');
+
+    // Replace the matching placeholder or `note1String` with the styled noteBox
     const noteBox = `
         <div class="note-box">
             <strong>Fetched Note1:</strong> ${eventData.content}
@@ -343,7 +348,6 @@ function displayNote1Event(eventData, note1String) {
                 <strong>Event JSON:</strong>
                 <pre>${JSON.stringify(eventData, null, 2)}</pre>
             </div>
-
             <div class="note-header">
                 <img src="img/othrIcon/like_0.png" id="like-icon-${eventData.id}" 
                      class="icon like-icon" alt="Like" title="Like Event" 
@@ -355,34 +359,42 @@ function displayNote1Event(eventData, note1String) {
             </div>
         </div>
     `;
-    
 
-    // Update paragraph with fetched event
-    paragraph.innerHTML = pContent.replace('[Event catching...]', noteBox);
+    // Replace placeholder or `note1String` with the styled noteBox
+    const updatedContent = fullContent.replace(note1String, noteBox);
+    paragraph.setAttribute('data-full-content', updatedContent);
 
-    // Ensure likes are applied after event is displayed
-    markLikedEvents();
-
+    // Update the paragraph based on its current state (truncated or full)
+    if (paragraph.getAttribute('data-expanded') === "true") {
+        paragraph.innerHTML = updatedContent; // Expand to full content
+    } else {
+        truncateParagraph(paragraph); // Keep it truncated
     }
 
-    // Apply liked events to icons after display
+    // Apply likes after rendering the noteBox
+    markLikedEvents();
+}
+
     function markLikedEvents() {
         const publicKey = localStorage.getItem("nostr_pub");
         const fileName = `HEX${publicKey}.json`;
         const storedData = localStorage.getItem(fileName);
-    
+
         if (storedData) {
             const data = JSON.parse(storedData);
             if (data.likedEvents) {
-                data.likedEvents.forEach(eventId => {
-                    const likeIcon = document.getElementById(`like-icon-${eventId}`);
-                    if (likeIcon) {
-                        likeIcon.src = "img/othrIcon/like_1.png";
-                        likeIcon.dataset.liked = "true";
-                        likeIcon.style.pointerEvents = "none";  // Disable clicks
-                        likeIcon.title = "Already Liked";
-                    }
-                });
+                // Delay to ensure DOM is fully rendered
+                setTimeout(() => {
+                    data.likedEvents.forEach(eventId => {
+                        const likeIcon = document.getElementById(`like-icon-${eventId}`);
+                        if (likeIcon) {
+                            likeIcon.src = "img/othrIcon/like_1.png";
+                            likeIcon.dataset.liked = "true";
+                            likeIcon.style.pointerEvents = "none";  // Disable clicks
+                            likeIcon.title = "Already Liked";
+                        }
+                    });
+                }, 500); // 500ms delay
             }
         }
     }
@@ -420,7 +432,8 @@ window.onload = () => {
 
     if (!pValue.includes('note1')) {
         // No note1 string, simply display the paragraph as normal
-        customParagraph.textContent = pValue || "Welcome to NostrPostr!";
+        customParagraph.setAttribute('data-full-content', pValue || "Welcome to NostrPostr!");
+        truncateParagraph(customParagraph); // Ensure truncation applies
     } else {
         const note1Matches = pValue.match(/note1\w+/g) || [];
         if (note1Matches.length > 0) {
@@ -432,6 +445,7 @@ window.onload = () => {
             });
         } else {
             customParagraph.textContent = "No valid note1 found in URL.";
+            truncateParagraph(customParagraph); // Ensure truncation applies
         }
     }
 };
@@ -453,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         likeIcon.dataset.liked = "true";
                     }
                 });
-            }, 500);  // 500ms delay);
+            }, 1500);  // 1500ms delay);
         }
     }
 });
