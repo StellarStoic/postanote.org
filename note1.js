@@ -40,10 +40,18 @@ function bytesToHex(bytes) {
     return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-
+// Cache to store fetched events
+const fetchedEvents = new Set();
 // Fetch the note1 event from relays (stop after first success)
 // If event not found, retry with default relays
 async function fetchNote1Event(eventId, relays, note1String) {
+
+    // If the event is already fetched, skip fetching it again
+    if (fetchedEvents.has(eventId)) {
+        console.log(`Event ${eventId} already fetched. Skipping...`);
+        return;
+    }
+
     const relayList = relays && relays.length ? relays : defaultRelays;
     console.log("Using relays:", relayList);
 
@@ -86,6 +94,7 @@ async function fetchNote1Event(eventId, relays, note1String) {
                     if (!eventFetched) {
                         clearTimeout(timeoutId);  // Clear timeout when event is fetched
                         displayNote1Event(data[2], note1String);
+                        fetchedEvents.add(eventId);  // Cache the fetched event ID
                         eventFetched = true;
                     }
                     socket.close();  // Close after first successful fetch
@@ -329,6 +338,16 @@ async function signEvent(event, privateKey) {
     return event;
 }
 
+// Helper function to generate a random color
+function generateRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 // Display the fetched note1 event in the paragraph section
 function displayNote1Event(eventData, note1String) {
     const paragraph = document.querySelector('#customParagraph');
@@ -338,13 +357,19 @@ function displayNote1Event(eventData, note1String) {
         paragraph.setAttribute('data-full-content', paragraph.innerHTML);
     }
 
+    // Generate a random color for a pencil icon
+    const randomColor = generateRandomColor();
+
     // Get the current full content
     const fullContent = paragraph.getAttribute('data-full-content');
 
     // Replace the matching placeholder or `note1String` with the styled noteBox
     const noteBox = `
         <div class="note-box">
-            <strong>Fetched Note1:</strong> ${eventData.content}
+            <a href="https://njump.me/${eventData.id}" target="_blank" title="Show event in external source njump.me">
+                <span style="font-size:30px; cursor: pointer; color: ${randomColor};">&#8669;</span>
+            </a>
+            ${eventData.content}
             <div class="note-details" id="note-details-${eventData.id}">
                 <strong>Event JSON:</strong>
                 <pre>${JSON.stringify(eventData, null, 2)}</pre>
@@ -422,6 +447,7 @@ document.addEventListener('click', (event) => {
         }
     });
 });
+
 
 // On page load, extract and handle note1 from the p= attribute and if there's no note1 string display p= as is
 window.onload = () => {
