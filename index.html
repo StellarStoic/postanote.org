@@ -59,7 +59,8 @@
         <span style="color: #00ff5599;">relay.nostr.band, relay.damus.io,
         njump.me, relay.snort.social and nos.lol?</span> <br>
         
-        <button id="useDefaultRelaysBtn" style="background-color: #00ff5599; color: white; border: none; border-radius: 5px; cursor: pointer;">Yes</button>
+        <button id="useDefaultRelaysBtn">Yes</button>
+        <button id="closeRelayWarning">No</button>
     </p>
     <div id="eventDetails"></div>
 
@@ -1341,6 +1342,9 @@ document.getElementById("useDefaultRelaysBtn").onclick = function () {
         "wss://relay.snort.social",
         "wss://nos.lol",
     ]);
+};
+document.getElementById("closeRelayWarning").onclick = function () {
+    document.getElementById("relayWarning").style.display = "none";
 };
 
 // Apply tilt after name update

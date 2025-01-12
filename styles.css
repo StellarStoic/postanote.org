@@ -133,13 +133,22 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     margin-bottom: 2rem;  /* Space below the paragraph and link */
 }
 
+#customParagraph {
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Ensure wrapping in all modern browsers */
+    white-space: normal; /* Allow line wrapping */
+    max-width: 85vw;
+}
+
 /* for embeded note1 nnostr events */
 .note-box {
     border: 1px solid #ccc;
     padding: 15px;
-    margin: 10px 0;
+    margin: 20px auto;
+    margin-left: auto;
+    margin-right: auto;
     background-color: transparent;
-    max-width: 600px;
+    max-width: 700px;
     position: relative;
     word-wrap: break-word; /* Forces wrapping */
     overflow-wrap: break-word; /* Fallback for better compatibility */
@@ -195,6 +204,7 @@ pre {
     display: inline-block;
     color: #ffffff;
     text-decoration: none;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     margin-top: 0.5rem;
@@ -202,7 +212,7 @@ pre {
 }
 
 #readMoreLink:hover {
-    color: #9e5dbc;
+    color: #51dc10;
     text-decoration: underline;
 }
 
@@ -267,6 +277,7 @@ pre {
     font-family: var(--main-font);;
     margin: 20px auto;
     padding: 25px;
+    max-width: fit-content;
     font-size: 1rem;
     background-color: #00000094;
     color: #efefef;
@@ -516,6 +527,14 @@ pre {
 #useDefaultRelaysBtn {
     font-size: 1em;
     background-color: #00ff5599;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#closeRelayWarning {
+    font-size: 1em;
+    background-color: #b2380099;
     color: white;
     border: none;
     border-radius: 5px;
