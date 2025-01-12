@@ -54,7 +54,7 @@ async function fetchNote1Event(eventId, relays, note1String) {
     if (paragraph.innerHTML.includes(note1String)) {
         paragraph.innerHTML = paragraph.innerHTML.replace(
             note1String,
-            '<span style="color:rgb(173, 185, 143);">[Event catching...]</span>'
+            '<span style="color: #bbc013;">[Event catching...]</span>'
         );
     }
 
@@ -62,7 +62,7 @@ async function fetchNote1Event(eventId, relays, note1String) {
     const timeoutId = setTimeout(() => {
         if (!eventFetched) {
             paragraph.innerHTML = paragraph.innerHTML.replace(
-                '<span style="color: orange;">[Event catching...]</span>',
+                '<span style="color: #bbc013;">[Event catching...]</span>',
                 '<span style="color: #FF6347;">[Event not found]</span>'  // Soft red (Tomato color)
             );
         }
@@ -84,7 +84,7 @@ async function fetchNote1Event(eventId, relays, note1String) {
                 const data = JSON.parse(message.data);
                 if (data[0] === "EVENT") {
                     if (!eventFetched) {
-                        clearTimeout(timeoutId);  // CHANGED: Clear timeout when event is fetched
+                        clearTimeout(timeoutId);  // Clear timeout when event is fetched
                         displayNote1Event(data[2], note1String);
                         eventFetched = true;
                     }
@@ -93,8 +93,9 @@ async function fetchNote1Event(eventId, relays, note1String) {
             };
 
             socket.onclose = () => {
+                console.log(`Relay ${relay} closed connection.`);
                 if (!eventFetched && relay === relayList[relayList.length - 1]) {
-                    console.log("Event not found. Retrying with default relays...");
+                    console.warn("No event found on provided relays. Retrying with default relays...");
                     if (relayList !== defaultRelays) {
                         fetchNote1Event(eventId, defaultRelays, note1String);
                     }
