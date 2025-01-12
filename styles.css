@@ -216,6 +216,70 @@ pre {
     text-decoration: underline;
 }
 
+/* Center alignment for embedded images and videos */
+img[id^="embedded-image-"],
+video[id^="embedded-video-"] {
+    max-width: 400px;
+    height: auto;
+    background-color: #00000096;
+    display: block;
+    margin: 10px auto; /* Center-align using auto margins */
+    padding: 15px;
+    cursor: pointer; /* Indicate clickable items */
+    transition: transform 0.3s ease; /* Smooth zoom effect */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+}
+
+/* Hover effect for zoom indication */
+img[id^="embedded-image-"]:hover,
+video[id^="embedded-video-"]:hover {
+    transform: scale(1.02); /* Slight zoom on hover */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Full-screen modal styles */
+.fullscreen-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.3s ease;
+}
+
+/* Show modal when active */
+.fullscreen-modal.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Media inside modal */
+.fullscreen-modal img,
+.fullscreen-modal video {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+/* Close button */
+.fullscreen-modal .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    z-index: 1100;
+}
+
 /* #imageUploadIcon {
     position: absolute;
     top: 10px;

@@ -1,6 +1,3 @@
-
-let fullContentCache = ""; // Track the full content for toggling
-
 // Default relays if none are specified
 const defaultRelays = [
     "wss://relay.nostr.band",
@@ -66,15 +63,45 @@ async function fetchNote1Event(eventId, relays, note1String) {
         );
     }
 
-    // Timeout to replace if fetching fails (with soft red)
-    const timeoutId = setTimeout(() => {
-        if (!eventFetched) {
-            paragraph.innerHTML = paragraph.innerHTML.replace(
-                '<span style="color: #bbc013;">[Event catching...]</span>',
-                '<span style="color: #FF6347;">[Event not found]</span>'  // Soft red (Tomato color)
-            );
+// Timeout to replace placeholder with "Event not found"
+const timeoutId = setTimeout(() => {
+    if (!eventFetched) {
+        console.warn(`Event ${eventId} not found. Replacing placeholder.`);
+
+        // Locate the specific placeholder and replace it without re-rendering the entire paragraph
+        const placeholder = paragraph.querySelector('span[style="color: #bbc013;"]');
+        if (placeholder) {
+            placeholder.outerHTML = '<span style="color: #FF6347;">[Event not found]</span>';
+            console.log("Replaced placeholder with 'Event not found'.");
         }
-    }, 10000);  // 10-second timeout for fallback
+
+        // Reapply modal listeners to ensure media items remain interactive
+        const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+        mediaItems.forEach((media) => {
+            if (!media.dataset.modalListener) {
+                media.addEventListener("click", () => {
+                    console.log("Media item clicked:", media);
+
+                    const modal = document.querySelector(".fullscreen-modal");
+                    const modalContent = modal.querySelector(".modal-content");
+
+                    const clone = media.cloneNode(true);
+                    clone.style.maxWidth = "100%";
+                    clone.style.maxHeight = "100%";
+
+                    modalContent.innerHTML = ""; // Clear previous content
+                    modalContent.appendChild(clone);
+
+                    modal.classList.add("active");
+                    console.log("Modal activated for:", media);
+                });
+
+                media.dataset.modalListener = "true"; // Mark as having a listener
+            }
+        });
+    }
+}, 20000); // 20-second timeout for fallback
+
 
     for (const relay of relayList) {
         if (eventFetched) break;
@@ -369,7 +396,7 @@ function displayNote1Event(eventData, note1String) {
             <a href="https://njump.me/${eventData.id}" target="_blank" title="Show event in external source njump.me">
                 <span style="font-size:30px; cursor: pointer; color: ${randomColor};">&#8669;</span>
             </a>
-            ${eventData.content}
+            ${replaceMediaLinks(eventData.content)}
             <div class="note-details" id="note-details-${eventData.id}">
                 <strong>Event JSON:</strong>
                 <pre>${JSON.stringify(eventData, null, 2)}</pre>
@@ -459,7 +486,7 @@ window.onload = () => {
 
     if (!pValue.includes('note1')) {
         // No note1 string, simply display the paragraph as normal
-        customParagraph.setAttribute('data-full-content', pValue || "Welcome to NostrPostr!");
+        customParagraph.setAttribute('data-full-content', pValue || "");
         truncateParagraph(customParagraph); // Ensure truncation applies
     } else {
         const note1Matches = pValue.match(/note1\w+/g) || [];

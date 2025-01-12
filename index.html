@@ -91,6 +91,12 @@
     </div>
 </div>
 
+<!-- modal for viewing media items -->
+<div class="fullscreen-modal">
+    <span class="close-btn">&times;</span>
+    <div class="modal-content"></div>
+</div>
+
 <!-- QR Code Modal -->
 <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;">
     <div style="z-index: 10001; background: #fff; padding: 20px; border-radius: 8px; text-align: center;">
@@ -225,10 +231,22 @@ function setDynamicContent() {
     const readMoreLink = document.getElementById("readMoreLink");
 
     if (p) {
-        paragraph.setAttribute('data-full-content', p); // Store full content
+        // Replace media links first
+        let processedContent = replaceMediaLinks(p);
+
+        // Store the processed content for truncation and expansion
+        paragraph.setAttribute('data-full-content', processedContent);
         console.log("Content before truncation on page load:", paragraph.innerHTML);
-        truncateParagraph(paragraph); // Truncate initially
-        readMoreLink.style.display = "inline"; // Show 'Read More'
+
+        // Initial truncation of the paragraph
+        truncateParagraph(paragraph);
+
+        // Show the "Read More" link
+        readMoreLink.style.display = "inline";
+
+        // Fetch note1 events in the processed content
+        fetchNote1Strings(processedContent, r);
+        
 
         readMoreLink.onclick = (e) => {
             e.preventDefault();
@@ -240,17 +258,66 @@ function setDynamicContent() {
                 readMoreLink.textContent = "Read more";
                 paragraph.setAttribute('data-expanded', "false");
             } else {
-                // Expand content
-                paragraph.innerHTML = paragraph.getAttribute('data-full-content');
+               // Expand content
+                let expandedContent = paragraph.getAttribute('data-full-content');
+                expandedContent = replaceMediaLinks(expandedContent); // Reapply media links to expanded content
+                paragraph.innerHTML = expandedContent;
                 readMoreLink.textContent = "Close";
                 paragraph.setAttribute('data-expanded', "true");
 
                 // Fetch embedded `note1` events in the expanded content
                 fetchNote1Strings(paragraph.innerHTML, r);
 
+            // Reapply modal listeners for expanded content
+            const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+            mediaItems.forEach((media) => {
+                if (!media.dataset.modalListener) {
+                    media.addEventListener("click", () => {
+                        const modal = document.querySelector(".fullscreen-modal");
+                        const modalContent = modal.querySelector(".modal-content");
+
+                        const clone = media.cloneNode(true);
+                        clone.style.maxWidth = "100%";
+                        clone.style.maxHeight = "100%";
+
+                        modalContent.innerHTML = ""; // Clear previous content
+                        modalContent.appendChild(clone);
+
+                        modal.classList.add("active");
+                        console.log("Modal activated for:", media);
+                    });
+
+                    media.dataset.modalListener = "true"; // Mark as having a listener
+                }
+            });
+
+
+
                 markLikedEvents(); // Mark likes on expanded content
             }
         };
+
+                // Reapply modal listeners for initial truncated content
+                const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+        mediaItems.forEach((media) => {
+            if (!media.dataset.modalListener) {
+                media.addEventListener("click", () => {
+                    const modal = document.querySelector(".fullscreen-modal");
+                    const modalContent = modal.querySelector(".modal-content");
+
+                    const clone = media.cloneNode(true);
+                    clone.style.maxWidth = "100%";
+                    clone.style.maxHeight = "100%";
+
+                    modalContent.innerHTML = ""; // Clear previous content
+                    modalContent.appendChild(clone);
+
+                    modal.classList.add("active");
+                });
+
+                media.dataset.modalListener = "true"; // Mark as having a listener
+            }
+        });
 
         // Fetch `note1` events in the truncated content
         fetchNote1Strings(paragraph.innerHTML, r);
@@ -340,7 +407,138 @@ function truncateParagraph(paragraph) {
 
     // Fetch `note1` events in the truncated content
     fetchNote1Strings(paragraph.innerHTML, getQueryParams().r);
+
+   // Apply modal listeners for media items in the paragraph
+   const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+    mediaItems.forEach((media) => {
+        if (!media.dataset.modalListener) {
+            media.addEventListener("click", () => {
+                const modal = document.querySelector(".fullscreen-modal");
+                const modalContent = modal.querySelector(".modal-content");
+
+                const clone = media.cloneNode(true);
+                clone.style.maxWidth = "100%";
+                clone.style.maxHeight = "100%";
+
+                modalContent.innerHTML = ""; // Clear previous content
+                modalContent.appendChild(clone);
+
+                modal.classList.add("active");
+                console.log("Modal activated for:", media);
+            });
+
+            media.dataset.modalListener = "true"; // Mark as having a listener
+        }
+    });
 }
+
+function replaceMediaLinks(content) {
+    // Match image and video URLs
+    const imageRegex = /(https?:\/\/\S+\.(?:png|jpe?g|gif|webp))(?![^<>]*>)/gi;
+    const videoRegex = /(https?:\/\/\S+\.(?:mp4|webm|ogg))(?![^<>]*>)/gi;
+
+    let imageIdCounter = 0; // Counter for unique image IDs
+    let videoIdCounter = 0; // Counter for unique video IDs
+
+    // Replace image URLs with <img> tags and assign unique IDs
+    content = content.replace(imageRegex, (match) => {
+        const id = `embedded-image-${imageIdCounter++}`;
+        return `<img id="${id}" src="${match}" alt="Embedded Image">`;
+    });
+
+    // Replace video URLs with <video> tags and assign unique IDs
+    content = content.replace(videoRegex, (match) => {
+        const id = `embedded-video-${videoIdCounter++}`;
+        return `
+            <video id="${id}" controls>
+                <source src="${match}" type="video/${match.split('.').pop()}">
+                Your browser does not support the video tag.
+            </video>
+        `;
+    });
+
+    return content;
+}
+
+
+
+// modal for media content
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded and parsed.");
+
+    // Select the existing modal elements
+    const modal = document.querySelector(".fullscreen-modal");
+    const modalContent = modal.querySelector(".modal-content");
+    const closeButton = modal.querySelector(".close-btn");
+
+    if (!modal || !modalContent || !closeButton) {
+        console.error("Modal structure is missing in the HTML. Please ensure it exists.");
+        return;
+    }
+
+    console.log("Modal structure found. Setting up event listeners.");
+
+    // Function to apply modal listeners to media items
+    const applyModalListeners = () => {
+        console.log("Applying modal listeners to media items.");
+
+        const mediaItems = document.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+
+        if (mediaItems.length === 0) {
+            console.warn("No media items found to attach event listeners.");
+            return;
+        }
+
+        mediaItems.forEach((media) => {
+            // Avoid duplicate event listeners
+            if (media.dataset.modalListener === "true") return;
+
+            media.addEventListener("click", () => {
+                console.log("Media item clicked:", media);
+
+                const clone = media.cloneNode(true);
+                clone.style.maxWidth = "100%";
+                clone.style.maxHeight = "100%";
+
+                modalContent.innerHTML = ""; // Clear previous content
+                modalContent.appendChild(clone);
+
+                modal.classList.add("active");
+                console.log("Modal activated.");
+            });
+
+            // Mark media item as having a listener attached
+            media.dataset.modalListener = "true";
+        });
+    };
+
+    // Close modal on click of close button
+    closeButton.addEventListener("click", () => {
+        console.log("Close button clicked. Hiding modal.");
+        modal.classList.remove("active");
+        modalContent.innerHTML = ""; // Clear modal content
+    });
+
+    // Close modal on outside click
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            console.log("Modal background clicked. Hiding modal.");
+            modal.classList.remove("active");
+            modalContent.innerHTML = ""; // Clear modal content
+        }
+    });
+
+    // Initial application of modal listeners
+    applyModalListeners();
+
+    // Reapply listeners after dynamic content updates
+    document.addEventListener("contentUpdated", () => {
+        console.log("Dynamic content updated. Reapplying modal listeners.");
+        applyModalListeners();
+    });
+});
+
+
 
 function setRelays(customRelays) {
     relaySubscriptions = [];
@@ -1378,6 +1576,8 @@ document.addEventListener('DOMContentLoaded', () => {
 loadKeys();
 setDynamicContent();
 updateAvatar();
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById("sendMessageBtn");
