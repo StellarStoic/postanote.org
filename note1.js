@@ -9,25 +9,26 @@ const defaultRelays = [
 
 // Decode note1 from a bech32 string (Based on NIP-19)
 function decodeNote1(input) {
-    const note1Match = input.match(/note1\w+/);
+    // Match only "nostr:note1" strings
+    const note1Match = input.match(/nostr:note1\w+/);
     if (!note1Match) return null;
 
     const note1 = note1Match[0];
     console.log("Decoding note1:", note1);
 
     try {
-        const { words } = bech32.decode(note1);
+        const { words } = bech32.decode(note1.replace(/^nostr:/, "")); // Remove "nostr:" prefix for decoding
         const bytes = bech32.fromWords(words);
 
         if (bytes.length !== 32) {
-            throw new Error("Invalid note1 string. Incorrect byte length.");
+            throw new Error("Invalid nostr:note1 string. Incorrect byte length.");
         }
 
         const eventId = bytesToHex(bytes);
         console.log(`Decoded note1 Event ID (Hex): ${eventId}`);
         return { eventId, note1String: note1 };
     } catch (error) {
-        console.error("Failed to decode note1:", error);
+        console.error("Failed to decode nostr:note1:", error);
         return null;
     }
 }
@@ -75,30 +76,6 @@ const timeoutId = setTimeout(() => {
             console.log("Replaced placeholder with 'Event not found'.");
         }
 
-        // // Reapply modal listeners to ensure media items remain interactive
-        // const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-        // mediaItems.forEach((media) => {
-        //     if (!media.dataset.modalListener) {
-        //         media.addEventListener("click", () => {
-        //             console.log("Media item clicked:", media);
-
-        //             const modal = document.querySelector(".fullscreen-modal");
-        //             const modalContent = modal.querySelector(".modal-content");
-
-        //             const clone = media.cloneNode(true);
-        //             clone.style.maxWidth = "100%";
-        //             clone.style.maxHeight = "100%";
-
-        //             modalContent.innerHTML = ""; // Clear previous content
-        //             modalContent.appendChild(clone);
-
-        //             modal.classList.add("active");
-        //             console.log("Modal activated for:", media);
-        //         });
-
-        //         media.dataset.modalListener = "true"; // Mark as having a listener
-        //     }
-        // });
         // Reapply modal listeners
         applyModalListenersToMedia(paragraph);
     }
@@ -426,6 +403,9 @@ function displayNote1Event(eventData, note1String) {
         truncateParagraph(paragraph); // Keep it truncated
     }
 
+    // Apply modal listeners to media in the updated content
+    applyModalListenersToMedia(paragraph);
+
     // Apply likes after rendering the noteBox
     markLikedEvents();
 }
@@ -456,29 +436,97 @@ function displayNote1Event(eventData, note1String) {
 
 // Toggle function for showing/hiding JSON details
 function toggleDetails(eventId) {
+    console.log(`Toggling details for eventId: ${eventId}`);
+
+    // Close any currently open details first
+    const openDetails = document.querySelectorAll('.note-details.visible');
+    openDetails.forEach(detail => {
+        if (detail.id !== `note-details-${eventId}`) {
+            console.log(`Closing other open details: ${detail.id}`);
+            detail.classList.remove('visible');
+        }
+    });
+
+    // Toggle the current detail's visibility
     const details = document.getElementById(`note-details-${eventId}`);
-    details.classList.toggle('visible');
+    if (details) {
+        details.classList.toggle('visible');
+        console.log(`Details for eventId ${eventId} are now ${details.classList.contains('visible') ? 'open' : 'closed'}`);
+    } else {
+        console.warn(`Details for eventId ${eventId} not found!`);
+    }
 }
 
 // Close note details when clicking outside
 document.addEventListener('click', (event) => {
+    console.log("Click detected outside, checking for open details...");
+
     const noteBoxes = document.querySelectorAll('.note-box');
+
+    let clickedInsideAnyNoteBox = false;
 
     noteBoxes.forEach(box => {
         const details = box.querySelector('.note-details');
-        const toggleLink = box.querySelector('a');
 
-        // Close if the click is outside the note-box or "Note Details" link
-        if (details.classList.contains('visible') &&
-            !box.contains(event.target) && 
-            event.target !== toggleLink) {
-            details.classList.remove('visible');
+        if (details && details.classList.contains('visible')) {
+            console.log(`Checking visibility for details: ${details.id}`);
         }
+
+        // Check if the click is inside any visible note-box
+        if (box.contains(event.target)) {
+            console.log(`Click detected inside note-box: ${box}`);
+            clickedInsideAnyNoteBox = true;
+        }
+    });
+
+    // Close all details if the click was outside any note-box
+    if (!clickedInsideAnyNoteBox) {
+        console.log("Click outside all note-boxes. Closing all visible details.");
+        const visibleDetails = document.querySelectorAll('.note-details.visible');
+        visibleDetails.forEach(details => {
+            console.log(`Closing visible details: ${details.id}`);
+            details.classList.remove('visible');
+        });
+    }
+});
+
+// Prevent event propagation when clicking on details icons
+document.querySelectorAll('.details-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log("Click event on details-icon stopped from propagating.");
     });
 });
 
 
 // On page load, extract and handle note1 from the p= attribute and if there's no note1 string display p= as is
+// window.onload = () => {
+//     const params = new URLSearchParams(window.location.search);
+//     const pValue = params.get('p') || '';
+//     const relayParam = params.getAll('r');
+    
+//     const customParagraph = document.getElementById('customParagraph');
+
+//     if (!pValue.match(/(?:nostr:)?note1/)) {  // Match either "note1" or "nostr:note1"
+//         // No note1 string, simply display the paragraph as normal
+//         customParagraph.setAttribute('data-full-content', pValue || "");
+//         truncateParagraph(customParagraph); // Ensure truncation applies
+//     } else {
+//         const note1Matches = pValue.match(/(?:nostr:)?note1\w+/g) || [];  // Match both formats
+//         if (note1Matches.length > 0) {
+//             note1Matches.forEach(note1String => {
+//                 const { eventId } = decodeNote1(note1String) || {};
+//                 if (eventId) {
+//                     fetchNote1Event(eventId, relayParam, note1String);
+//                 }
+//             });
+//         } else {
+//             customParagraph.textContent = "No valid note1 found in URL.";
+//             truncateParagraph(customParagraph); // Ensure truncation applies
+//         }
+//     }
+// };
+
 window.onload = () => {
     const params = new URLSearchParams(window.location.search);
     const pValue = params.get('p') || '';
@@ -486,25 +534,32 @@ window.onload = () => {
     
     const customParagraph = document.getElementById('customParagraph');
 
-    if (!pValue.includes('note1')) {
-        // No note1 string, simply display the paragraph as normal
+    // Check for "nostr:note1" strings explicitly
+    const note1Matches = pValue.match(/nostr:note1\w+/g) || [];
+    const plainNote1Matches = pValue.match(/\bnote1\w+\b(?!:)/g) || []; // Match "note1" without "nostr:"
+
+    if (plainNote1Matches.length > 0) {
+        // Handle plain "note1" strings as normal text
+        plainNote1Matches.forEach(note1String => {
+            pValue = pValue.replace(note1String, `<span>${note1String}</span>`); // Display as raw text
+        });
+    }
+
+    if (note1Matches.length > 0) {
+        // Handle "nostr:note1" strings for fetching
+        note1Matches.forEach(note1String => {
+            const { eventId } = decodeNote1(note1String) || {};
+            if (eventId) {
+                fetchNote1Event(eventId, relayParam, note1String);
+            }
+        });
+    } else if (plainNote1Matches.length === 0) {
+        // No "nostr:note1" or "note1" strings
         customParagraph.setAttribute('data-full-content', pValue || "");
-        truncateParagraph(customParagraph); // Ensure truncation applies
-    } else {
-        const note1Matches = pValue.match(/note1\w+/g) || [];
-        if (note1Matches.length > 0) {
-            note1Matches.forEach(note1String => {
-                const { eventId } = decodeNote1(note1String) || {};
-                if (eventId) {
-                    fetchNote1Event(eventId, relayParam, note1String);
-                }
-            });
-        } else {
-            customParagraph.textContent = "No valid note1 found in URL.";
-            truncateParagraph(customParagraph); // Ensure truncation applies
-        }
+        truncateParagraph(customParagraph);
     }
 };
+
 
 // On page load, mark liked events
 document.addEventListener("DOMContentLoaded", () => {

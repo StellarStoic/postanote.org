@@ -330,13 +330,33 @@ function setDynamicContent() {
 
 }
 
-// helper function scans the paragraph for note1 strings and invokes fetchNote1Event function
+// // helper function scans the paragraph for note1 strings and invokes fetchNote1Event function
+// function fetchNote1Strings(content, relays) {
+//     const note1Matches = content.match(/note1\w+/g) || [];
+//     note1Matches.forEach(note1String => {
+//         const { eventId } = decodeNote1(note1String) || {};
+//         if (eventId) fetchNote1Event(eventId, relays, note1String);
+//     });
+// }
+
+// Helper function scans the paragraph for nostr:note1 strings and invokes fetchNote1Event function
 function fetchNote1Strings(content, relays) {
-    const note1Matches = content.match(/note1\w+/g) || [];
+    const note1Matches = content.match(/nostr:note1\w+/g) || [];
     note1Matches.forEach(note1String => {
         const { eventId } = decodeNote1(note1String) || {};
-        if (eventId) fetchNote1Event(eventId, relays, note1String);
+        if (eventId) fetchNote1Event(eventId, relays, note1String); // Fetch event for nostr:note1
     });
+
+    // Handle plain note1 strings by showing them as raw text
+    const plainNote1Matches = content.match(/\bnote1\w+\b(?!:)/g) || [];
+    plainNote1Matches.forEach(note1String => {
+        content = content.replace(
+            note1String,
+            `<span style="color: gray;">${note1String}</span>` // Render plain note1 as gray text
+        );
+    });
+
+    return content;
 }
 
 function truncateParagraph(paragraph) {
@@ -360,7 +380,7 @@ function truncateParagraph(paragraph) {
         displayContent = displayContent.replace('[note1]', noteBox[0]);
     });
 
-    // Process media links after truncation
+    // Process media links after truncation & Ensure media links are only processed in the paragraph, not raw JSON
     displayContent = replaceMediaLinks(displayContent);
 
     paragraph.innerHTML = displayContent;

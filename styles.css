@@ -171,12 +171,12 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 
 .note-details {
     display: none;
-    font-size: 0.6rem;
+    font-size: 0.5em;
     border: 1px solid #ddd;
     padding: 10px;
     background-color: transparent;
     margin-top: 10px;
-}
+} 
 
 .note-details.visible {
     display: block;
