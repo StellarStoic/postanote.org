@@ -338,24 +338,56 @@ video[id^="embedded-video-"]:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--main-font);;
-    margin: 20px auto;
-    padding: 25px;
-    max-width: fit-content;
+    position: relative;
+    font-family: var(--main-font);
+    width: 200px;
+    height: 50px;
+    margin: 10px auto;
+    padding: 10px;
     font-size: 1rem;
     background-color: #00000094;
     color: #efefef;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    overflow: hidden;
+
 }
 
 #sendMessageBtn img {
-    width: 15px;
-    height: 15px;
-    margin-left: 10px;
-    margin-right: 10px;
+    position: absolute;
+    opacity: 0.7;
+    top: 50%;
+    left: -300px; /* Start offscreen */
+    width: 40px;
+    height: 40px;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+
 }
+
+        /* Animation keyframes */
+        @keyframes moveImage {
+            0% {
+                left: -1000px; /* Start offscreen on the left */
+                transform: translateY(-50%) scaleX(1);
+            }
+            50% {
+                left: 850px; /* Move to the right, slightly past the button */
+                transform: translateY(-50%) scaleX(1);
+            }
+            50.01% {
+                transform: translateY(-50%) scaleX(-1); /* Flip the image */
+            }
+            100% {
+                left: -1000px; /* Move back to the left, offscreen */
+                transform: translateY(-50%) scaleX(-1);
+            }
+        }
+
+        #sendMessageBtn img.animate {
+            animation: moveImage 39s linear infinite;
+        }
 
 textarea#userMessage {
     width: 75%;
@@ -381,18 +413,6 @@ pre {
     font-size: 2em;
 }
 
-
-#sendMessageBtn {
-    width: 4em;
-    height: 2em;
-    font-size: 2rem;
-    padding-left: 40px;
-}
-
-#sendMessageBtn img {
-    width: 60px;
-    height: 60px;
-}
 
 #statusMessage {
     color:rgb(0, 255, 0);
@@ -697,15 +717,7 @@ footer a:hover {
         font-size: 1rem;
     }
 
-    #sendMessageBtn {
-        font-size: 1.2rem;
-        padding: 10px 15px;
-    }
 
-    #sendMessageBtn img {
-        width: 20px;
-        height: 20px;
-    }
 
     /* footer {
         padding: 10px 5px;

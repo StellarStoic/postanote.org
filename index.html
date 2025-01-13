@@ -48,8 +48,8 @@
         <div id="markdownPreview" class="overlay markdown-preview"></div>
     </div>
     <div id="charCount">0/280</div>
-    <button id="sendMessageBtn" disabled>Send
-        <img src="https://user-images.githubusercontent.com/99301796/219719339-5eff628c-3470-4cc3-81eb-404f8902de9f.gif"/>
+    <button id="sendMessageBtn" disabled>send
+        <img src="https://user-images.githubusercontent.com/99301796/219719339-5eff628c-3470-4cc3-81eb-404f8902de9f.gif" id="animatedImg"/>
     </button>
     <p id="statusMessage"></p>
     <p id="relayWarning" style="color:red; display:none; background-color: rgba(0, 0, 0, 0.672);">
@@ -238,7 +238,7 @@ function setDynamicContent() {
         paragraph.setAttribute('data-full-content', processedContent);
         console.log("Content before truncation on page load:", paragraph.innerHTML);
 
-        // Initial truncation of the paragraph
+        // Truncate content for initial view
         truncateParagraph(paragraph);
 
         // Show the "Read More" link
@@ -246,17 +246,17 @@ function setDynamicContent() {
 
         // Fetch note1 events in the processed content
         fetchNote1Strings(processedContent, r);
-        
 
         readMoreLink.onclick = (e) => {
             e.preventDefault();
             const expanded = paragraph.getAttribute('data-expanded') === "true";
-
+            
             if (expanded) {
                 // Collapse content
                 truncateParagraph(paragraph);
                 readMoreLink.textContent = "Read more";
                 paragraph.setAttribute('data-expanded', "false");
+
             } else {
                // Expand content
                 let expandedContent = paragraph.getAttribute('data-full-content');
@@ -268,56 +268,15 @@ function setDynamicContent() {
                 // Fetch embedded `note1` events in the expanded content
                 fetchNote1Strings(paragraph.innerHTML, r);
 
-            // Reapply modal listeners for expanded content
-            const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-            mediaItems.forEach((media) => {
-                if (!media.dataset.modalListener) {
-                    media.addEventListener("click", () => {
-                        const modal = document.querySelector(".fullscreen-modal");
-                        const modalContent = modal.querySelector(".modal-content");
-
-                        const clone = media.cloneNode(true);
-                        clone.style.maxWidth = "100%";
-                        clone.style.maxHeight = "100%";
-
-                        modalContent.innerHTML = ""; // Clear previous content
-                        modalContent.appendChild(clone);
-
-                        modal.classList.add("active");
-                        console.log("Modal activated for:", media);
-                    });
-
-                    media.dataset.modalListener = "true"; // Mark as having a listener
-                }
-            });
-
-
+                // Reapply modal listeners
+                applyModalListenersToMedia(paragraph);
 
                 markLikedEvents(); // Mark likes on expanded content
             }
         };
 
-                // Reapply modal listeners for initial truncated content
-                const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-        mediaItems.forEach((media) => {
-            if (!media.dataset.modalListener) {
-                media.addEventListener("click", () => {
-                    const modal = document.querySelector(".fullscreen-modal");
-                    const modalContent = modal.querySelector(".modal-content");
-
-                    const clone = media.cloneNode(true);
-                    clone.style.maxWidth = "100%";
-                    clone.style.maxHeight = "100%";
-
-                    modalContent.innerHTML = ""; // Clear previous content
-                    modalContent.appendChild(clone);
-
-                    modal.classList.add("active");
-                });
-
-                media.dataset.modalListener = "true"; // Mark as having a listener
-            }
-        });
+        // Reapply modal listeners
+        applyModalListenersToMedia(paragraph);
 
         // Fetch `note1` events in the truncated content
         fetchNote1Strings(paragraph.innerHTML, r);
@@ -401,6 +360,9 @@ function truncateParagraph(paragraph) {
         displayContent = displayContent.replace('[note1]', noteBox[0]);
     });
 
+    // Process media links after truncation
+    displayContent = replaceMediaLinks(displayContent);
+
     paragraph.innerHTML = displayContent;
     paragraph.setAttribute('data-expanded', "false");
     console.log("Final truncated content:", paragraph.innerHTML);
@@ -408,28 +370,8 @@ function truncateParagraph(paragraph) {
     // Fetch `note1` events in the truncated content
     fetchNote1Strings(paragraph.innerHTML, getQueryParams().r);
 
-   // Apply modal listeners for media items in the paragraph
-   const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-    mediaItems.forEach((media) => {
-        if (!media.dataset.modalListener) {
-            media.addEventListener("click", () => {
-                const modal = document.querySelector(".fullscreen-modal");
-                const modalContent = modal.querySelector(".modal-content");
-
-                const clone = media.cloneNode(true);
-                clone.style.maxWidth = "100%";
-                clone.style.maxHeight = "100%";
-
-                modalContent.innerHTML = ""; // Clear previous content
-                modalContent.appendChild(clone);
-
-                modal.classList.add("active");
-                console.log("Modal activated for:", media);
-            });
-
-            media.dataset.modalListener = "true"; // Mark as having a listener
-        }
-    });
+    // Reapply modal listeners
+    applyModalListenersToMedia(paragraph);
 }
 
 function replaceMediaLinks(content) {
@@ -460,9 +402,7 @@ function replaceMediaLinks(content) {
     return content;
 }
 
-
-
-// modal for media content
+// Modal for media content
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded and parsed.");
 
@@ -478,67 +418,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Modal structure found. Setting up event listeners.");
 
-    // Function to apply modal listeners to media items
-    const applyModalListeners = () => {
-        console.log("Applying modal listeners to media items.");
+    // Function to handle modal interactions
+    const setupModal = () => {
+        // Close modal on click of close button
+        closeButton.addEventListener("click", () => {
+            console.log("Close button clicked. Hiding modal.");
+            modal.classList.remove("active");
+            modalContent.innerHTML = ""; // Clear modal content
+        });
 
-        const mediaItems = document.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-
-        if (mediaItems.length === 0) {
-            console.warn("No media items found to attach event listeners.");
-            return;
-        }
-
-        mediaItems.forEach((media) => {
-            // Avoid duplicate event listeners
-            if (media.dataset.modalListener === "true") return;
-
-            media.addEventListener("click", () => {
-                console.log("Media item clicked:", media);
-
-                const clone = media.cloneNode(true);
-                clone.style.maxWidth = "100%";
-                clone.style.maxHeight = "100%";
-
-                modalContent.innerHTML = ""; // Clear previous content
-                modalContent.appendChild(clone);
-
-                modal.classList.add("active");
-                console.log("Modal activated.");
-            });
-
-            // Mark media item as having a listener attached
-            media.dataset.modalListener = "true";
+        // Close modal on outside click
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                console.log("Modal background clicked. Hiding modal.");
+                modal.classList.remove("active");
+                modalContent.innerHTML = ""; // Clear modal content
+            }
         });
     };
 
-    // Close modal on click of close button
-    closeButton.addEventListener("click", () => {
-        console.log("Close button clicked. Hiding modal.");
-        modal.classList.remove("active");
-        modalContent.innerHTML = ""; // Clear modal content
-    });
+    // Set up modal close interactions
+    setupModal();
 
-    // Close modal on outside click
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            console.log("Modal background clicked. Hiding modal.");
-            modal.classList.remove("active");
-            modalContent.innerHTML = ""; // Clear modal content
-        }
-    });
-
-    // Initial application of modal listeners
-    applyModalListeners();
+    // Apply modal listeners globally on page load
+    const paragraph = document.querySelector("#customParagraph");
+    if (paragraph) {
+        applyModalListenersToMedia(paragraph);
+    }
 
     // Reapply listeners after dynamic content updates
     document.addEventListener("contentUpdated", () => {
         console.log("Dynamic content updated. Reapplying modal listeners.");
-        applyModalListeners();
+        if (paragraph) {
+            applyModalListenersToMedia(paragraph);
+        }
     });
 });
 
+// Refactored applyModalListenersToMedia function
+function applyModalListenersToMedia(container) {
+    console.log("Applying modal listeners for media items in the container.");
+    const mediaItems = container.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
 
+    if (mediaItems.length === 0) {
+        console.warn("No media items found to attach event listeners.");
+        return;
+    }
+
+    mediaItems.forEach((media) => {
+        // Avoid duplicate event listeners
+        if (media.dataset.modalListener === "true") return;
+
+        media.addEventListener("click", () => {
+            console.log("Media item clicked:", media);
+
+            const modal = document.querySelector(".fullscreen-modal");
+            const modalContent = modal.querySelector(".modal-content");
+
+            const clone = media.cloneNode(true);
+            clone.style.maxWidth = "100%";
+            clone.style.maxHeight = "100%";
+
+            modalContent.innerHTML = ""; // Clear previous content
+            modalContent.appendChild(clone);
+
+            modal.classList.add("active");
+            console.log("Modal activated.");
+        });
+
+        // Mark media item as having a listener attached
+        media.dataset.modalListener = "true";
+    });
+}
 
 function setRelays(customRelays) {
     relaySubscriptions = [];
@@ -1551,6 +1502,14 @@ document.getElementById("userMessage").oninput = function () {
 
     adjustHeight(this);
 };
+
+// Get the image element of the send btn running ostrich
+const animatedImg = document.getElementById('animatedImg');
+
+// Start the animation when the page loads
+window.addEventListener('DOMContentLoaded', () => {
+    animatedImg.classList.add('animate');
+});
 
 document.getElementById("useDefaultRelaysBtn").onclick = function () {
     document.getElementById("relayWarning").style.display = "none";

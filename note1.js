@@ -75,30 +75,32 @@ const timeoutId = setTimeout(() => {
             console.log("Replaced placeholder with 'Event not found'.");
         }
 
-        // Reapply modal listeners to ensure media items remain interactive
-        const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
-        mediaItems.forEach((media) => {
-            if (!media.dataset.modalListener) {
-                media.addEventListener("click", () => {
-                    console.log("Media item clicked:", media);
+        // // Reapply modal listeners to ensure media items remain interactive
+        // const mediaItems = paragraph.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
+        // mediaItems.forEach((media) => {
+        //     if (!media.dataset.modalListener) {
+        //         media.addEventListener("click", () => {
+        //             console.log("Media item clicked:", media);
 
-                    const modal = document.querySelector(".fullscreen-modal");
-                    const modalContent = modal.querySelector(".modal-content");
+        //             const modal = document.querySelector(".fullscreen-modal");
+        //             const modalContent = modal.querySelector(".modal-content");
 
-                    const clone = media.cloneNode(true);
-                    clone.style.maxWidth = "100%";
-                    clone.style.maxHeight = "100%";
+        //             const clone = media.cloneNode(true);
+        //             clone.style.maxWidth = "100%";
+        //             clone.style.maxHeight = "100%";
 
-                    modalContent.innerHTML = ""; // Clear previous content
-                    modalContent.appendChild(clone);
+        //             modalContent.innerHTML = ""; // Clear previous content
+        //             modalContent.appendChild(clone);
 
-                    modal.classList.add("active");
-                    console.log("Modal activated for:", media);
-                });
+        //             modal.classList.add("active");
+        //             console.log("Modal activated for:", media);
+        //         });
 
-                media.dataset.modalListener = "true"; // Mark as having a listener
-            }
-        });
+        //         media.dataset.modalListener = "true"; // Mark as having a listener
+        //     }
+        // });
+        // Reapply modal listeners
+        applyModalListenersToMedia(paragraph);
     }
 }, 20000); // 20-second timeout for fallback
 
