@@ -20,6 +20,9 @@
     <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="backgroundImages.js"></script>
+    <script src="crypto-js.min.js"></script>
+    <script src="dec.js"></script>
+    <script src="enc.js"></script>
     <script src="bech32.js"></script>   
     <script src="fontList.js"></script>
     <script src="font.js"></script>
@@ -258,6 +261,21 @@
         </div>
     </div>
 
+    <div class="form-group">
+        <label for="encrypt_url">Encrypt URL with a password: 
+            <input type="checkbox" id="encrypt_url">
+        </label>
+    </div>
+    <div class="form-group">
+        <label for="encryption_password">Your URL will only be accessible with a password</label>
+        <div class="password-container">
+            <input type="password" id="encryption_password" placeholder="Enter password" disabled>
+            <span id="toggle_password" class="toggle-password">👁️</span>
+        </div>
+        <p id="password_strength" class="password-strength"> </p>
+        <button id="toggle_encryption" disabled>Encrypt</button>
+    </div>
+
     <footer class="footerStatic">
         <a href="about.html">About</a> | 
         <a href="FAQ.html">FAQ</a> | 
@@ -269,7 +287,7 @@
         const includeFontCheckbox = document.getElementById('include_font');
         const fontModal = document.getElementById('font-modal');
         const fontGrid = document.getElementById('font-grid');
-        let selectedFontIndex = localStorage.getItem('selectedFontIndex') || null;
+        let selectedFontIndex = localStorage.getItem('selectedFontIndex') || null; // Ensure it's null by default
         // const preventReuseCheckbox = document.getElementById('prevent_reuse');  // Get the checkbox
         const ntagRadios = document.querySelectorAll('input[name="ntag_type"]');
         const includeH1Checkbox = document.getElementById('include_h1');
@@ -510,7 +528,7 @@ includeLnCheckbox.addEventListener('change', function () {
 function handleLnInputChange() {
     updateURL();
     if (validationTimeout) clearTimeout(validationTimeout);
-    validationTimeout = setTimeout(validateLn, 1000);  // Debounced Validation
+    validationTimeout = setTimeout(validateLn, 4000);  // Debounced Validation
 }
 
 // Restrict invalid characters in LN input (no spaces or invalid symbols)
@@ -672,8 +690,8 @@ function reverseString(str) {
                 updateFontGrid();
             } else {
                 fontModal.style.display = 'none';
-                selectedFontIndex = null;
-                document.documentElement.style.setProperty('--main-font', `'inconsolata', monospace`);
+                selectedFontIndex = null;  // Clear font selection
+                document.documentElement.style.setProperty('--main-font', `'inconsolata', monospace`);  // Apply fallback
                 localStorage.removeItem('selectedFontIndex');
                 updateURL();
             }
@@ -976,7 +994,7 @@ function reverseString(str) {
             
 
             // Font selection
-            if (selectedFontIndex) {
+            if (selectedFontIndex !== null && selectedFontIndex !== undefined) {
                 url += `f=${selectedFontIndex}&`;
                 console.log("Adding Font: ", selectedFontIndex);
                 currentBytes += `f=${selectedFontIndex}&`.length;
@@ -1293,6 +1311,182 @@ function reverseString(str) {
         const description = document.querySelector('.maker-what-text');
         description.classList.toggle('hidden');
         });
+
+        document.getElementById('encrypt_url').addEventListener('change', function () {
+            const passwordInput = document.getElementById('encryption_password');
+            passwordInput.disabled = !this.checked;
+        });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const encryptCheckbox = document.getElementById('encrypt_url');
+    const passwordInput = document.getElementById('encryption_password');
+    const toggleEncryptionButton = document.getElementById('toggle_encryption');
+    // const copyButton = document.getElementById('copy_button');
+    const urlOutput = document.getElementById('url_output');
+
+    const baseUrl = "https://postanote.org/index.html";
+    let isEncryptedState = false; // Track the encryption state of the URL
+
+    // Enable/Disable password input and toggle button based on the checkbox
+    encryptCheckbox.addEventListener('change', function () {
+        const enabled = encryptCheckbox.checked;
+        passwordInput.disabled = !enabled;
+        toggleEncryptionButton.disabled = !enabled;
+        if (!enabled) {
+            toggleEncryptionButton.textContent = "Encrypt"; // Reset button state
+            isEncryptedState = false; // Reset state
+        }
+    });
+
+    // Toggle Encryption/Decryption
+    toggleEncryptionButton.addEventListener('click', function () {
+        const password = passwordInput.value.trim();
+
+        if (!password) {
+            alert("Password is required to encrypt or decrypt the URL!");
+            return;
+        }
+
+        const currentUrl = urlOutput.textContent.trim();
+        const parameters = collectParameters();
+
+        if (isEncryptedState) {
+            // Decrypt the URL
+            const params = new URLSearchParams(currentUrl.split('?')[1]);
+            const encryptedData = params.get('data');
+
+            if (!encryptedData) {
+                alert("No encrypted data found!");
+                return;
+            }
+
+            const decryptedData = decryptData(encryptedData, password);
+            if (decryptedData) {
+                urlOutput.textContent = `${baseUrl}?${decryptedData}`;
+                toggleEncryptionButton.textContent = "Encrypt";
+                isEncryptedState = false;
+            } else {
+                alert("Failed to decrypt. Check your password.");
+            }
+        } else {
+            // Encrypt the URL
+            const encryptedUrl = generateEncryptedUrl(baseUrl, parameters, password);
+            if (encryptedUrl) {
+                urlOutput.textContent = encryptedUrl;
+                toggleEncryptionButton.textContent = "Decrypt";
+                isEncryptedState = true;
+            }
+        }
+    });
+
+    // // Copy the current URL in the output container
+    // copyButton.addEventListener('click', function () {
+    //     const urlToCopy = urlOutput.textContent.trim();
+    //     navigator.clipboard.writeText(urlToCopy)
+    //         .then(() => alert("URL copied to clipboard!"))
+    //         .catch(err => console.error("Failed to copy URL:", err));
+    // });
+
+    // Collect all parameters for the URL
+    function collectParameters() {
+    return {
+        f: includeFontCheckbox.checked ? selectedFontIndex || "" : "",
+        t: includeH1Checkbox.checked ? h1Input.value : "",
+        s: includeH3Checkbox.checked ? h3Input.value : "",
+        p: include_p_Checkbox.checked ? p_Input.value : "",
+        m: includeMessageCheckbox.checked ? messageInput.value : "",
+        h: hashtagInputs.map(input => input.value).filter(Boolean).join(","),
+        r: includeRelaysCheckbox.checked ? relayInputs.map(input => input.value).filter(Boolean).join(",") : "",
+        l: customCharactersCheckbox.checked ? charactersInput.value : "",
+        b: includeBackgroundCheckbox.checked ? selectedBackgroundIndex || "" : "",
+        a: includeAvatarCheckbox.checked ? selectedAvatarIndex || "" : "",
+        ln: includeLnCheckbox.checked ? lnInput.value : "" // Keep the original reversed format
+    };
+}
+})
+
+document.addEventListener('DOMContentLoaded', function () {
+    const passwordInput = document.getElementById('encryption_password');
+    const togglePasswordButton = document.getElementById('toggle_password');
+    const passwordStrengthText = document.getElementById('password_strength');
+    const encryptCheckbox = document.getElementById('encrypt_url');
+
+    // Enable/Disable password input when the checkbox is toggled
+    encryptCheckbox.addEventListener('change', function () {
+        if (encryptCheckbox.checked) {
+            passwordInput.disabled = false;
+            togglePasswordButton.style.pointerEvents = 'auto'; // Enable eye toggle
+        } else {
+            passwordInput.disabled = true;
+            passwordInput.style.borderColor = '#ccc'; // Reset border color
+            togglePasswordButton.style.pointerEvents = 'none'; // Disable eye toggle
+            passwordStrengthText.textContent = ''; // Clear password strength
+        }
+    });
+
+    // Toggle password visibility
+    togglePasswordButton.addEventListener('click', function () {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text'; // Show the password
+            togglePasswordButton.textContent = '🙈'; // Change icon to "hide" state
+        } else {
+            passwordInput.type = 'password'; // Hide the password
+            togglePasswordButton.textContent = '👁️'; // Change icon to "show" state
+        }
+    });
+
+    // Real-time password strength evaluation
+    passwordInput.addEventListener('input', function () {
+        const password = passwordInput.value;
+        const strength = evaluatePasswordStrength(password);
+
+        // Dynamically update the border color and strength text
+        if (strength === 'weak') {
+            passwordInput.style.borderColor = 'red';
+            passwordStrengthText.textContent = 'Weak';
+            passwordStrengthText.className = 'password-strength weak';
+        } else if (strength === 'moderate') {
+            passwordInput.style.borderColor = 'orange';
+            passwordStrengthText.textContent = 'Moderate';
+            passwordStrengthText.className = 'password-strength moderate';
+        } else if (strength === 'strong') {
+            passwordInput.style.borderColor = 'green';
+            passwordStrengthText.textContent = 'Strong';
+            passwordStrengthText.className = 'password-strength strong';
+        } else {
+            passwordInput.style.borderColor = '#ccc'; // Default color
+            passwordStrengthText.textContent = '';
+            passwordStrengthText.className = 'password-strength';
+        }
+    });
+
+    // Function to evaluate password strength
+    function evaluatePasswordStrength(password) {
+        if (!password) return ''; // Default for empty input
+
+        if (password.length < 6) {
+            return 'weak'; // Too short
+        }
+
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumbers = /\d/.test(password);
+        const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        // Calculate strength score
+        const strengthScore = [hasUppercase, hasLowercase, hasNumbers, hasSpecialChars].filter(Boolean).length;
+
+        if (strengthScore <= 1) {
+            return 'weak';
+        } else if (strengthScore === 2) {
+            return 'moderate';
+        } else {
+            return 'strong';
+        }
+    }
+});
+
+
 
         document.addEventListener('DOMContentLoaded', function() {
             applyStoredFont();  // Apply font from local storage

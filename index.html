@@ -26,6 +26,8 @@
     <script src="background.js"></script>
     <script src="font.js"></script>
     <script src="fontList.js"></script>  
+    <script src="crypto-js.min.js"></script>                                                                                                                   
+    <script src="dec.js"></script>                                                                                                                   
     <script src="bech32.js"></script>                                                                                                                   
     <script src="note1.js"></script>                                                                                                                     
 </head>
@@ -90,6 +92,26 @@
         </div>
     </div>
 </div>
+
+<!-- enter password modal -->
+<div id="passwordModal">
+    <div>
+        <h3>Enter Password</h3>
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button id="submitPassword">Submit</button>
+        <p id="passwordError">Invalid password. Please try again.</p>
+    </div>
+</div>
+
+<!-- saved passwords notifications -->
+<div id="passwordNotification">
+    <p>
+        You've already unlocked this page.
+        To lock it again, press the button below.
+    </p>
+    <button id="clearHashes">Clear Stored Hashes</button>
+</div>
+
 
 <!-- modal for viewing media items -->
 <div class="fullscreen-modal">
@@ -204,7 +226,7 @@ const randomAvatarStyle = Math.floor(Math.random() * Object.keys(avatarStyles).l
 function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
-        f: params.get("f") || "", // Font selection parameter
+        f: params.has("f") ? params.get("f") : null, // Font selection parameter. Only include f if it's present
         t: params.get("t") || "Freedom to Speak", // Title
         s: params.get("s") || "No Names. Just Unfiltered Truth", // Subtitle
         p: params.get("p") || "",  // Paragraph (new)
@@ -1583,6 +1605,91 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarIcon.style.opacity = "1"; // Re-enable the avatar icon if URL params exist
     }
 });
+
+
+
+// Show the password modal when the page loads
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('passwordModal');
+    const submitButton = document.getElementById('submitPassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const errorText = document.getElementById('passwordError');
+    const notificationBanner = document.getElementById('passwordNotification');
+    const clearHashesButton = document.getElementById('clearHashes');
+
+    const url = window.location.href;
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // If the URL is already decrypted, skip the process
+    if (isUrlDecrypted(url)) {
+        console.log("URL is already decrypted. No further action required.");
+        return;
+    }
+
+    // Check if the URL was previously decrypted
+    if (wasUrlDecrypted(url)) {
+        console.log("Previously decrypted URL detected. Redirecting...");
+        const storedPassword = localStorage.getItem('storedPassword'); // Retrieve the stored password
+        if (storedPassword) {
+            // Show the notification banner
+            notificationBanner.style.display = 'block';
+
+            // Redirect after a short delay to give time for reading the message
+            setTimeout(() => {
+                decryptAndRedirect(url, storedPassword);
+            }, 15000);
+
+            // Clear hashes on button click
+            clearHashesButton.addEventListener('click', function () {
+                localStorage.removeItem('decryptedUrlHash');
+                localStorage.removeItem('storedPassword');
+                notificationBanner.style.display = 'none';
+                alert("Hashes cleared. You will be prompted for the password next time.");
+            });
+
+            return;
+        }
+    }
+
+    // Show the modal for new decryption attempts
+    modal.classList.add('active');
+
+    submitButton.addEventListener('click', function () {
+        const password = passwordInput.value.trim();
+
+        if (!password) {
+            errorText.textContent = "Password cannot be empty!";
+            errorText.style.display = 'block';
+            return;
+        }
+
+        const success = decryptAndRedirect(url, password);
+
+        if (success) {
+            console.log("Decryption successful, hiding modal...");
+            // const decryptedUrl = window.location.href.split('?')[0]; // Base URL
+            storeDecryptedUrl(url); // Save decrypted URL hash
+            localStorage.setItem('storedPassword', password); // Save the password
+            modal.classList.remove('active'); // Hide the modal
+        } else {
+            errorText.textContent = "Invalid password or corrupted data!";
+            errorText.style.display = 'block';
+        }
+    });
+});
+
+
+window.addEventListener('pageshow', function (event) {
+    const modal = document.getElementById('passwordModal');
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Hide modal if the page is restored from the back/forward cache without an 'x' parameter
+    if (!urlParams.has('x')) {
+        modal.style.display = 'none';
+        console.log("Page restored from back/forward cache. No 'x' parameter. Hiding modal.");
+    }
+});
+
 
 // Prevent key generation from happening twice
 document.addEventListener('DOMContentLoaded', () => {
