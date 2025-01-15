@@ -22,7 +22,7 @@ function decryptAndRedirect(url, password) {
     const decryptedData = decryptData(encryptedData, password);
 
     if (!decryptedData) {
-        alert("Invalid password or corrupted data!");
+        console.log("Invalid password or corrupted data!");
         return false;
     }
 

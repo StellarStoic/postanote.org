@@ -38,11 +38,16 @@
         <img id="avatarIcon" class="avatar-icon" src="" alt="Avatar" title="Change ID">
         <p id="nostrNameDisplay" class="nostr-name"></p>  <!-- Display for nostr_name -->
         <h1 id="mainTitle">Freedom to Speak</h1>
-        <h4 id="subTitle">No Names. Just Unfiltered Truth</h4>
+        <h4 id="subTitle">No Names. Just Unfiltered Truth and experimentation</h4>
         <div id="paragraphContainer">
             <p id="customParagraph" style="margin-top: 1rem;" data-full-content=""></p>
             <a href="#" id="readMoreLink" style="display: none;">Read more</a>
         </div>
+    </div>
+
+    <div id="warningMessage" style="display: none; color: red; text-align: center; font-size: 2rem;  margin: 20px; margin-bottom: 3%;">
+        <strong>Posting is only available on custom websites. If you'd like to create one, use </strong>
+        <a href="urlmkr.html" style="color: rgb(30, 255, 0);  text-decoration: underline;">URLmkr</a>.
     </div>
     <!-- <textarea id="userMessage" maxlength="280" oninput="adjustHeight(this)"></textarea> -->
     <div class="editor-container">
@@ -66,10 +71,7 @@
     </p>
     <div id="eventDetails"></div>
 
-    <div id="warningMessage" style="display: none; color: red; text-align: center;  margin: 20px; margin-bottom: 10%;">
-        Posting is only available on custom websites. If you'd like to create one, use 
-        <a href="urlmkr.html" style="color: rgb(30, 255, 0);  text-decoration: underline;">URLmkr</a>.
-    </div>
+
     
     <footer class="footerDynamic">
         <a href="about.html">About</a> | 
@@ -94,12 +96,14 @@
 </div>
 
 <!-- enter password modal -->
-<div id="passwordModal">
+<div id="passwordModal" class="active">
     <div>
         <h3>Enter Password</h3>
+        <p id="passwordHint" style="display: none; text-align: center; margin-top: 10px; color: #555;">Password hint:</p>
         <input type="password" id="passwordInput" placeholder="Password">
         <button id="submitPassword">Submit</button>
-        <p id="passwordError">Invalid password. Please try again.</p>
+
+        <p id="passwordError" style="color: red;">Invalid password. Please try again.</p>
     </div>
 </div>
 
@@ -228,7 +232,7 @@ function getQueryParams() {
     return {
         f: params.has("f") ? params.get("f") : null, // Font selection parameter. Only include f if it's present
         t: params.get("t") || "Freedom to Speak", // Title
-        s: params.get("s") || "No Names. Just Unfiltered Truth", // Subtitle
+        s: params.get("s") || "No Names. Just Unfiltered Truth and experimentation", // Subtitle
         p: params.get("p") || "",  // Paragraph (new)
         m: params.get("m") || "", // Message
         h: params.get("h") ? params.get("h").split(",").filter(Boolean) : [], // Hashtag
@@ -240,6 +244,17 @@ function getQueryParams() {
         ln: params.get("ln") || ""  // Lightning address (reverse format)
     };
 }
+
+    // List of media links
+    const mediaLinks = [
+        "https://media1.tenor.com/m/rec5dlPBK2cAAAAd/mr-bean-waiting.gif",
+        "https://media1.tenor.com/m/4EElxXeHiZwAAAAC/forrest-gump-wave.gif",
+        "https://media1.tenor.com/m/g_94qXGDaicAAAAd/counter-travolta.gif",
+        "https://media1.tenor.com/m/TRhQGkZGzfEAAAAd/bh187-v-for-vendetta.gif",
+        "https://media1.tenor.com/m/FSp-pDzKXKsAAAAC/girls-kissing-tired.gif",
+        "https://media1.tenor.com/m/f6KifE_p2DAAAAAd/leyendo-hora-de-aventura.gif",
+        "https://media1.tenor.com/m/veoNy8bkTLMAAAAd/blink-kid.gif",
+    ];
 
 function setDynamicContent() {
     const urlParams = new URLSearchParams(window.location.search);  // Define urlParams here
@@ -307,8 +322,16 @@ function setDynamicContent() {
         markLikedEvents();
 
     } else {
-        paragraph.textContent = "Welcome to Nostr and  stuff! It might work or not and that's the beauty of it.";
-        readMoreLink.style.display = "none"; // Hide "Read more" if no content
+    // If no `p` parameter is provided, set default content and process random GIF links
+
+    // Pick a random link from the list
+    const randomLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
+
+    // Process the selected link
+    let fallbackContent = randomLink;
+    fallbackContent = replaceMediaLinks(fallbackContent); // Process fallback content
+    paragraph.innerHTML = fallbackContent; // Directly set processed content
+    readMoreLink.style.display = "none"; // Hide "Read more" if no additional content
     }
 
 
@@ -1616,9 +1639,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorText = document.getElementById('passwordError');
     const notificationBanner = document.getElementById('passwordNotification');
     const clearHashesButton = document.getElementById('clearHashes');
+    const passwordHint = document.getElementById('passwordHint');
 
     const url = window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
+
+    // Initially hide the error message
+    errorText.style.display = 'none';
+
+    // Check for the hint in the URL (c= parameter)
+    const hint = urlParams.get('c');
+    if (hint) {
+        passwordHint.textContent = `${decodeURIComponent(hint)}`;
+        passwordHint.style.display = 'block'; // Show the hint
+    }
 
     // If the URL is already decrypted, skip the process
     if (isUrlDecrypted(url)) {
@@ -1652,7 +1686,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Show the modal for new decryption attempts
+    console.log("Showing the password modal for decryption.");
     modal.classList.add('active');
+
+    // Trigger submit on Enter key press
+    passwordInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent default form submission behavior
+        submitButton.click(); // Simulate submit button click
+        }
+    });
 
     submitButton.addEventListener('click', function () {
         const password = passwordInput.value.trim();
@@ -1675,6 +1718,11 @@ document.addEventListener('DOMContentLoaded', function () {
             errorText.textContent = "Invalid password or corrupted data!";
             errorText.style.display = 'block';
         }
+    });
+    
+    // Hide error message when user starts typing
+    passwordInput.addEventListener('input', function () {
+        errorText.style.display = 'none';
     });
 });
 

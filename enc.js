@@ -16,6 +16,10 @@ function generateEncryptedUrl(baseUrl, parameters, password) {
         parameters.ln = reverseString(parameters.ln);
     }
 
+    // Extract and remove `c` (clue) from encryption
+    const hint = parameters.c || ""; // Fallback to empty string if no hint
+    delete parameters.c;
+
     // Preserve the original query string format
     // `h` and `r` keeps commas and spaces stays %20 not +
     const queryString = Object.entries(parameters)
@@ -30,5 +34,6 @@ function generateEncryptedUrl(baseUrl, parameters, password) {
         .join("&");
 
     const encryptedData = CryptoJS.AES.encrypt(queryString, password).toString();
-    return `${baseUrl}?x=1&data=${encodeURIComponent(encryptedData)}`;
+    return `${baseUrl}?${hint ? `c=${encodeURIComponent(hint)}&` : ""}x=1&data=${encodeURIComponent(encryptedData)}`;
+    // return `${baseUrl}?x=1&data=${encodeURIComponent(encryptedData)}`;
 }

@@ -178,7 +178,7 @@
         <label for="include_h1">
             Add Custom Title (h1) <input type="checkbox" id="include_h1">
         </label>
-        <input type="text" id="h1_input" placeholder="Freedom to Speak" disabled>
+        <input type="text" id="h1_input" placeholder="Title" disabled>
     </div>
 
     <hr class="hrLine">
@@ -187,7 +187,7 @@
         <label for="include_h3">
             Add Custom Subtitle (h3) <input type="checkbox" id="include_h3">
         </label>
-        <input type="text" id="h3_input" placeholder="No Names. Just Unfiltered Truth" disabled>
+        <input type="text" id="h3_input" placeholder="Subtitle" disabled>
     </div>
 
     <hr class="hrLine">
@@ -273,6 +273,15 @@
             <span id="toggle_password" class="toggle-password">👁️</span>
         </div>
         <p id="password_strength" class="password-strength"> </p>
+    </div>
+    <div class="form-group">
+        <label for="password_hint">
+            Add a password hint
+            <input type="checkbox" id="enable_hint">
+        </label>
+        <input type="text" id="password_hint" placeholder="Enter password hint" disabled>
+    </div>
+    <div class="form-group">
         <button id="toggle_encryption" disabled>Encrypt</button>
     </div>
 
@@ -1181,16 +1190,34 @@ function reverseString(str) {
         function toggleModalDependentElements(isModalActive) {
             const radioButtons = document.querySelectorAll('input[type="radio"]');
             const urlOutputContainer = document.querySelector('.url-output-container');
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const passwordInput = document.getElementById('encryption_password');
+            const togglePasswordButton = document.getElementById('toggle_password');
 
             // Toggle z-index for radio buttons
             radioButtons.forEach(radio => {
                 radio.style.zIndex = isModalActive ? '-1' : '';
             });
 
+            // Adjust z-index for all checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.style.zIndex = isModalActive ? '-1' : '';
+            });
+
+                // Adjust z-index for password input
+            if (passwordInput) {
+                passwordInput.style.zIndex = isModalActive ? '-1' : '';
+            }
+                // Adjust z-index for toggle_password icon
+            if (togglePasswordButton) {
+                togglePasswordButton.style.zIndex = isModalActive ? '-1' : '';
+            }
+            
             // Toggle z-index for .url-output-container
             if (urlOutputContainer) {
                 urlOutputContainer.style.zIndex = isModalActive ? '0' : '';
             }
+
 }
 
         // Close modal X button
@@ -1317,9 +1344,12 @@ function reverseString(str) {
             passwordInput.disabled = !this.checked;
         });
 
+// Encryption
 document.addEventListener('DOMContentLoaded', function () {
     const encryptCheckbox = document.getElementById('encrypt_url');
     const passwordInput = document.getElementById('encryption_password');
+    const hintCheckbox = document.getElementById('enable_hint');
+    const hintInput = document.getElementById('password_hint');
     const toggleEncryptionButton = document.getElementById('toggle_encryption');
     // const copyButton = document.getElementById('copy_button');
     const urlOutput = document.getElementById('url_output');
@@ -1327,16 +1357,71 @@ document.addEventListener('DOMContentLoaded', function () {
     const baseUrl = "https://postanote.org/index.html";
     let isEncryptedState = false; // Track the encryption state of the URL
 
-    // Enable/Disable password input and toggle button based on the checkbox
+    // // Enable/Disable password input, hint checkbox, and toggle button
+    // encryptCheckbox.addEventListener('change', function () {
+    //     const encryptionEnabled = encryptCheckbox.checked;
+    //     passwordInput.disabled = !encryptionEnabled;
+    //     toggleEncryptionButton.disabled = !encryptionEnabled;
+    //     hintCheckbox.disabled = !encryptionEnabled;
+    //     hintInput.disabled = !encryptionEnabled || !hintCheckbox.checked; // Disable if hint checkbox is unchecked
+
+    //     // Reset hint and encryption button state when encryption is disabled
+    //     if (!encryptionEnabled) {
+    //         toggleEncryptionButton.textContent = "Encrypt"; // Reset button state
+    //         hintCheckbox.checked = false; // Uncheck hint checkbox
+    //         hintInput.value = ""; // Clear hint input
+    //         isEncryptedState = false; // Reset encryption state
+    //     }
+    // });
+
+    // // Enable/Disable hint input
+    // hintCheckbox.addEventListener('change', function () {
+    //     hintInput.disabled = !hintCheckbox.checked;
+    //     if (!hintCheckbox.checked) {
+    //         hintInput.value = ""; // Clear hint when disabled
+    //     }
+    // });
+
+    // Enable/Disable password input, hint checkbox, and toggle button
     encryptCheckbox.addEventListener('change', function () {
-        const enabled = encryptCheckbox.checked;
-        passwordInput.disabled = !enabled;
-        toggleEncryptionButton.disabled = !enabled;
-        if (!enabled) {
+        const encryptionEnabled = encryptCheckbox.checked;
+
+        // Enable/Disable fields based on encryption state
+        passwordInput.disabled = !encryptionEnabled;
+        toggleEncryptionButton.disabled = !encryptionEnabled;
+        hintCheckbox.disabled = !encryptionEnabled; // Enable hint checkbox
+        hintInput.disabled = !encryptionEnabled || !hintCheckbox.checked;
+
+        // Adjust z-index for hint checkbox
+        hintCheckbox.style.zIndex = encryptionEnabled ? '1' : '-1';
+
+        if (!encryptionEnabled) {
             toggleEncryptionButton.textContent = "Encrypt"; // Reset button state
-            isEncryptedState = false; // Reset state
+            hintCheckbox.checked = false; // Uncheck hint checkbox
+            hintInput.value = ""; // Clear hint input
+            isEncryptedState = false; // Reset encryption state
         }
+
+        // Debugging logs
+        console.log(`Encryption enabled: ${encryptionEnabled}`);
+        console.log(`Hint checkbox enabled: ${!hintCheckbox.disabled}`);
     });
+
+    // Enable/Disable hint input based on hint checkbox
+    hintCheckbox.addEventListener('change', function () {
+        if (!hintCheckbox.disabled) { // Ensure the checkbox is enabled
+            hintInput.disabled = !hintCheckbox.checked;
+            if (!hintCheckbox.checked) {
+                hintInput.value = ""; // Clear hint when disabled
+            }
+        }
+
+        // Debugging log
+        console.log(`Hint checkbox state: ${hintCheckbox.checked}`);
+        console.log(`Hint input state: ${!hintInput.disabled}`);
+    });
+
+
 
     // Toggle Encryption/Decryption
     toggleEncryptionButton.addEventListener('click', function () {
@@ -1375,32 +1460,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 urlOutput.textContent = encryptedUrl;
                 toggleEncryptionButton.textContent = "Decrypt";
                 isEncryptedState = true;
+                console.log(urlOutput.textContent); // Should include the `c=` parameter if a hint is provided
             }
         }
     });
 
-    // // Copy the current URL in the output container
-    // copyButton.addEventListener('click', function () {
-    //     const urlToCopy = urlOutput.textContent.trim();
-    //     navigator.clipboard.writeText(urlToCopy)
-    //         .then(() => alert("URL copied to clipboard!"))
-    //         .catch(err => console.error("Failed to copy URL:", err));
-    // });
-
     // Collect all parameters for the URL
     function collectParameters() {
     return {
-        f: includeFontCheckbox.checked ? selectedFontIndex || "" : "",
-        t: includeH1Checkbox.checked ? h1Input.value : "",
-        s: includeH3Checkbox.checked ? h3Input.value : "",
-        p: include_p_Checkbox.checked ? p_Input.value : "",
-        m: includeMessageCheckbox.checked ? messageInput.value : "",
-        h: hashtagInputs.map(input => input.value).filter(Boolean).join(","),
-        r: includeRelaysCheckbox.checked ? relayInputs.map(input => input.value).filter(Boolean).join(",") : "",
-        l: customCharactersCheckbox.checked ? charactersInput.value : "",
-        b: includeBackgroundCheckbox.checked ? selectedBackgroundIndex || "" : "",
-        a: includeAvatarCheckbox.checked ? selectedAvatarIndex || "" : "",
-        ln: includeLnCheckbox.checked ? lnInput.value : "" // Keep the original reversed format
+        f: includeFontCheckbox.checked ? selectedFontIndex || "" : "", // font style
+        t: includeH1Checkbox.checked ? h1Input.value : "", // title
+        s: includeH3Checkbox.checked ? h3Input.value : "", // subtitle
+        p: include_p_Checkbox.checked ? p_Input.value : "", // paragraph
+        m: includeMessageCheckbox.checked ? messageInput.value : "", // custom message
+        h: hashtagInputs.map(input => input.value).filter(Boolean).join(","), // hashtag
+        r: includeRelaysCheckbox.checked ? relayInputs.map(input => input.value).filter(Boolean).join(",") : "", // relay
+        l: customCharactersCheckbox.checked ? charactersInput.value : "", // allowing length of the message to be sent
+        b: includeBackgroundCheckbox.checked ? selectedBackgroundIndex || "" : "", // background
+        a: includeAvatarCheckbox.checked ? selectedAvatarIndex || "" : "", // avatar style (new visitors only)
+        ln: includeLnCheckbox.checked ? lnInput.value : "", // lightning address for NIP-05
+        c: hintCheckbox.checked ? hintInput.value.trim() : "" // Add hint, a clue for the password
     };
 }
 })

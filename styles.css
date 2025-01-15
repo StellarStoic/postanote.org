@@ -119,6 +119,7 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 
 #passwordModal h3 {
     margin-bottom: 10px;
+    font-size: 1rem;
 }
 
 #passwordModal input {
@@ -131,7 +132,7 @@ input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
 }
 
 #passwordModal button {
-    font-size: 16px;
+    font-size: 1rem;
     padding: 10px 20px;
     background-color: #000000;
     color: white;
@@ -435,8 +436,9 @@ video[id^="embedded-video-"]:hover {
     position: relative;
     font-family: var(--main-font);
     width: 200px;
-    height: 50px;
+    height: 70px;
     margin: 10px auto;
+    margin-bottom: 20vh;
     padding: 10px;
     font-size: 1rem;
     background-color: #00000094;
@@ -810,6 +812,10 @@ footer a:hover {
     #charCount {
         font-size: 1rem;
     }
+/* 
+    #sendMessageBtn {
+        margin-bottom: 30%;
+    } */
 
 
 
@@ -1324,6 +1330,11 @@ textarea {
     height: 60px;
     margin-top: 40px;
     margin-bottom: 10%;
+}
+
+#enable_hint {
+    pointer-events: auto;
+    opacity: 1; /* Ensure full visibility */
 }
 
 small {
