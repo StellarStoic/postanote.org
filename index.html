@@ -38,7 +38,7 @@
         <img id="avatarIcon" class="avatar-icon" src="" alt="Avatar" title="Change ID">
         <p id="nostrNameDisplay" class="nostr-name"></p>  <!-- Display for nostr_name -->
         <h1 id="mainTitle">Freedom to Speak</h1>
-        <h4 id="subTitle">No Names. Just Unfiltered Truth and experimentation</h4>
+        <h4 id="subTitle">No Names. Just Unfiltered Truth.</h4>
         <div id="paragraphContainer">
             <p id="customParagraph" style="margin-top: 1rem;" data-full-content=""></p>
             <a href="#" id="readMoreLink" style="display: none;">Read more</a>
@@ -232,7 +232,7 @@ function getQueryParams() {
     return {
         f: params.has("f") ? params.get("f") : null, // Font selection parameter. Only include f if it's present
         t: params.get("t") || "Freedom to Speak", // Title
-        s: params.get("s") || "No Names. Just Unfiltered Truth and experimentation", // Subtitle
+        s: params.get("s") || "No Names. Just Unfiltered Truth.", // Subtitle
         p: params.get("p") || "",  // Paragraph (new)
         m: params.get("m") || "", // Message
         h: params.get("h") ? params.get("h").split(",").filter(Boolean) : [], // Hashtag

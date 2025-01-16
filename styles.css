@@ -1074,6 +1074,40 @@ button {
     border-color: rgb(0, 255, 0);
 }
 
+/* Container styling */
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9f9f9; /* Light background for visibility */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+/* Label styling */
+#color_picker_label{
+    font-size: 2rem; /* Larger text */
+    font-weight: bold; /* Emphasize label */
+    background-color: #000000;
+    max-width: fit-content;
+    color: #a6a6a6; /* Darker text for contrast */
+}
+
+/* Color input styling */
+#solid-color-picker {
+    width: 60vw;
+    height: 120px;
+    max-height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.2s, border-color 0.3s;
+}
+
 .close-modal {
     color: #ff0000;
     font-size: 5rem;

@@ -79,6 +79,11 @@
         <div class="background-modal-content">
             <span class="close-modal">&times;</span>
             <div class="background-grid" id="background-grid"></div>
+            <!-- Solid Color Picker -->
+            <div class="color-picker-container">
+                <label for="solid-color-picker">Color picker:</label>
+                <input type="color" id="solid-color-picker" value="#ffffff">
+            </div>
         </div>
     </div>
 
@@ -329,6 +334,7 @@
         const backgroundGrid = document.getElementById('background-grid');
         const closeModal = document.querySelector('.close-modal');
         let selectedBackgroundIndex = null;
+        const solidColorPicker = document.getElementById('solid-color-picker');
 
         // avatar styles
         const includeAvatarCheckbox = document.getElementById('include_avatar');
@@ -918,6 +924,36 @@ function reverseString(str) {
 
         function updateBackground() {
             backgroundGrid.innerHTML = '';  // Clear grid
+
+                // Add solid color picker as the first item
+            const colorPickerContainer = document.createElement('div');
+            colorPickerContainer.classList.add('color-picker-item');
+
+            const label = document.createElement('label');
+            label.textContent = 'Color Picker:';
+            label.id = 'color_picker_label';
+            colorPickerContainer.appendChild(label);
+
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.id = 'solid-color-picker';
+            colorInput.value = '#ffffff'; // Default to white
+            colorPickerContainer.appendChild(colorInput);
+
+            // Apply solid color on selection
+            colorInput.addEventListener('input', () => {
+                const selectedColor = colorInput.value;
+                selectedBackgroundIndex = selectedColor; // Store HEX value
+                document.body.style.backgroundColor = selectedColor; // Apply solid color
+                document.body.style.backgroundImage = ''; // Clear image
+                document.getElementById('dim-overlay').style.display = 'block'; // Show overlay
+                localStorage.setItem('selectedBackgroundIndex', selectedColor);
+                updateURL();
+            });
+
+            backgroundGrid.appendChild(colorPickerContainer);
+
+            // Add  background images
             for (const [index, image] of Object.entries(backgroundImages)) {
                 const imgElement = document.createElement('img');
                 imgElement.src = `img/background/${image}`;
@@ -928,7 +964,8 @@ function reverseString(str) {
             imgElement.addEventListener('click', () => {
                 selectedBackgroundIndex = index;
                 document.body.style.backgroundImage = `url('img/background/${image}')`;
-                document.getElementById('dim-overlay').style.display = 'block';
+                document.body.style.backgroundColor = ''; // Clear solid color
+                document.getElementById('dim-overlay').style.display = 'block'; // Show overlay
                 localStorage.setItem('selectedBackgroundIndex', index); // Store selection
                 backgroundModal.style.display = 'none';
                 updateURL();
@@ -946,7 +983,8 @@ function reverseString(str) {
                 backgroundModal.style.display = 'none';
                 selectedBackgroundIndex = null;
                 document.body.style.backgroundImage = '';
-                document.getElementById('dim-overlay').style.display = 'none';
+                document.body.style.backgroundColor = ''; // Clear solid color if applied
+                document.getElementById('dim-overlay').style.display = 'none'; // Hide overlay
                 localStorage.removeItem('selectedBackgroundIndex');
                 updateURL();
             }
@@ -955,11 +993,20 @@ function reverseString(str) {
         // Apply stored background on load
         function applyStoredBackground() {
             const storedIndex = localStorage.getItem('selectedBackgroundIndex');
-            if (storedIndex && backgroundImages[storedIndex]) {
+
+        if (storedIndex) {
+            if (storedIndex.startsWith('#')) {
+                // HEX color case
+                document.body.style.backgroundColor = storedIndex;
+                document.body.style.backgroundImage = ''; // Clear image
+            } else if (backgroundImages[storedIndex]) {
+                // Image index case
                 document.body.style.backgroundImage = `url('img/background/${backgroundImages[storedIndex]}')`;
-                document.getElementById('dim-overlay').style.display = 'block';
+                document.body.style.backgroundColor = ''; // Clear solid color
             }
+            document.getElementById('dim-overlay').style.display = 'block';
         }
+    }
 
         function updateURL() {
             console.log("Updating URL...");  // Check if the function triggers
@@ -1011,8 +1058,12 @@ function reverseString(str) {
 
             // Background selection
             if (includeBackgroundCheckbox.checked && selectedBackgroundIndex) {
-            url += `b=${selectedBackgroundIndex}&`;
-            console.log("Adding Background: ", selectedBackgroundIndex);
+                const backgroundParam =
+                    selectedBackgroundIndex.startsWith('#') // HEX or index
+                        ? `b=${encodeURIComponent(selectedBackgroundIndex)}`
+                        : `b=${selectedBackgroundIndex}`;
+
+            url += `${backgroundParam}&`;            console.log("Adding Background: ", selectedBackgroundIndex);
             currentBytes += `b=${selectedBackgroundIndex}&`.length;
             }
 
