@@ -4,8 +4,10 @@ import html
 import sqlite3
 import hashlib
 import os
+import sys
 import random
 import string
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 # DB_FILE = "/home/postanote.org/urls.db"
@@ -28,10 +30,20 @@ def init_db():
         CREATE TABLE IF NOT EXISTS urls (
             short      TEXT PRIMARY KEY,
             original   TEXT,
-            timestamp  TEXT DEFAULT CURRENT_TIMESTAMP
+            timestamp  TEXT DEFAULT CURRENT_TIMESTAMP,
+            visits     INTEGER DEFAULT 0,
+            last_accessed TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
+    # Ensure the new columns exist for existing databases
+    cursor.execute("PRAGMA table_info(urls)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "visits" not in columns:
+        cursor.execute("ALTER TABLE urls ADD COLUMN visits INTEGER DEFAULT 0")
+    if "last_accessed" not in columns:
+        cursor.execute("ALTER TABLE urls ADD COLUMN last_accessed TEXT DEFAULT CURRENT_TIMESTAMP")
+        
     conn.commit()
     conn.close()
 
@@ -68,19 +80,31 @@ def shorten_url():
 
 @app.route('/<short>', methods=['GET'])
 def redirect_short_url(short):
-    # Look for the short URL in the database
+    # Connect to the database
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT original FROM urls WHERE short = ?", (short,))
+
+    # Look for the short URL in the database
+    cursor.execute("SELECT original, visits FROM urls WHERE short = ?", (short,))
     result = cursor.fetchone()
-    conn.close()
 
     if result:
-        # Decode HTML-escaped characters and redirect
         original_url = html.unescape(result[0])
+        visits = result[1] if result[1] is not None else 0
+
+        # Increment visits and update last_accessed
+        cursor.execute(
+            "UPDATE urls SET visits = ?, last_accessed = CURRENT_TIMESTAMP WHERE short = ?",
+            (visits + 1, short)
+        )
+        conn.commit()
+        conn.close()
+
+        # Redirect to the original URL
         return redirect(original_url, code=302)
-    else:
-        return jsonify({"error": "Short URL not found"}), 404
+
+    # Close the connection if the short URL is not found
+    conn.close()
 
     # Handle as a static file if it’s not a valid short URL
     try:
@@ -91,9 +115,45 @@ def redirect_short_url(short):
     # Return 404 for invalid short URLs or files
     return jsonify({"error": "URL not found"}), 404
 
+# get visitor counter and time of last visit
+@app.route('/visits', methods=['GET'])
+def get_visits():
+    page = int(request.args.get('page', 1))  # Default to page 1
+    per_page = int(request.args.get('per_page', 10))  # Default 10 rows per page
+    offset = (page - 1) * per_page
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    # Fetch rows with pagination
+    cursor.execute(
+        "SELECT short, original, timestamp, visits, last_accessed FROM urls LIMIT ? OFFSET ?",
+        (per_page, offset)
+    )
+    data = cursor.fetchall()
+    conn.close()
+
+    # Log fetched data for debugging
+    app.logger.debug(f"Fetched data: {data}")
+
+    return jsonify([
+        {
+            "short": short,
+            "original": original,
+            "timestamp": timestamp,
+            "visits": visits,
+            "last_accessed": last_accessed
+        }
+        for short, original, timestamp, visits, last_accessed in data
+    ])
+    
 @app.route('/<path:filename>', methods=['GET'])
 def serve_static_file(filename):
     return send_from_directory('.', filename)
+
+@app.route('/', methods=['GET'])
+def home():
+    return send_from_directory('.', 'index.html')
 
 @app.route('/.well-known/nostr.json', methods=['POST'])
 def update_nostr_json():
@@ -128,7 +188,7 @@ def update_nostr_json():
                 "maxSendable": 100000000000,
                 "minSendable": 1000,
                 "metadata": [
-                    ["text/plain", "We're grateful for your kindness in supporting the postanote.org project through the received Zaps. Your generosity will make a positive impact on this initiative."],
+                    ["text/plain", "Thank you for supporting the postanote.org project with your Zaps. Your generosity helps drive this initiative forward!"],
                     ["text/identifier", "latterswiss19@walletofsatoshi.com"]
                 ],
                 "commentAllowed": 32,
@@ -193,6 +253,9 @@ if __name__ == '__main__':
     init_db()  # Initialize the database
     app.run(port=3000)
 
+
+
+
 # if __name__ == '__main__':
-#     init_db()  # Initialize the database
+#     init_db() # Initialize the database
 #     app.run(debug=True, host='127.0.0.1', port=5500)
