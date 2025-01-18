@@ -87,6 +87,17 @@
         </div>
     </div>
 
+    <!-- shortened URL modal prompt -->
+    <div id="shorten-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; z-index: 9999;">
+        <div style="background: rgb(44, 44, 44); padding: 20px; border-radius: 8px; text-align: center; width: 70vwpx;">
+            <p style="color: white;">Do you want to create a short link, or leave original as is before copying?</p>
+            <div class="button-container" style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button id="modal-yes" class="copy-button" style="flex: 1; margin-right: 10px;">Short</button>
+                <button id="modal-no" class="copy-button" style="flex: 1; margin-left: 10px;">Original</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="maker-title-and-what">
         <div class="maker-title">
@@ -1174,7 +1185,7 @@ function reverseString(str) {
         }
 
 
-        function copyURL() {
+        async function copyURL() {
             const selectedNtag = document.querySelector('input[name="ntag_type"]:checked');
             const ntagGroup = document.querySelector('.ntag-group');
 
@@ -1221,16 +1232,39 @@ function reverseString(str) {
                 }
             }
 
-            const url = urlOutput.textContent;
-            navigator.clipboard.writeText(url).then(() => {
-                errorMessage.textContent = 'URL has been copied to the clipboard.';
-                errorMessage.style.color = 'green';
-            }).catch(err => {
-                console.error('Failed to copy URL: ', err);
-                errorMessage.textContent = 'Failed to copy URL.';
-                errorMessage.style.color = 'red';
-            });
+        const originalURL = urlOutput.textContent;
+        if (!originalURL) {
+            errorMessage.textContent = 'No URL to copy.';
+            errorMessage.style.color = 'red';
+            return;
         }
+
+        // Ask if the user wants to create a short link (after validations)
+        const useShortLink = await showCustomConfirm("Do you want to create a short link before copying?");
+        const finalURL = useShortLink ? await shortenURL(originalURL) : originalURL;
+
+        try {
+            // Copy the URL to the clipboard
+            await navigator.clipboard.writeText(finalURL);
+
+            // // Update the container message
+            // errorMessage.textContent = `URL has been copied to the clipboard: ${finalURL}`;
+            // errorMessage.style.fontSize = '0.6rem';
+            // errorMessage.style.color = 'green';
+
+            // Show an alert as well
+            alert(`URL copied to clipboard: ${finalURL}`);
+        } catch (err) {
+            console.error("Failed to copy URL:", err);
+
+            // // Update the container message
+            // errorMessage.textContent = 'Failed to copy URL.';
+            // errorMessage.style.color = 'red';
+
+            // Show an alert for the error
+            alert("Failed to copy URL.");
+        }
+    }
 
         // Function to set all radio buttons z-index. I had issues with z-index and JS was the only way to hide them 
         // behind the qr-modal. also if I did hide the relay radio btns, they stopped working when qr-modal was 
@@ -1295,12 +1329,58 @@ function reverseString(str) {
             });
         });
 
+    // url shortening confirm modal
+    function showCustomConfirm(message) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('shorten-modal');
+            const yesButton = document.getElementById('modal-yes');
+            const noButton = document.getElementById('modal-no');
+
+            modal.style.display = 'flex'; // Show the modal
+
+            // Handle "Yes" button click
+            yesButton.onclick = () => {
+                modal.style.display = 'none'; // Hide the modal
+                resolve(true); // Resolve the promise with true
+            };
+
+            // Handle "No" button click
+            noButton.onclick = () => {
+                modal.style.display = 'none'; // Hide the modal
+                resolve(false); // Resolve the promise with false
+            };
+        });
+    }
+
+    /**
+     * Sends the original URL to the backend to generate a shortened URL.
+     * @param {string} originalURL - The URL to be shortened.
+     * @returns {Promise<string>} The shortened URL.
+     */
+    async function shortenURL(originalURL) {
+        try {
+            const response = await fetch('https://postanote.org/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: originalURL }),
+            });
+    
+            if (!response.ok) throw new Error("Failed to shorten URL");
+    
+            const data = await response.json();
+            return data.short_url;
+        } catch (error) {
+            console.error(error.message);
+            alert("Error shortening the URL. Please try again.");
+            throw error;
+        }
+    }
 
 
-        document.getElementById('qr_button').addEventListener('click', function () {
+    document.getElementById('qr_button').addEventListener('click', async function () {
         const selectedNtag = document.querySelector('input[name="ntag_type"]:checked');
         const ntagGroup = document.querySelector('.ntag-group');
-        const url = urlOutput.textContent;
+        const originalURL = urlOutput.textContent; // The original URL from the output
 
         if (!selectedNtag) {
         errorMessage.textContent = 'Please select an NTAG type to generate a QR code.';
@@ -1312,18 +1392,22 @@ function reverseString(str) {
         return;
     }
 
-        if (!url) {
+        if (!originalURL) {
             errorMessage.textContent = 'Generate a URL before creating a QR code.';
             errorMessage.style.color = 'red';
             return;
         }
+
+    try {
+        // Get the shortened URL from urlShortener.js
+        const shortenedURL = await shortenURL(originalURL);
 
         const qrCodeContainer = document.getElementById('qr-code');
         qrCodeContainer.innerHTML = ''; // Clear existing QR code
 
         // Create QR Code using EasyQRCodeJS
         new QRCode(qrCodeContainer, {
-            text: url,
+            text: shortenedURL,
             width: 256,
             height: 256,
             colorDark: "#000000",
@@ -1342,13 +1426,18 @@ function reverseString(str) {
         // Open modal and update dependent elements
         document.getElementById('qr-modal').style.display = 'flex';
         toggleModalDependentElements(true);
-    });
+    } catch (error) {
+        console.error("Error generating QR code:", error);
+        errorMessage.textContent = 'Failed to generate QR code.';
+        errorMessage.style.color = 'red';
+    }
+});
 
-    document.getElementById('close_qr_button').addEventListener('click', function () {
-        document.getElementById('qr-modal').style.display = 'none';
-        // Restore dependent elements
-        toggleModalDependentElements(false);
-    });
+document.getElementById('close_qr_button').addEventListener('click', function () {
+    document.getElementById('qr-modal').style.display = 'none';
+    // Restore dependent elements
+    toggleModalDependentElements(false);
+});
 
     document.getElementById('save_qr_button').addEventListener('click', function () {
         const qrCanvas = document.querySelector('#qr-code canvas');

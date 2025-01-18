@@ -1099,7 +1099,7 @@ button {
 
 /* Color input styling */
 #solid-color-picker {
-    width: 60vw;
+    width: 70vw;
     height: 120px;
     max-height: 200px;
     object-fit: cover;
