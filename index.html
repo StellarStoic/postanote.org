@@ -16,7 +16,8 @@
     <link rel="apple-touch-icon" href="/img/favicon_io/apple-touch-icon.png">
     
     <!-- Web Manifest (for PWAs) -->
-    <link rel="manifest" href="/img/favicon_io/site.webmanifest">    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+    <link rel="manifest" href="/img/favicon_io/site.webmanifest">
+    <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
     <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -59,7 +60,9 @@
     <button id="sendMessageBtn" disabled>send
         <img src="https://user-images.githubusercontent.com/99301796/219719339-5eff628c-3470-4cc3-81eb-404f8902de9f.gif" id="animatedImg"/>
     </button>
+
     <p id="statusMessage"></p>
+
     <p id="relayWarning" style="color:red; display:none; background-color: rgba(0, 0, 0, 0.672);">
         Possible connection error! <br>
         None of the relays are available please try later. <br>
@@ -246,10 +249,10 @@ function getQueryParams() {
     };
 }
 
-function setDynamicContent() {
+async function setDynamicContent() {
     const urlParams = new URLSearchParams(window.location.search);  // Define urlParams here
     const { t, s, p, m, h, r, l, b } = getQueryParams();
-    const maxLength = 200;  // Maximum characters before truncating
+    const maxLength = 300;  // Maximum characters before truncating
 
     // Handle the title and subtitle
     document.getElementById("mainTitle").textContent = t || "Freedom to Speak"; // Show only if `t` exists
@@ -260,11 +263,18 @@ function setDynamicContent() {
 
     if (p) {
         // Replace media links first
-        let processedContent = replaceMediaLinks(p);
+        let processedContent = replaceMediaLinks(p); // Replace media links
 
         // Store the processed content for truncation and expansion
         paragraph.setAttribute('data-full-content', processedContent);
-        console.log("Content before truncation on page load:", paragraph.innerHTML);
+        // console.log("Content before truncation on page load:", paragraph.innerHTML);
+        paragraph.setAttribute('data-npub-processed', 'true'); // Mark as processed
+
+        // // Truncate content for initial view
+        // truncateParagraph(paragraph);
+
+        // Replace `nostr:npub` strings in the content
+        processedContent = await replaceNpubStrings(processedContent); // Replace `nostr:npub`
 
         // Truncate content for initial view
         truncateParagraph(paragraph);
@@ -275,7 +285,7 @@ function setDynamicContent() {
         // Fetch note1 events in the processed content
         fetchNote1Strings(processedContent, r);
 
-        readMoreLink.onclick = (e) => {
+        readMoreLink.onclick = async (e) => {
             e.preventDefault();
             const expanded = paragraph.getAttribute('data-expanded') === "true";
             
@@ -289,6 +299,16 @@ function setDynamicContent() {
                // Expand content
                 let expandedContent = paragraph.getAttribute('data-full-content');
                 expandedContent = replaceMediaLinks(expandedContent); // Reapply media links to expanded content
+                expandedContent = await replaceNpubStrings(expandedContent);
+
+                // Skip reprocessing if already processed
+                // Ensure `replaceNpubStrings` is applied only to raw content
+                if (!paragraph.getAttribute("data-npub-processed")) {
+                    expandedContent = replaceMediaLinks(expandedContent);
+                    expandedContent = await replaceNpubStrings(expandedContent);
+                    paragraph.setAttribute("data-npub-processed", "true");
+                }
+                
                 paragraph.innerHTML = expandedContent;
                 readMoreLink.textContent = "Close";
                 paragraph.setAttribute('data-expanded', "true");
@@ -307,7 +327,7 @@ function setDynamicContent() {
         applyModalListenersToMedia(paragraph);
 
         // Fetch `note1` events in the truncated content
-        fetchNote1Strings(paragraph.innerHTML, r);
+        fetchNote1Strings(paragraph.innerHTML, r); 
 
         // Mark likes for initially visible events
         markLikedEvents();
@@ -319,9 +339,13 @@ function setDynamicContent() {
     const mediaLinks = [
         "https://media1.tenor.com/m/rec5dlPBK2cAAAAd/mr-bean-waiting.gif",
         "https://media1.tenor.com/m/4EElxXeHiZwAAAAC/forrest-gump-wave.gif",
+        "https://media1.tenor.com/m/g6JYL4ILCFsAAAAd/on-cookies.gif",
         "https://media1.tenor.com/m/g_94qXGDaicAAAAd/counter-travolta.gif",
+        "https://media1.tenor.com/m/nO8QxT9B29kAAAAd/wtf-what-the-fuck.gif",
+        "https://media1.tenor.com/m/IvyuPtEfzhoAAAAd/matrix.gif",
         "https://media1.tenor.com/m/WMe5rMx9OIcAAAAd/ostrich-m.gif",
         "https://media1.tenor.com/m/zvke6dexeEEAAAAC/anonymous-mask.gif",
+        "https://media1.tenor.com/m/hemfK_5WFGcAAAAd/cookie-monster-waiting.gif",
         "https://media1.tenor.com/m/TRhQGkZGzfEAAAAd/bh187-v-for-vendetta.gif",
         "https://media1.tenor.com/m/FSp-pDzKXKsAAAAC/girls-kissing-tired.gif",
         "https://media1.tenor.com/m/f6KifE_p2DAAAAAd/leyendo-hora-de-aventura.gif",
@@ -335,6 +359,8 @@ function setDynamicContent() {
     // Process the selected link
     let fallbackContent = randomLink;
     fallbackContent = replaceMediaLinks(fallbackContent); // Process fallback content
+    
+    replaceNpubStrings(expandedContent);
     paragraph.innerHTML = fallbackContent; // Directly set processed content
     readMoreLink.style.display = "none"; // Hide "Read more" if no additional content
     }
@@ -409,11 +435,11 @@ function fetchNote1Strings(content, relays) {
     return content;
 }
 
-function truncateParagraph(paragraph) {
-    const maxLength = 200; // Limit for truncation
+async function truncateParagraph(paragraph) {
+    const maxLength = 300; // Limit for truncation
     const fullContent = paragraph.getAttribute('data-full-content');
 
-    console.log("Full content for truncation:", fullContent);
+    // console.log("Full content for truncation:", fullContent);
 
     if (!fullContent) return;
 
@@ -430,15 +456,18 @@ function truncateParagraph(paragraph) {
         displayContent = displayContent.replace('[note1]', noteBox[0]);
     });
 
-    // Process media links after truncation & Ensure media links are only processed in the paragraph, not raw JSON
+    // Process media links after truncation
     displayContent = replaceMediaLinks(displayContent);
+
+    // Ensure `replaceNpubStrings` is applied to truncated content
+    displayContent = await replaceNpubStrings(displayContent);
 
     paragraph.innerHTML = displayContent;
     paragraph.setAttribute('data-expanded', "false");
-    console.log("Final truncated content:", paragraph.innerHTML);
+    // console.log("Final truncated content:", paragraph.innerHTML);
 
     // Fetch `note1` events in the truncated content
-    fetchNote1Strings(paragraph.innerHTML, getQueryParams().r);
+    fetchNote1Strings(paragraph.innerHTML, getQueryParams().r);   
 
     // Reapply modal listeners
     applyModalListenersToMedia(paragraph);
@@ -474,7 +503,7 @@ function replaceMediaLinks(content) {
 
 // Modal for media content
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM fully loaded and parsed.");
+    // console.log("DOM fully loaded and parsed.");
 
     // Select the existing modal elements
     const modal = document.querySelector(".fullscreen-modal");
@@ -482,17 +511,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeButton = modal.querySelector(".close-btn");
 
     if (!modal || !modalContent || !closeButton) {
-        console.error("Modal structure is missing in the HTML. Please ensure it exists.");
+        // console.error("Modal structure is missing in the HTML. Please ensure it exists.");
         return;
     }
 
-    console.log("Modal structure found. Setting up event listeners.");
+    // console.log("Modal structure found. Setting up event listeners.");
 
     // Function to handle modal interactions
     const setupModal = () => {
         // Close modal on click of close button
         closeButton.addEventListener("click", () => {
-            console.log("Close button clicked. Hiding modal.");
+            // console.log("Close button clicked. Hiding modal.");
             modal.classList.remove("active");
             modalContent.innerHTML = ""; // Clear modal content
         });
@@ -500,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Close modal on outside click
         modal.addEventListener("click", (e) => {
             if (e.target === modal) {
-                console.log("Modal background clicked. Hiding modal.");
+                // console.log("Modal background clicked. Hiding modal.");
                 modal.classList.remove("active");
                 modalContent.innerHTML = ""; // Clear modal content
             }
@@ -518,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Reapply listeners after dynamic content updates
     document.addEventListener("contentUpdated", () => {
-        console.log("Dynamic content updated. Reapplying modal listeners.");
+        // console.log("Dynamic content updated. Reapplying modal listeners.");
         if (paragraph) {
             applyModalListenersToMedia(paragraph);
         }
@@ -527,11 +556,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Refactored applyModalListenersToMedia function
 function applyModalListenersToMedia(container) {
-    console.log("Applying modal listeners for media items in the container.");
+    // console.log("Applying modal listeners for media items in the container.");
     const mediaItems = container.querySelectorAll('img[id^="embedded-image-"], video[id^="embedded-video-"]');
 
     if (mediaItems.length === 0) {
-        console.warn("No media items found to attach event listeners.");
+        // console.warn("No media items found to attach event listeners.");
         return;
     }
 
@@ -540,7 +569,7 @@ function applyModalListenersToMedia(container) {
         if (media.dataset.modalListener === "true") return;
 
         media.addEventListener("click", () => {
-            console.log("Media item clicked:", media);
+            // console.log("Media item clicked:", media);
 
             const modal = document.querySelector(".fullscreen-modal");
             const modalContent = modal.querySelector(".modal-content");
@@ -553,13 +582,174 @@ function applyModalListenersToMedia(container) {
             modalContent.appendChild(clone);
 
             modal.classList.add("active");
-            console.log("Modal activated.");
+            // console.log("Modal activated.");
         });
 
         // Mark media item as having a listener attached
         media.dataset.modalListener = "true";
     });
 }
+
+// NPUB handling
+
+const npubDefaultRelays = [
+        "wss://relay.damus.io",
+        "wss://njump.me",
+        "wss://nos.lol"
+    ];
+
+    /**
+     * Converts a `nostr:npub` string to a hexadecimal public key.
+     */
+function npubToHex(npub) {
+    // Remove the "nostr:" prefix if it exists
+    const bech32String = npub.replace("nostr:", "");
+
+    // Decode the Bech32 string
+    const decoded = bech32.decode(bech32String);
+
+    // Convert words to bytes (5-bit to 8-bit conversion)
+    const bytes = bech32.fromWords(decoded.words);
+
+    // Convert bytes to a hexadecimal string
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+// document.addEventListener("DOMContentLoaded", () => {
+//         const testNpub = "nostr:npub1r0rs5q2gk0e3dk3nlc7gnu378ec6cnlenqp8a3cjhyzu6f8k5sgs4sq9ac";
+//         console.log("Hexadecimal Key:", npubToHex(testNpub));
+//     });
+
+    /**
+     * Searches metadata for a given hex public key using default relays.
+     */
+     async function searchMetadata(hex) {
+    for (const relay of defaultRelays) {
+        try {
+            const socket = new WebSocket(relay);
+
+            // Return a Promise to handle async WebSocket interactions
+            return new Promise((resolve, reject) => {
+                socket.onopen = () => {
+                    // Send a subscription request for kind 0 events for the given public key
+                    const subscriptionId = `sub_${Date.now()}`;
+                    const subscriptionMessage = JSON.stringify([
+                        "REQ", subscriptionId, { kinds: [0], authors: [hex] }
+                    ]);
+                    socket.send(subscriptionMessage);
+                };
+
+                socket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+
+                    // Check if the message contains a kind 0 event
+                    if (message[0] === "EVENT" && message[2].kind === 0) {
+                        const metadata = JSON.parse(message[2].content);
+                        socket.close();
+                        resolve(metadata); // Resolve with the parsed metadata
+                    }
+                };
+
+                socket.onerror = (error) => {
+                    console.warn(`WebSocket error on relay: ${relay}`, error);
+                    socket.close();
+                    reject(`Failed to fetch metadata from relay: ${relay}`);
+                };
+
+                socket.onclose = () => {
+                    // Reject if the connection closes without metadata
+                    reject(`Connection closed before receiving metadata from relay: ${relay}`);
+                };
+            });
+        } catch (error) {
+            console.warn(`Failed to fetch metadata from relay: ${relay}`, error);
+        }
+    }
+
+    // Return a default empty metadata if no relay succeeds
+    return { name: null };
+}
+
+
+    /**
+     * Generates a profile link for a given hex public key.
+     */
+    function generateProfileLink(hex) {
+        return `https://njump.me/p/${hex}`;
+    }
+
+    /**
+     * Processes a single `nostr:npub` string into its replacement HTML.
+     */
+     async function processNpub(npub) {
+    try {
+        const hex = npubToHex(npub);
+        const metadata = await searchMetadata(hex);
+        console.log("Metadata:", metadata); // Log metadata
+
+        const userName = metadata.name
+            ? `@${metadata.name}` // Add "@" prefix if name exists
+            : `${npub.substring(0, 6)}...${npub.slice(-4)}`;
+
+        const nip05 = metadata.nip05 || npub; // Use NIP-05 or fallback to npub
+        const profileLink = generateProfileLink(hex); // Generate profile link
+
+        return `<a href="${generateProfileLink(hex)}" title="${nip05}">${userName}</a>`;
+    } catch (error) {
+        console.error(`Error processing npub: ${npub}`, error);
+        return `<span title="${npub}">${npub.substring(0, 6)}...${npub.slice(-4)}</span>`;
+    }
+}
+
+    /**
+     * Replaces all `nostr:npub` strings in the provided content with the processed HTML.
+     */
+     async function replaceNpubStrings(content) {
+    const matches = content.match(/nostr:npub\w+/g) || [];
+
+    // Use a Set to track processed npub strings to avoid duplicate replacements
+    const uniqueMatches = new Set(matches);
+
+    for (const npub of uniqueMatches) {
+        // Skip already replaced links
+        const alreadyProcessedRegex = new RegExp(
+            `<a [^>]*href=[^>]*>${npub.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+            "g"
+        );
+        if (alreadyProcessedRegex.test(content)) continue;
+
+        const replacement = await processNpub(npub);
+
+        // Safely replace the original `nostr:npub` string in the content
+        const regex = new RegExp(npub.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+        content = content.replace(regex, replacement);
+    }
+    console.log("Original Content:", content);
+    console.log("Matches Found:", matches);
+    console.log("Processed Content:", content);
+    return content;
+}
+
+
+    /**
+     * Updates the paragraph content dynamically, processing `nostr:npub` strings.
+     */
+    async function updateParagraphContent() {
+        const paragraph = document.getElementById("customParagraph");
+        const fullContent = paragraph.getAttribute("data-full-content");
+
+        if (fullContent) {
+            const processedContent = await replaceNpubStrings(fullContent);
+            paragraph.innerHTML = processedContent;
+        }
+    }
+
+    // Run the function after the DOM is fully loaded
+    document.addEventListener("DOMContentLoaded", updateParagraphContent);
+
+
+// END - NPUB handling
+
 
 function setRelays(customRelays) {
     relaySubscriptions = [];
@@ -655,8 +845,8 @@ async function generateNewKeys() {
 
     updateAvatar();
     updateNostrNameDisplay();  // Update the nostr_name display immediately
-    console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
-    console.log("Generated name:", randomName);
+    // console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
+    // console.log("Generated name:", randomName);
 
     // --- Modal for Key generation with Alert ---
     const storeKeyResponse = confirm(
@@ -701,7 +891,7 @@ async function generateRandomName() {
 
         return `${randomAdjective}_${randomNoun}_${randomNumber}`;
     } catch (error) {
-        console.error("Error generating random name:", error);
+        // console.error("Error generating random name:", error);
         return generateRandomFallback(); // Return random string if JSON fails
     }
 }
@@ -796,7 +986,7 @@ async function postMetadata() {
         console.log(`Metadata event sent to ${url}`);
     });
 
-    console.log("Metadata event:", metadataEvent);
+    // console.log("Metadata event:", metadataEvent);
 
     // Update the HEX.json for the generated profile
     const fileName = `HEX${pub}.json`;
@@ -854,7 +1044,7 @@ function loadKeys() {
         }
 
         updateAvatar();
-        console.log("Keys and avatar loaded from storage.");
+        // console.log("Keys and avatar loaded from storage.");
     } else {
         // generateNewKeys();
         console.log("No keys in localStorage. Keys must be generated separately.");
@@ -880,16 +1070,16 @@ function checkIfPostsExist() {
     try {
         parsedData = JSON.parse(storedData);
     } catch (error) {
-        console.error("Error parsing stored data:", error);
+        // console.error("Error parsing stored data:", error);
         return false;
     }
 
     // Check for events inside the stored data
     if (parsedData.events && parsedData.events.length > 0) {
-        console.log(`Found ${parsedData.events.length} event(s).`);
+        // console.log(`Found ${parsedData.events.length} event(s).`);
         return true;
     } else {
-        console.log("No events found for this account.");
+        // console.log("No events found for this account.");
         return false;
     }
 }
@@ -898,7 +1088,7 @@ function checkIfPostsExist() {
 function getAccountCreationTime() {
     const accountCreationTime = localStorage.getItem("acc_created_at");
     if (!accountCreationTime) {
-        console.log("No account creation time found in localStorage.");
+        // console.log("No account creation time found in localStorage.");
         return null;
     }
     return parseInt(accountCreationTime, 10);  // Ensure it's an integer
@@ -910,7 +1100,7 @@ function checkAccountAge() {
     const currentTime = Math.floor(Date.now() / 1000);
 
     if (!accountCreationTime) {
-        console.log("No creation time found in localStorage.");
+        // console.log("No creation time found in localStorage.");
         return 21000000; // Block indefinitely if no creation time
     }
 
@@ -918,11 +1108,11 @@ function checkAccountAge() {
     const remainingSeconds = 86400 - ageInSeconds; // 24h
     // const remainingSeconds = 86400 - ageInSeconds; // 24h
 
-    console.log("Account Age (seconds):", ageInSeconds);
-    console.log(
-        "Remaining Minutes:",
-        Math.max(Math.ceil(remainingSeconds / 60), 0)
-    );
+    // console.log("Account Age (seconds):", ageInSeconds);
+    // console.log(
+    //     "Remaining Minutes:",
+    //     Math.max(Math.ceil(remainingSeconds / 60), 0)
+    // );
 
     // If negative, return 0 (means they can create a new ID)
     return Math.max(Math.ceil(remainingSeconds / 60), 0);
@@ -949,8 +1139,8 @@ document.getElementById("avatarIcon").onclick = function () {
     const hasPosts = checkIfPostsExist();
     const remainingMinutes = checkAccountAge();
 
-    console.log("Remaining Minutes:", remainingMinutes);
-    console.log("Has Posts:", hasPosts);
+    // console.log("Remaining Minutes:", remainingMinutes);
+    // console.log("Has Posts:", hasPosts);
 
     // Check if account is too new
     if (remainingMinutes > 0 && remainingMinutes < 21000000) {
@@ -990,23 +1180,23 @@ To access your history in your device memory, please check the showHistory butto
 function checkIfPostsExist() {
     const currentPubKey = localStorage.getItem("nostr_pub");
     if (!currentPubKey) {
-        console.log("No current pubkey found.");
+        // console.log("No current pubkey found.");
         return false;
     }
 
     const fileName = `HEX${currentPubKey}.json`;
     const storedData = localStorage.getItem(fileName);
     if (!storedData) {
-        console.log("No entry found for current pubkey.");
+        // console.log("No entry found for current pubkey.");
         return false;
     }
 
     const parsedData = JSON.parse(storedData);
     if (parsedData.events && parsedData.events.length > 0) {
-        console.log("Events found for current pubkey.");
+        // console.log("Events found for current pubkey.");
         return true;
     } else {
-        console.log("No events found for this account.");
+        // console.log("No events found for this account.");
         return false;
     }
 }
@@ -1118,7 +1308,7 @@ Please generate a new ID by pressing OK."
         // add more if necessary
     };
 
-    console.log("signedEvent:", sev);
+    // console.log("signedEvent:", sev);
     relaySubscriptions.forEach(({ socket, url }) => {
         socket.send(JSON.stringify(["EVENT", orderedEvent])); // Send reordered event
         console.log(`Event sent to ${url}`, orderedEvent);
@@ -1168,7 +1358,7 @@ Please generate a new ID by pressing OK."
    // **Delete private key if store_private_key is false**
     const shouldDeleteKey = localStorage.getItem('store_private_key') === 'false';
         if (shouldDeleteKey) {
-            console.log('Deleting private key (nostr_pk) from storage...');
+            // console.log('Deleting private key (nostr_pk) from storage...');
             localStorage.removeItem('nostr_pk');
         }
 };
@@ -1313,7 +1503,7 @@ function loadStoredEvents() {
     downloadButton.style =
         "background-color: #ff00006e; color: #efefef; border: none; border-radius: 5px; cursor: pointer;";
     downloadButton.onclick = function () {
-        console.log("Download button clicked");
+        // console.log("Download button clicked");
         downloadData();
     };
     notesModalContent.appendChild(downloadButton);
@@ -1460,8 +1650,8 @@ ${pubkey}</h5>`;
         notesModalContent.parentNode.appendChild(panicContainer);
     }
 
-    console.log("Checking button after loadStoredEvents:");
-    console.log(document.getElementById("downloadDataBtn"));
+    // console.log("Checking button after loadStoredEvents:");
+    // console.log(document.getElementById("downloadDataBtn"));
 }
 
 document.getElementById("wipeStorageBtn").onclick = function () {
@@ -1494,7 +1684,7 @@ document.getElementById("showHistoryBtn").onclick = function () {
     loadStoredEvents();
     const modal = document.getElementById("notesModal");
     modal.style.display = "block";
-    console.log("Modal visibility:", modal.style.display);
+    // console.log("Modal visibility:", modal.style.display);
 };
 
 // Close modal when clicking outside the content
@@ -1529,11 +1719,11 @@ function downloadData() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("Button exists:", document.getElementById("downloadDataBtn"));
+    // console.log("Button exists:", document.getElementById("downloadDataBtn"));
     const btnStyle = getComputedStyle(
         document.getElementById("downloadDataBtn")
     );
-    console.log("Button visibility:", btnStyle.display, btnStyle.visibility);
+    // console.log("Button visibility:", btnStyle.display, btnStyle.visibility);
 });
 
 // download the user data in .JSON
@@ -1541,11 +1731,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const downloadButton = document.getElementById("downloadDataBtn");
     if (downloadButton) {
         downloadButton.onclick = function () {
-            console.log("Download button clicked"); // Confirm click
+            // console.log("Download button clicked"); // Confirm click
             downloadData();
         };
     } else {
-        console.error("Download button not found!");
+        // console.error("Download button not found!");
     }
 });
 
@@ -1573,40 +1763,6 @@ document.getElementById("userMessage").oninput = function () {
     adjustHeight(this);
 };
 
-// Get the image element of the send btn running ostrich
-const animatedImg = document.getElementById('animatedImg');
-
-// Start the animation when the page loads
-window.addEventListener('DOMContentLoaded', () => {
-    animatedImg.classList.add('animate');
-});
-
-document.getElementById("useDefaultRelaysBtn").onclick = function () {
-    document.getElementById("relayWarning").style.display = "none";
-    setRelays([
-        "wss://relay.nostr.band",
-        "wss://relay.damus.io",
-        "wss://njump.me",
-        "wss://relay.snort.social",
-        "wss://nos.lol",
-    ]);
-};
-document.getElementById("closeRelayWarning").onclick = function () {
-    document.getElementById("relayWarning").style.display = "none";
-};
-
-// Apply tilt after name update
-document.addEventListener('DOMContentLoaded', () => {
-    updateNostrNameDisplay();
-    applyRandomTiltForNostrName();
-});
-
-// Load keys and set dynamic content based on URL parameters
-loadKeys();
-setDynamicContent();
-updateAvatar();
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById("sendMessageBtn");
@@ -1618,11 +1774,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessageBtn.disabled = true;
         avatarIcon.style.pointerEvents = "none";
         avatarIcon.style.opacity = "0.5";
-        console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
+        // console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
 
         // Show the warning message
         warningMessage.style.display = "block";
-        console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
+        // console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
     } else {
         // Allow `oninput` to handle enabling/disabling the button
         const userMessage = document.getElementById("userMessage");
@@ -1661,13 +1817,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // If the URL is already decrypted, skip the process
     if (isUrlDecrypted(url)) {
-        console.log("URL is already decrypted. No further action required.");
+        // console.log("URL is already decrypted. No further action required.");
         return;
     }
 
     // Check if the URL was previously decrypted
     if (wasUrlDecrypted(url)) {
-        console.log("Previously decrypted URL detected. Redirecting...");
+        // console.log("Previously decrypted URL detected. Redirecting...");
         const storedPassword = localStorage.getItem('storedPassword'); // Retrieve the stored password
         if (storedPassword) {
             // Show the notification banner
@@ -1691,7 +1847,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Show the modal for new decryption attempts
-    console.log("Showing the password modal for decryption.");
+    // console.log("Showing the password modal for decryption.");
     modal.classList.add('active');
 
     // Trigger submit on Enter key press
@@ -1714,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const success = decryptAndRedirect(url, password);
 
         if (success) {
-            console.log("Decryption successful, hiding modal...");
+            // console.log("Decryption successful, hiding modal...");
             // const decryptedUrl = window.location.href.split('?')[0]; // Base URL
             storeDecryptedUrl(url); // Save decrypted URL hash
             localStorage.setItem('storedPassword', password); // Save the password
@@ -1739,9 +1895,42 @@ window.addEventListener('pageshow', function (event) {
     // Hide modal if the page is restored from the back/forward cache without an 'x' parameter
     if (!urlParams.has('x')) {
         modal.style.display = 'none';
-        console.log("Page restored from back/forward cache. No 'x' parameter. Hiding modal.");
+        // console.log("Page restored from back/forward cache. No 'x' parameter. Hiding modal.");
     }
 });
+
+// Get the image element of the send btn running ostrich
+const animatedImg = document.getElementById('animatedImg');
+
+// Start the animation when the page loads
+window.addEventListener('DOMContentLoaded', () => {
+    animatedImg.classList.add('animate');
+});
+
+document.getElementById("useDefaultRelaysBtn").onclick = function () {
+    document.getElementById("relayWarning").style.display = "none";
+    setRelays([
+        "wss://relay.nostr.band",
+        "wss://relay.damus.io",
+        "wss://njump.me",
+        "wss://relay.snort.social",
+        "wss://nos.lol",
+    ]);
+};
+document.getElementById("closeRelayWarning").onclick = function () {
+    document.getElementById("relayWarning").style.display = "none";
+};
+
+// Apply tilt after name update
+document.addEventListener('DOMContentLoaded', () => {
+    updateNostrNameDisplay();
+    applyRandomTiltForNostrName();
+});
+
+// Load keys and set dynamic content based on URL parameters
+loadKeys();
+setDynamicContent();
+updateAvatar();
 
 
 // Prevent key generation from happening twice
@@ -1751,12 +1940,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pkExists || !pubExists) {
         // If no keys exist, generate new ones
-        console.log("No existing keys found. Generating new keys...");
+        // console.log("No existing keys found. Generating new keys...");
         generateNewKeys();
     } else {
         // If keys exist, load them
         loadKeys();
-        console.log("Existing keys loaded.");
+        // console.log("Existing keys loaded.");
     }
 });
 
