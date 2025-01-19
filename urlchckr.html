@@ -62,6 +62,47 @@
         label {
             font-size: 1rem;
         }
+        footer, .footerStatic {
+    position: absolute;  /* Change from fixed to absolute */
+    bottom: 0;
+    padding: 10px;
+    background-color: #272727c2;
+    backdrop-filter: blur(10px);
+    color: #efefef;
+    width: 100vw;
+    left: 0;
+    font-size: 2rem;
+    text-align: center;
+    box-sizing: border-box; /* Ensures padding doesn't add extra width */
+}
+
+.footerDynamic {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    padding: 10px;
+    background-color: #272727c2;
+    backdrop-filter: blur(10px);
+    color: #efefef;
+    font-size: 2rem;
+    text-align: center;
+    box-sizing: border-box;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;  /* Initially hidden */
+    pointer-events: none;  /* Disable interaction when hidden */
+}
+
+footer a {
+    color: #ffffff;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
     </style>
 </head>
 <body>
@@ -78,7 +119,14 @@
         </div>
 
         <p id="error-message" class="error" style="display: none;"></p>
+
     </div>
+    <footer class="footerDynamic">
+        <a href="about.html">About</a> | 
+        <a href="FAQ.html">FAQ</a> | 
+        <a href="urlmkr.html">URLmkr</a> | 
+    </footer>
+
 
     <script>
         document.getElementById('check-btn').addEventListener('click', async () => {
@@ -118,7 +166,7 @@
                 if (match) {
                     originalUrlEl.textContent = match.original;
                     totalVisitsEl.textContent = match.visits;
-                    lastAccessedEl.textContent = match.last_accessed;
+                    lastAccessedEl.textContent = match.last_accessed ? `${match.last_accessed} UTC` : "N/A";
                     resultContainer.style.display = 'block';
                 } else {
                     errorContainer.textContent = 'Short URL not found in the database.';
@@ -131,5 +179,6 @@
             }
         });
     </script>
+    <script src="footer.js"></script>
 </body>
 </html>
