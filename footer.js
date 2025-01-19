@@ -1,10 +1,10 @@
 let footerTimeout;
-const footer = document.querySelector('.footerDynamic');  // Select by class
+const footer = document.querySelector('.footerDynamic'); // Select by class
 
 if (footer) {
     function showFooter(temporary = true) {
         footer.style.opacity = '1';
-        footer.style.pointerEvents = 'auto';  // Enable interaction
+        footer.style.pointerEvents = 'auto'; // Enable interaction
 
         // If it's a temporary show, hide after 1.5 seconds
         if (temporary) {
@@ -19,22 +19,30 @@ if (footer) {
 
     function hideFooter() {
         footer.style.opacity = '0';
-        footer.style.pointerEvents = 'none';  // Disable interaction when hidden
+        footer.style.pointerEvents = 'none'; // Disable interaction when hidden
     }
 
     function isAtBottom() {
         return window.innerHeight + window.scrollY >= document.body.offsetHeight;
     }
 
+    function contentAllowsScroll() {
+        return document.body.offsetHeight > window.innerHeight;
+    }
+
     // Show footer when scrolling down
     window.addEventListener('scroll', () => {
         if (isAtBottom()) {
-            showFooter(false);  // Keep footer visible when at bottom
+            showFooter(false); // Keep footer visible when at bottom
         } else {
-            showFooter(true);  // Temporary show when scrolling
+            showFooter(true); // Temporary show when scrolling
         }
     });
 
-    // Initial hide on page load
-    hideFooter();
+    // Check if scrolling is possible on page load
+    if (!contentAllowsScroll()) {
+        showFooter(false); // Show footer permanently if no scrolling
+    } else {
+        hideFooter(); // Hide initially if scrolling is possible
+    }
 }
