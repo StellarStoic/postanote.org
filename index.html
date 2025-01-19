@@ -29,7 +29,8 @@
     <script src="crypto-js.min.js"></script>                                                                                                                   
     <script src="dec.js"></script>                                                                                                                   
     <script src="bech32.js"></script>                                                                                                                   
-    <script src="note1.js"></script>                                                                                                                     
+    <script src="note1.js"></script>
+    <!-- <script src="footer.js"></script> // IS AT THE BOTTOM-->
 </head>
 
 <body>
@@ -230,10 +231,10 @@ const randomAvatarStyle = Math.floor(Math.random() * Object.keys(avatarStyles).l
 function getQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
-        f: params.has("f") ? params.get("f") : null, // Font selection parameter. Only include f if it's present
-        t: params.get("t") || "Freedom to Speak", // Title
-        s: params.get("s") || "No Names. Just Unfiltered Truth.", // Subtitle
-        p: params.get("p") || "",  // Paragraph (new)
+        f: params.has("f") ? params.get("f") : null, // Include font only if present
+        t: params.has("t") ? params.get("t") : null, // Include title only if present
+        s: params.has("s") ? params.get("s") : null, // Include subtitle only if present
+        p: params.get("p") || "",  // Paragraph
         m: params.get("m") || "", // Message
         h: params.get("h") ? params.get("h").split(",").filter(Boolean) : [], // Hashtag
         r: params.get("r") ? params.get("r").split(",") : [], // Relay
@@ -245,24 +246,14 @@ function getQueryParams() {
     };
 }
 
-    // List of media links
-    const mediaLinks = [
-        "https://media1.tenor.com/m/rec5dlPBK2cAAAAd/mr-bean-waiting.gif",
-        "https://media1.tenor.com/m/4EElxXeHiZwAAAAC/forrest-gump-wave.gif",
-        "https://media1.tenor.com/m/g_94qXGDaicAAAAd/counter-travolta.gif",
-        "https://media1.tenor.com/m/TRhQGkZGzfEAAAAd/bh187-v-for-vendetta.gif",
-        "https://media1.tenor.com/m/FSp-pDzKXKsAAAAC/girls-kissing-tired.gif",
-        "https://media1.tenor.com/m/f6KifE_p2DAAAAAd/leyendo-hora-de-aventura.gif",
-        "https://media1.tenor.com/m/veoNy8bkTLMAAAAd/blink-kid.gif",
-    ];
-
 function setDynamicContent() {
     const urlParams = new URLSearchParams(window.location.search);  // Define urlParams here
     const { t, s, p, m, h, r, l, b } = getQueryParams();
     const maxLength = 200;  // Maximum characters before truncating
 
-    document.getElementById("mainTitle").textContent = t;
-    document.getElementById("subTitle").textContent = s;
+    // Handle the title and subtitle
+    document.getElementById("mainTitle").textContent = t || "Freedom to Speak"; // Show only if `t` exists
+    document.getElementById("subTitle").textContent = s || "No Names. Just Unfiltered Truth"; // Show only if `s` exists
 
     const paragraph = document.getElementById("customParagraph");
     const readMoreLink = document.getElementById("readMoreLink");
@@ -323,6 +314,20 @@ function setDynamicContent() {
 
     } else {
     // If no `p` parameter is provided, set default content and process random GIF links
+
+    // List of media links
+    const mediaLinks = [
+        "https://media1.tenor.com/m/rec5dlPBK2cAAAAd/mr-bean-waiting.gif",
+        "https://media1.tenor.com/m/4EElxXeHiZwAAAAC/forrest-gump-wave.gif",
+        "https://media1.tenor.com/m/g_94qXGDaicAAAAd/counter-travolta.gif",
+        "https://media1.tenor.com/m/WMe5rMx9OIcAAAAd/ostrich-m.gif",
+        "https://media1.tenor.com/m/zvke6dexeEEAAAAC/anonymous-mask.gif",
+        "https://media1.tenor.com/m/TRhQGkZGzfEAAAAd/bh187-v-for-vendetta.gif",
+        "https://media1.tenor.com/m/FSp-pDzKXKsAAAAC/girls-kissing-tired.gif",
+        "https://media1.tenor.com/m/f6KifE_p2DAAAAAd/leyendo-hora-de-aventura.gif",
+        "https://media1.tenor.com/m/veoNy8bkTLMAAAAd/blink-kid.gif",
+    ];
+
 
     // Pick a random link from the list
     const randomLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
