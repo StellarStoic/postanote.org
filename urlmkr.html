@@ -25,6 +25,7 @@
     <script src="enc.js"></script>
     <script src="bech32.js"></script>   
     <script src="fontList.js"></script>
+    <!-- <script src="footer.js"></script> // IS AT THE BOTTOM-->
     <script src="font.js"></script>
 </head>
 
@@ -924,10 +925,11 @@ function reverseString(str) {
         function validateInput(input, area, regex) {
             const match = input.match(regex);
             if (match) {
-                errorMessage.textContent = `Invalid character detected in the ${area}: '${match[0]}' is not a valid URL character. Please remove it. # character is added programmatically for the end user`;
+                errorMessage.textContent = `Invalid character detected in the ${area}: '${match[0]}' is what you entered. (#) will be added programmatically`;
                 errorMessage.style.color = 'red';  // Make the error message red
-                errorMessage.style.fontSize = '0.8rem';
+                errorMessage.style.fontSize = '0.6rem';
                 scrollToMessage(errorMessage);  // Scroll to the error message
+
                 return false;
             }
             return true;
@@ -1190,7 +1192,7 @@ function reverseString(str) {
             const ntagGroup = document.querySelector('.ntag-group');
 
             if (!selectedNtag) {
-                errorMessage.textContent = 'Please select an NTAG type to build a URL.';
+                errorMessage.textContent = 'Please select an NTAG type to build an URL.';
                 errorMessage.style.color = 'red';
                 errorMessage.style.fontSize = '0.6rem';
                 scrollToMessage(errorMessage);  // Scroll to error message
@@ -1386,7 +1388,7 @@ function reverseString(str) {
         if (!selectedNtag) {
         errorMessage.textContent = 'Please select an NTAG type to generate a QR code.';
         errorMessage.style.color = 'red';
-        
+        errorMessage.style.fontSize = '0.6rem';
         // Scroll and focus to the NTAG group for user attention
         ntagGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
         ntagGroup.focus();
@@ -1394,8 +1396,10 @@ function reverseString(str) {
     }
 
         if (!originalURL) {
-            errorMessage.textContent = 'Generate a URL before creating a QR code.';
-            errorMessage.style.color = 'red';
+            warningMessage.textContent = 'Generate an URL before creating a QR code.';
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';
+            scrollToMessage(warningMessage);  // Scroll to warning message
             return;
         }
 
@@ -1431,6 +1435,8 @@ function reverseString(str) {
         console.error("Error generating QR code:", error);
         errorMessage.textContent = 'Failed to generate QR code.';
         errorMessage.style.color = 'red';
+        errorMessage.style.fontSize = '0.6rem';
+        scrollToMessage(errorMessage);  // Scroll to error message
     }
 });
 
@@ -1465,11 +1471,40 @@ document.getElementById('close_qr_button').addEventListener('click', function ()
     });
 
 
-    function scrollToMessage(messageElement) {
-    if (messageElement.textContent.trim() !== '') {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//     function scrollToMessage(messageElement) {
+//     if (messageElement.textContent.trim() !== '') {
+//         messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//     }
+// }
+
+/**
+ * Scrolls to a specific message element inside the '.url-output-container'.
+ * Ensures only the '.url-output-container' scrolls, not the main page.
+ *
+ * @param {HTMLElement} messageElement - The message element to scroll to.
+ */
+ function scrollToMessage(messageElement) {
+    const container = document.querySelector('.url-output-container'); // Select the container
+    if (messageElement.textContent.trim() !== '' && container) {
+        // Ensure the message element is a child of the container
+        if (container.contains(messageElement)) {
+            // Calculate the offset of the message relative to the container
+            const messageOffset = messageElement.offsetTop - container.scrollTop;
+
+            // Smoothly scroll the container to the message
+            container.scrollTo({
+                top: messageOffset,
+                behavior: 'smooth',
+            });
+
+            console.log('Scrolling to:', messageElement, 'Offset:', messageOffset);
+        } else {
+            console.warn('Message element is not inside the container.');
+        }
     }
 }
+
+
 
         function getRandomRelay() {
             return relayList[Math.floor(Math.random() * relayList.length)];
