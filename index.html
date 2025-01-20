@@ -1817,6 +1817,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // If the URL is already decrypted, skip the process
     if (isUrlDecrypted(url)) {
+        modal.classList.remove('active'); // Ensure modal is hidden if unnecessary
         // console.log("URL is already decrypted. No further action required.");
         return;
     }
@@ -1832,7 +1833,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Redirect after a short delay to give time for reading the message
             setTimeout(() => {
                 decryptAndRedirect(url, storedPassword);
-            }, 15000);
+            }, 5000);
 
             // Clear hashes on button click
             clearHashesButton.addEventListener('click', function () {
