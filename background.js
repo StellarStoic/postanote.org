@@ -15,7 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const storedIndex = localStorage.getItem('selectedBackgroundIndex');
 
         if (storedIndex) {
-            if (storedIndex.startsWith('#')) {
+            if (storedIndex.startsWith('url:')) {
+            // Custom URL case
+            const customUrl = storedIndex.replace('url:', '');
+            document.body.style.backgroundImage = `url('${customUrl}')`;
+            document.body.style.backgroundColor = ''; // Clear solid color
+            } else if (storedIndex.startsWith('#')) {
                 // HEX color case
                 document.body.style.backgroundColor = storedIndex;
                 document.body.style.backgroundImage = ''; // Clear image

@@ -78,6 +78,11 @@ h4 {
     font-size: 2em;
 } */
 
+a {
+    color: #00ff55;
+    text-decoration: none;
+}
+
 input:disabled, textarea:disabled {
     background-color: #b9b2b2; /* Change to your desired background color */
     color: #000000; /* Change to your desired text color */
@@ -1090,7 +1095,7 @@ button {
 
 /* Label styling */
 #color_picker_label{
-    font-size: 2rem; /* Larger text */
+    font-size: 1rem; /* Larger text */
     font-weight: bold; /* Emphasize label */
     background-color: #000000;
     max-width: fit-content;
@@ -1103,6 +1108,44 @@ button {
     height: 120px;
     max-height: 200px;
     object-fit: cover;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.2s, border-color 0.3s;
+}
+
+/* custom URL */
+.custom-url-item {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Align items to the start */
+    gap: 5px; /* Smaller gap between label and input */
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #00000000; /* Transparent background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+/* img url Label styling */
+#custom_url_label {
+    font-size: 1rem; /* Larger text */
+    font-weight: bold; /* Emphasize label */
+    background-color: #000000; /* Black background */
+    max-width: fit-content;
+    color: #a6a6a6; /* Gray text */
+    text-align: center; /* Center-align the text */
+}
+
+/* Color input styling */
+#custom-background-url {
+    font-size: 0.7rem; /* Larger text */
+    width: 70vw;
+    height: 120px;
+    max-height: 200px;
+    object-fit: cover;
+    word-break: break-all;
     cursor: pointer;
     border: 3px solid transparent;
     transition: transform 0.2s, border-color 0.3s;

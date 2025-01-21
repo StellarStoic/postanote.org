@@ -80,11 +80,7 @@
         <div class="background-modal-content">
             <span class="close-modal">&times;</span>
             <div class="background-grid" id="background-grid"></div>
-            <!-- Solid Color Picker -->
-            <div class="color-picker-container">
-                <label for="solid-color-picker">Color picker:</label>
-                <input type="color" id="solid-color-picker" value="#ffffff">
-            </div>
+            <!-- The color picker and URL input will be dynamically added here -->
         </div>
     </div>
 
@@ -107,9 +103,19 @@
         <div class="maker-subtitle">
             <h3 id="toggle-description">What this tool does?</h3>
             <div class="maker-what-text hidden">
-                <p>This tool allows you to easily create a custom URL which will link to a customized postanote.org website by filling in the provided fields.</p>
-                <p>Select an NTAG type with the right amount of memory or no NTAG if you'll use a QR code. Optionally add a title, a subtitle, a custom avatar for users, lock a message or leave it open for end users to post whatever they want, limit their max amount of characters, add hashtags for content discoverability, and choose custom Nostr relays where the notes will be posted by the end user which can be anyone using your custom link.</p>
-                <p>The tool will automatically generate and display the URL, which you can write to an NTAG with various NFC applications or simply create a QR code and share it with the world.</p>
+                <p>This tool allows you to easily create a custom URL that links to a customized postanote.org website by adjusting the selected parameters.
+                You can choose an NTAG type with the appropriate memory size or select "no NTAG" if you plan to use a QR code instead. Optionally, you can:</p>
+                
+                <ul>- Add a title and a subtitle.</ul>
+                <ul>- Include a custom avatar for users.</ul>
+                <ul>- Lock a message or leave it open for end users to post freely.</ul>
+                <ul>- Set a character limit for user submissions.</ul>
+                <ul>- Add hashtags for better later discoverability on Nostr.</ul>
+                <ul>- Specify custom Nostr relays where the notes will be posted by end users through your custom link.</ul>
+                <ul>- Additionally, you can encrypt the URL so that only the correct key can unlock it. (This is a powerful feature and should not be used for illegal purposes.)</ul>
+                
+                <p>The tool will automatically generate and display the URL, which can then be written to an NTAG using various NFC applications or converted into a QR code to share with others.
+                This tool also includes a built-in URL shortener. The corresponding long URL is stored on my server, but the original (non-shortened) URL is not tracked. Keep this in mind when using the tool.</p>
             </div>
         </div>
     </div>
@@ -347,6 +353,7 @@
         const closeModal = document.querySelector('.close-modal');
         let selectedBackgroundIndex = null;
         const solidColorPicker = document.getElementById('solid-color-picker');
+        const customUrlInput = document.getElementById('custom-background-url');
 
         // avatar styles
         const includeAvatarCheckbox = document.getElementById('include_avatar');
@@ -935,38 +942,85 @@ function reverseString(str) {
             return true;
         }
 
+
         function updateBackground() {
             backgroundGrid.innerHTML = '';  // Clear grid
 
-                // Add solid color picker as the first item
-            const colorPickerContainer = document.createElement('div');
-            colorPickerContainer.classList.add('color-picker-item');
+        // Add color picker at the top
+        const colorPickerContainer = document.createElement('div');
+        colorPickerContainer.classList.add('color-picker-item');
 
-            const label = document.createElement('label');
-            label.textContent = 'Color Picker:';
-            label.id = 'color_picker_label';
-            colorPickerContainer.appendChild(label);
+        const colorLabel = document.createElement('label');
+        colorLabel.textContent = 'Color Picker:';
+        colorLabel.id = 'color_picker_label';
+        colorPickerContainer.appendChild(colorLabel);
 
-            const colorInput = document.createElement('input');
-            colorInput.type = 'color';
-            colorInput.id = 'solid-color-picker';
-            colorInput.value = '#ffffff'; // Default to white
-            colorPickerContainer.appendChild(colorInput);
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.id = 'solid-color-picker';
+        colorInput.value = '#ffffff'; // Default to white
+        colorPickerContainer.appendChild(colorInput);
 
-            // Apply solid color on selection
-            colorInput.addEventListener('input', () => {
-                const selectedColor = colorInput.value;
-                selectedBackgroundIndex = selectedColor; // Store HEX value
-                document.body.style.backgroundColor = selectedColor; // Apply solid color
-                document.body.style.backgroundImage = ''; // Clear image
-                document.getElementById('dim-overlay').style.display = 'block'; // Show overlay
-                localStorage.setItem('selectedBackgroundIndex', selectedColor);
-                updateURL();
-            });
+        // Apply solid color on selection
+        colorInput.addEventListener('input', () => {
+            const selectedColor = colorInput.value;
+            selectedBackgroundIndex = selectedColor; // Store HEX value
+            document.body.style.backgroundColor = selectedColor; // Apply solid color
+            document.body.style.backgroundImage = ''; // Clear image
+            document.getElementById('dim-overlay').style.display = 'block'; // Show overlay
+            localStorage.setItem('selectedBackgroundIndex', selectedColor);
+            updateURL();
+        });
 
-            backgroundGrid.appendChild(colorPickerContainer);
+        backgroundGrid.appendChild(colorPickerContainer);
 
-            // Add  background images
+        // Add custom URL input below the color picker
+        const customUrlContainer = document.createElement('div');
+    customUrlContainer.classList.add('custom-url-item');
+
+    const urlLabel = document.createElement('label');
+    urlLabel.textContent = 'img URL:';
+    urlLabel.id = 'custom_url_label';
+    customUrlContainer.appendChild(urlLabel);
+
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.id = 'custom-background-url';
+    urlInput.placeholder = 'only use images with cuntinuous patterns';
+    customUrlContainer.appendChild(urlInput);
+
+    // URL validation function
+    function isBGimgURLvalidURL(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+    // Real-time validation and application for custom URL
+    urlInput.addEventListener('input', () => {
+        const url = urlInput.value.trim();
+
+        if (isBGimgURLvalidURL(url)) {
+            selectedBackgroundIndex = `url:${url}`; // Prefix with "url:"
+            document.body.style.backgroundImage = `url('${url}')`; // Apply custom URL
+            document.body.style.backgroundColor = ''; // Clear solid color
+            document.getElementById('dim-overlay').style.display = 'block'; // Show overlay
+            localStorage.setItem('selectedBackgroundIndex', selectedBackgroundIndex);
+            updateURL();
+            warningMessage.textContent = ''; // Clear warnings
+        } else {
+            warningMessage.textContent = 'Invalid URL. Please enter a valid image URL.';
+            warningMessage.style.color = 'orange';
+            warningMessage.style.fontSize = '0.6rem';
+        }
+    });
+
+    backgroundGrid.appendChild(customUrlContainer);
+
+            // Add  background images from beckgroundImages.js
             for (const [index, image] of Object.entries(backgroundImages)) {
                 const imgElement = document.createElement('img');
                 imgElement.src = `img/background/${image}`;
@@ -1008,7 +1062,12 @@ function reverseString(str) {
             const storedIndex = localStorage.getItem('selectedBackgroundIndex');
 
         if (storedIndex) {
-            if (storedIndex.startsWith('#')) {
+            if (storedIndex.startsWith('url:')) {
+            // Custom URL case
+            const customUrl = storedIndex.replace('url:', '');
+            document.body.style.backgroundImage = `url('${customUrl}')`;
+            document.body.style.backgroundColor = ''; // Clear solid color
+            } else if (storedIndex.startsWith('#')) {
                 // HEX color case
                 document.body.style.backgroundColor = storedIndex;
                 document.body.style.backgroundImage = ''; // Clear image
@@ -1072,11 +1131,14 @@ function reverseString(str) {
             // Background selection
             if (includeBackgroundCheckbox.checked && selectedBackgroundIndex) {
                 const backgroundParam =
-                    selectedBackgroundIndex.startsWith('#') // HEX or index
+                selectedBackgroundIndex.startsWith('url:') // Custom URL
+                        ? `b=${encodeURIComponent(selectedBackgroundIndex.replace('url:', ''))}`
+                        : selectedBackgroundIndex.startsWith('#') // HEX or index
                         ? `b=${encodeURIComponent(selectedBackgroundIndex)}`
                         : `b=${selectedBackgroundIndex}`;
 
-            url += `${backgroundParam}&`;            console.log("Adding Background: ", selectedBackgroundIndex);
+            url += `${backgroundParam}&`;
+            console.log("Adding Background: ", selectedBackgroundIndex);
             currentBytes += `b=${selectedBackgroundIndex}&`.length;
             }
 
@@ -1178,6 +1240,7 @@ function reverseString(str) {
             const remainingBytes = maxBytes - currentBytes;
 
             if (urlOutput) {
+                url = url.endsWith('&') ? url.slice(0, -1) : url; // Remove trailing '&'
                 urlOutput.textContent = url;
             } else {
                 console.error("urlOutput element not found!");
