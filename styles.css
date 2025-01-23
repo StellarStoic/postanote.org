@@ -92,6 +92,7 @@ input:disabled, textarea:disabled {
 input[type="text"]:disabled, input[type="number"]:disabled, textarea:disabled {
     border-color: #fe0000; /* Optional: change the border color if desired */
     width: 15px;
+    border-radius: 10px;
 }
 
 .container {
@@ -964,6 +965,7 @@ footer a:hover {
     font-size: 1.5rem;
     background-color: white;
     cursor: pointer;
+    border-radius: 10px;
 }
 
 .error-message {
@@ -1265,6 +1267,13 @@ button {
     background-color: #444;
 }
 
+.maker-what-text {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 1rem;
+    margin: 5%;
+}
+
 .maker-what-text p{
     width: auto;
     font-size: 1.5em;
@@ -1276,6 +1285,9 @@ button {
     align-items: center;
     font-size: 1.7rem;
     margin: 5%;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
 }
 
 textarea {
@@ -1297,6 +1309,7 @@ textarea {
     margin-bottom: 10px;
     width: 85%;
     max-width: 60vw;
+    border-radius: 10px;
     /* margin-right: 20; */
 }
 
@@ -1336,6 +1349,14 @@ textarea {
     transform: scale(3.5); /* Adjust the scale value as needed */
     margin-left: 25px;
     z-index: -1;
+}
+
+#include_message {
+margin-right: 60px;
+}
+
+#custom_characters {
+margin-right: 60px;
 }
 
 
@@ -1480,6 +1501,7 @@ textarea {
     height: 120px;
     margin-top: 40px;
     margin-bottom: 10%;
+    border-radius: 10px;
 }
 
 #enable_hint {

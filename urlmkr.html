@@ -218,20 +218,20 @@
             Add Custom Title (h1) <input type="checkbox" id="include_h1">
         </label>
         <input type="text" id="h1_input" placeholder="Title" disabled>
-    </div>
+
 
     <hr class="hrLine">
 
-    <div class="form-group">
+
         <label for="include_h3">
             Add Custom Subtitle (h3) <input type="checkbox" id="include_h3">
         </label>
         <input type="text" id="h3_input" placeholder="Subtitle" disabled>
-    </div>
+
 
     <hr class="hrLine">
 
-    <div class="form-group">
+
         <label for="include_p">
             Add longer text (p) <input type="checkbox" id="include_p">
         </label>
@@ -304,23 +304,23 @@
         <label for="encrypt_url">Encrypt URL with a password: 
             <input type="checkbox" id="encrypt_url">
         </label>
-    </div>
-    <div class="form-group">
+
+
         <label for="encryption_password">Your URL will only be accessible with a password</label>
         <div class="password-container">
             <input type="password" id="encryption_password" placeholder="Enter password" disabled>
             <span id="toggle_password" class="toggle-password">👁️</span>
         </div>
         <p id="password_strength" class="password-strength"> </p>
-    </div>
-    <div class="form-group">
+
+
         <label for="password_hint">
             Add a password hint
             <input type="checkbox" id="enable_hint">
         </label>
         <input type="text" id="password_hint" placeholder="Enter password hint" disabled>
-    </div>
-    <div class="form-group">
+
+
         <button id="toggle_encryption" disabled>Encrypt</button>
     </div>
 
@@ -544,8 +544,8 @@ function resetAvatar() {
         include_p_Checkbox.addEventListener('change', function () {
             p_Input.disabled = !this.checked;
             if (this.checked) {
-                p_Input.style.height = '60vh';  // Resize input box to a larger height
-                p_Input.style.width = '95%';     // Optional: Adjust width for better input
+                p_Input.style.height = '100vh';  // Resize input box to a larger height
+                p_Input.style.width = '100%';     // Optional: Adjust width for better input
             } else {
                 p_Input.style.height = 'auto';   // Reset to default size
                 p_Input.style.width = '50%';
