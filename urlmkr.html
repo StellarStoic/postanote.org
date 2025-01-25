@@ -1705,6 +1705,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 urlOutput.textContent = `${baseUrl}?${decryptedData}`;
                 toggleEncryptionButton.textContent = "Encrypt";
                 isEncryptedState = false;
+
+                // Update byte counter for decrypted URL
+                currentBytes = urlOutput.textContent.length; // Get length of decrypted URL
+                byteCounter.textContent = `Remaining bytes: ${maxBytes - currentBytes} (Current bytes: ${currentBytes})`;
+                byteCounter.style.color = currentBytes > maxBytes ? 'red' : 'green';
             } else {
                 alert("Failed to decrypt. Check your password.");
             }
@@ -1715,6 +1720,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 urlOutput.textContent = encryptedUrl;
                 toggleEncryptionButton.textContent = "Decrypt";
                 isEncryptedState = true;
+
+                // Update byte counter for encrypted URL
+                currentBytes = encryptedUrl.length; // Get length of encrypted URL
+                byteCounter.textContent = `Remaining bytes: ${maxBytes - currentBytes} (Current bytes: ${currentBytes})`;
+                byteCounter.style.color = currentBytes > maxBytes ? 'red' : 'green';
+                
                 console.log(urlOutput.textContent); // Should include the `c=` parameter if a hint is provided
             }
         }
