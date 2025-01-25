@@ -381,14 +381,20 @@ video[id^="embedded-video-"]:hover {
     z-index: 1100;
 }
 
-/* #imageUploadIcon {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 30px;
-    color: #efefef;
-    cursor: pointer;
-} */
+.paragraph-qr-code-wrapper {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;    /* Center vertically */
+    margin: 20px auto;      /* Add spacing and center the wrapper */
+    text-align: center;     /* Ensure text is aligned */
+}
+
+.paragraph-qr-code {
+    border: 2px solid #000; /* Optional: Add a border around the QR code */
+    border-radius: 8px;     /* Optional: Add rounded corners */
+    padding: 10px;          /* Add padding around the QR code */
+    background-color: #fff; /* Ensure a clean background */
+}
 
 #messageArea {
     position: fixed;

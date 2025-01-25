@@ -276,6 +276,11 @@ async function setDynamicContent() {
         // Replace `nostr:npub` strings in the content
         processedContent = await replaceNpubStrings(processedContent); // Replace `nostr:npub`
 
+        // Apply QR code replacement
+        // console.log("Before QR Replacement:", processedContent);
+        processedContent = replaceStringWithQRCodes(processedContent);
+        // console.log("After QR Replacement:", processedContent);
+
         // Truncate content for initial view
         truncateParagraph(paragraph);
 
@@ -300,6 +305,7 @@ async function setDynamicContent() {
                 let expandedContent = paragraph.getAttribute('data-full-content');
                 expandedContent = replaceMediaLinks(expandedContent); // Reapply media links to expanded content
                 expandedContent = await replaceNpubStrings(expandedContent);
+                expandedContent = replaceStringWithQRCodes(expandedContent);
 
                 // Skip reprocessing if already processed
                 // Ensure `replaceNpubStrings` is applied only to raw content
@@ -462,6 +468,9 @@ async function truncateParagraph(paragraph) {
     // Ensure `replaceNpubStrings` is applied to truncated content
     displayContent = await replaceNpubStrings(displayContent);
 
+    // Apply QR code replacement
+    displayContent = replaceStringWithQRCodes(displayContent);
+
     paragraph.innerHTML = displayContent;
     paragraph.setAttribute('data-expanded', "false");
     // console.log("Final truncated content:", paragraph.innerHTML);
@@ -500,6 +509,70 @@ function replaceMediaLinks(content) {
 
     return content;
 }
+
+/*
+Replaces keywords with QR codes in the content.
+ */
+ function replaceStringWithQRCodes(content) {
+    const patterns = {
+        lightning: /lightning:([^\s]+)/g,
+        bitcoin: /bitcoin:([^\s]+)/g,
+        ecash: /ecash:([^\s]+)/g,
+        qr: /qr:([^\s]+)/g,
+    };
+
+    const tempContainer = document.createElement('div');
+    document.body.appendChild(tempContainer);
+
+    Object.keys(patterns).forEach((key) => {
+        content = content.replace(patterns[key], (match, capturedValue) => {
+            try {
+                // Generate the QR code in a temporary container
+                const qrCode = new QRCode(tempContainer, {
+                    text: capturedValue,
+                    width: 200,
+                    height: 200,
+                    quietZone: 10,
+                    correctLevel: QRCode.CorrectLevel.H,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                });
+
+                const canvas = tempContainer.querySelector('canvas');
+                const dataURL = canvas.toDataURL();
+
+                // Clean up temporary container
+                tempContainer.innerHTML = '';
+
+                // Return a clickable wrapper with the QR code image
+                return `
+                    <div class="paragraph-qr-code-wrapper" style="cursor: pointer;" title="Click to copy a string">
+                        <img src="${dataURL}" alt="QR Code for ${capturedValue}" class="paragraph-qr-code" data-address="${capturedValue}" />
+                    </div>
+                `;
+            } catch (error) {
+                console.error(`Error generating QR code for ${match}:`, error);
+                return match;
+            }
+        });
+    });
+
+    document.body.removeChild(tempContainer);
+    return content;
+}
+
+// Add event listener for QR code clicks
+document.addEventListener('click', (e) => {
+    const qrCode = e.target.closest('.paragraph-qr-code');
+    if (qrCode) {
+        const address = qrCode.dataset.address; // Get the address from the data attribute
+        navigator.clipboard.writeText(address).then(() => {
+            alert(`a string copied to clipboard: ${address}`);
+        }).catch((err) => {
+            console.error('Failed to copy a string:', err);
+        });
+    }
+});
 
 // Modal for media content
 document.addEventListener("DOMContentLoaded", () => {
@@ -734,7 +807,7 @@ function npubToHex(npub) {
     /**
      * Updates the paragraph content dynamically, processing `nostr:npub` strings.
      */
-    async function updateParagraphContent() {
+    async function updateParagraphContentForNpubStrings() {
         const paragraph = document.getElementById("customParagraph");
         const fullContent = paragraph.getAttribute("data-full-content");
 
@@ -745,7 +818,7 @@ function npubToHex(npub) {
     }
 
     // Run the function after the DOM is fully loaded
-    document.addEventListener("DOMContentLoaded", updateParagraphContent);
+    document.addEventListener("DOMContentLoaded", updateParagraphContentForNpubStrings);
 
 
 // END - NPUB handling
