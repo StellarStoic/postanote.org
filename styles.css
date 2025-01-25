@@ -830,7 +830,7 @@ footer a:hover {
     } */
 }
 
-/* ntag.html */
+/* urlmkr*/
 
 /* agreementModal */
 .agreement-modal {
@@ -903,6 +903,10 @@ footer a:hover {
     border: 1px solid #ff0000; /* Optional: subtle border */
 }
 /* agreementModalEnd */
+
+input[type="checkbox"], input[type="radio"] {
+filter: hue-rotate(180deg);
+}
 
 .url-output-container {
     position: sticky;
@@ -1214,7 +1218,7 @@ button {
 
 /* Color input styling */
 #custom-background-url {
-    font-size: 0.7rem; /* Larger text */
+    font-size: 1rem; /* Larger text */
     width: 70vw;
     height: 120px;
     max-height: 200px;
