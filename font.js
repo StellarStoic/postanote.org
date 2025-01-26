@@ -37,17 +37,17 @@ function applyFont() {
             // Extract font name and replace dashes with spaces
             const fontName = fontImport.split(':')[0].replace(/-/g, ' '); 
             document.documentElement.style.setProperty('--main-font', `'${fontName}', sans-serif`);
-            console.log(`Applied Bunny font: ${fontName} (Index: ${fontIndex})`);
+            // console.log(`Applied Bunny font: ${fontName} (Index: ${fontIndex})`);
         } else {
             // Apply system fonts directly (like Arial, sans-serif)
             document.documentElement.style.setProperty('--main-font', fontImport);
-            console.log(`Applied system font: ${fontImport} (Index: ${fontIndex})`);
+            // console.log(`Applied system font: ${fontImport} (Index: ${fontIndex})`);
         }
 
         // Save the applied font index to storage if it was from the URL
         if (urlFontIndex) {
             localStorage.setItem('selectedFontIndex', urlFontIndex);  // Persist user choice
-            console.log(`Saved font index to storage: ${urlFontIndex}`);
+            // console.log(`Saved font index to storage: ${urlFontIndex}`);
         }
     } else {
         // Fallback to sans-serif if font index not found

@@ -797,9 +797,9 @@ function npubToHex(npub) {
         const regex = new RegExp(npub.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
         content = content.replace(regex, replacement);
     }
-    console.log("Original Content:", content);
-    console.log("Matches Found:", matches);
-    console.log("Processed Content:", content);
+    // console.log("Original Content:", content);
+    // console.log("Matches Found:", matches);
+    // console.log("Processed Content:", content);
     return content;
 }
 
@@ -982,7 +982,7 @@ async function postMetadata() {
     }
 
     // Decode the lightning address if ln exists and is not empty
-    let lud16Value = `${name.toLowerCase()}@postanote.org`;  // Default to nostrName
+    let lud16Value = `${name.toLowerCase()}@snofl.com`;  // Default to nostrName
     if (ln && ln !== '') {
         lud16Value = decodeURIComponent(ln.split('').reverse().join(''));  // Reverse and decode
     }
@@ -999,18 +999,18 @@ async function postMetadata() {
     // Pick a random banner URL
     const randomBanner = bannerUrls[Math.floor(Math.random() * bannerUrls.length)];
 
-    // const nostrName = `_@postanote.org`;  // Create nip05 address
-    const nostrName = `${name.toLowerCase()}@postanote.org`; // Create nip05 address <- Future unique names added to the .well-known folder
+    // const nostrName = `_@snofl.com`;  // Create nip05 address
+    const nostrName = `${name.toLowerCase()}@snofl.com`; // Create nip05 address <- Future unique names added to the .well-known folder
     const currentTime = Math.floor(Date.now() / 1000);
 
     // Metadata structure
     const metadata = {
-        lud16: lud16Value, // lightning address as name@postanote.org) Can be custom if ln= in URL is included
+        lud16: lud16Value, // lightning address as name@snofl.com) Can be custom if ln= in URL is included
         lud06: "", // Old lightning addresses style
         picture: avatarUrl,
         name: name,
         about: "Apparently, I'm one of the Nostriches posting random thoughts and notes the plebs set me up for. I didn't know I signed up for this, but here we are.",
-        website: "https://postanote.org",
+        website: "https://snofl.com",
         banner: randomBanner,  // Use random banner
         display_name: name,
         nip05: nostrName,
@@ -1029,7 +1029,7 @@ async function postMetadata() {
         tags: [
             [
                 "alt",
-                `Random Nostrich ${name} who's avatar was created with dicebear.com API for use in postanote.org`,
+                `Random Nostrich ${name} who's avatar was created with dicebear.com API for use in snofl.com`,
             ],
             // ["i", `nostr:${name}`, b2h(await sha256(new TextEncoder().encode(name)))]
         ],
@@ -1335,7 +1335,7 @@ Please generate a new ID by pressing OK."
             .getAttribute("data-hashtags")
             .split(",")
             .filter(Boolean),
-        additionalHashtags = ["postanote"], // hardcoded hashtags. these will be always included when messages are created and posted from your custom domain instance
+        additionalHashtags = ["snofl"], // hardcoded hashtags. these will be always included when messages are created and posted from your custom domain instance
         allHashtags = [...embeddedHashtags, ...additionalHashtags]
             .map((tag) => `#${tag.trim()}`)
             .join(" "),
@@ -1620,7 +1620,7 @@ function loadStoredEvents() {
 
         // Create div for this identity
         const keyDiv = document.createElement("div");
-        keyDiv.innerHTML = `<h5>(${events.length}) posted notes as ${nostrName}@postanote.org\n
+        keyDiv.innerHTML = `<h5>(${events.length}) posted notes as ${nostrName}@snofl.com\n
 ${pubkey}</h5>`;
         keyDiv.style.color = color;
 

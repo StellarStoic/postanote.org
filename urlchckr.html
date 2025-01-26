@@ -109,7 +109,7 @@ footer a:hover {
     <div class="container">
         <h2>Test Total Visits, Last Access, and Original URL</h2>
         <label for="short-url">Enter Shortened URL:</label>
-        <input type="text" id="short-url" placeholder="e.g., https://postanote.org/c984d0">
+        <input type="text" id="short-url" placeholder="e.g., https://snofl.com/c984d0">
         <button id="check-btn">Check Visits</button>
 
         <div class="result" id="result-container" style="display: none;">
@@ -152,7 +152,7 @@ footer a:hover {
                 const shortCode = urlParts[urlParts.length - 1];
 
                 // Fetch data from the /visits endpoint
-                const response = await fetch('https://postanote.org/visits');
+                const response = await fetch('https://snofl.com/visits');
                 // const response = await fetch('http://127.0.0.1:5500/visits');
                 if (!response.ok) {
                     throw new Error('Failed to fetch visit data.');

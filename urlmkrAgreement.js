@@ -3,8 +3,8 @@ const termsAndConditions = `
   <p><strong>Effective Date:</strong> [01.01.2025]</p>
 
   <h2>1. Introduction</h2>
-  <p>Welcome to postanote.org <strong>urlmkr</strong> (the “Service”). This website and its related services (collectively,“postanote.org”) 
-  are an experimental, personal project created and maintained by a private individual (the “Owner”). By using postanote.org and urlmkr tool, you agree to comply 
+  <p>Welcome to snofl.com <strong>urlmkr</strong> (the “Service”). This website and its related services (collectively,“snofl.com”) 
+  are an experimental, personal project created and maintained by a private individual (the “Owner”). By using snofl.com and urlmkr tool, you agree to comply 
   with these Terms of Service (“Terms”).</p>
 
   <h2>2. Description of the Service</h2>
@@ -17,7 +17,7 @@ const termsAndConditions = `
   </ul>
 
   <h2>3. Acceptance of the Terms</h2>
-  <p>By accessing or using postanote.org urlmkr tool, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do 
+  <p>By accessing or using snofl.com urlmkr tool, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do 
   not agree, you may not use the Service.</p>
 
   <h2>4. User Responsibilities</h2>
@@ -32,7 +32,7 @@ const termsAndConditions = `
       any content that violates third-party intellectual property rights.</li>
     <li><strong>Encrypted URLs:</strong> If you use the encryption feature, you are responsible for maintaining the confidentiality 
       of any decryption keys or methods.</li>
-    <li><strong>Reporting Misuse:</strong> You agree to promptly report any malicious or illegal content you discover via postanote.org to the 
+    <li><strong>Reporting Misuse:</strong> You agree to promptly report any malicious or illegal content you discover via snofl.com to the 
       Owner. If the URL is encrypted, you must provide sufficient evidence that it contains illegal or malicious content.</li>
   </ul>
 
@@ -80,7 +80,7 @@ const termsAndConditions = `
 
   <h2>10. Indemnification</h2>
   <p>You agree to defend, indemnify, and hold harmless the Owner from and against any claims, liabilities, damages, losses, and expenses 
-  (including legal and accounting fees) arising out of or in any way connected with your violation of these Terms, your misuse of postanote.org, urlmkr tool, 
+  (including legal and accounting fees) arising out of or in any way connected with your violation of these Terms, your misuse of snofl.com, urlmkr tool, 
   or your violation of any law or the rights of a third party.</p>
 
   <h2>11. No Company or Commercial Enterprise</h2>
@@ -176,7 +176,7 @@ agreementText.addEventListener('scroll', () => {
     // Decline button logic
     declineButton.addEventListener('click', () => {
         setCookie('userAgreement', 'declined', 1); // Set a short-lived cookie for 1 day
-        window.location.href = 'postanote.html'; // Redirect to homepage
+        window.location.href = 'index.html'; // Redirect to homepage
     });
 });
 

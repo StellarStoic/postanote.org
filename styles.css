@@ -71,6 +71,11 @@ h4 {
     color: #efefef;
 }
 
+#subTitle h4 {
+margin-left: 50px;
+margin-right: auto;
+}
+
 /* h5 {
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -911,8 +916,8 @@ footer a:hover {
 /* agreementModalEnd */
 
 input[type="checkbox"], input[type="radio"] {
-filter: hue-rotate(180deg);
-}
+    filter: hue-rotate(180deg); /* Retains your hue-rotate style */
+  }
 
 .url-output-container {
     position: sticky;
@@ -1351,12 +1356,12 @@ textarea {
 }
 
 .form-group input[type="radio"] {
-    transform: scale(3.5); /* Adjust the scale value as needed */
+    transform: scale(2.5); /* Adjust the scale value as needed */
     margin-right: 25px;
     z-index: -1;
 }
 .form-group input[type="checkbox"] {
-    transform: scale(3.5); /* Adjust the scale value as needed */
+    transform: scale(2.5); /* Adjust the scale value as needed */
     margin-left: 25px;
     z-index: -1;
 }
@@ -1451,7 +1456,7 @@ margin-right: 60px;
     padding: 10px;
     font-size: 1.3rem;
     text-align: center; /* Always center text */
-    font-family: var(--main-font);
+    font-family: Arial, sans-serif;
     padding-right: 40px; /* Space for the eye icon */
     box-sizing: border-box; /* Include padding in width */
     border: 4px solid #ccc; /* Default border width increased */
@@ -1505,7 +1510,7 @@ margin-right: 60px;
 
 /* btn */
 #toggle_encryption {
-    font-family: var(--main-font);
+    font-family: Arial, sans-serif;
     font-size: 1.5rem;
     width: 300px;
     height: 120px;
@@ -1617,14 +1622,14 @@ small {
 
 .faq-section {
     width: 80%;
-    max-width: 600px;
+    max-width: 800px;
     margin: 20px auto;
-    padding-bottom: 3% ;
+    padding-bottom: 200px;
     text-align: left;
 }
 
 .faq-question {
-    font-family: 'Inconsolata', monospace;
+    font-family: var(--main-font);
     font-size: 1.2rem;
     margin-top: 20px;
     cursor: pointer;

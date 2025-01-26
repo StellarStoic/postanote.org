@@ -69,14 +69,14 @@ def shorten_url():
 
     if existing_short:
         conn.close()
-        return jsonify({"short_url": f"https://postanote.org/{existing_short[0]}"}), 200
+        return jsonify({"short_url": f"https://snofl.com/{existing_short[0]}"}), 200
 
     # If no existing short link, create a new one
     cursor.execute("INSERT INTO urls (short, original) VALUES (?, ?)", (url_hash, original_url))
     conn.commit()
     conn.close()
 
-    return jsonify({"short_url": f"https://postanote.org/{url_hash}"}), 201
+    return jsonify({"short_url": f"https://snofl.com/{url_hash}"}), 201
 
 @app.route('/<short>', methods=['GET'])
 def redirect_short_url(short):
@@ -188,7 +188,7 @@ def update_nostr_json():
                 "maxSendable": 100000000000,
                 "minSendable": 1000,
                 "metadata": [
-                    ["text/plain", "Thank you for supporting the postanote.org project with your Zaps. Your generosity helps drive this initiative forward!"],
+                    ["text/plain", "Thank you for supporting the snofl.com project with your Zaps. Your generosity helps drive this initiative forward!"],
                     ["text/identifier", "latterswiss19@walletofsatoshi.com"]
                 ],
                 "commentAllowed": 32,

@@ -18,7 +18,7 @@
     <link rel="manifest" href="/img/favicon_io/site.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>postanote discovery client</title>
+    <title>snofl discovery client</title>
     <style>
         @import url(https://fonts.bunny.net/css?family=athiti:200);
         /* Root font-size scaling based on viewport width */
@@ -481,10 +481,10 @@ function updateTitleWithKeywords() {
     if (keywords.length > 0) {
         const formattedKeywords = keywords.map(k => `#${k}`).join(' ');  // Format keywords as hashtags
         titleElement.textContent = formattedKeywords;  // Update visible title
-        headTitleElement.textContent = `${formattedKeywords} | postanote discovery client`;  // Update <title> in head
+        headTitleElement.textContent = `${formattedKeywords} | snofl discovery client`;  // Update <title> in head
     } else {
-        titleElement.textContent = 'postanote discovery client';  // Default if no keywords
-        headTitleElement.textContent = 'postanote discovery client';
+        titleElement.textContent = 'snofl discovery client';  // Default if no keywords
+        headTitleElement.textContent = 'snofl discovery client';
     }
 }
 

@@ -14,7 +14,7 @@ function decodeNote1(input) {
     if (!note1Match) return null;
 
     const note1 = note1Match[0];
-    console.log("Decoding note1:", note1);
+    // console.log("Decoding note1:", note1);
 
     try {
         const { words } = bech32.decode(note1.replace(/^nostr:/, "")); // Remove "nostr:" prefix for decoding
@@ -25,7 +25,7 @@ function decodeNote1(input) {
         }
 
         const eventId = bytesToHex(bytes);
-        console.log(`Decoded note1 Event ID (Hex): ${eventId}`);
+        // console.log(`Decoded note1 Event ID (Hex): ${eventId}`);
         return { eventId, note1String: note1 };
     } catch (error) {
         console.error("Failed to decode nostr:note1:", error);
@@ -90,7 +90,7 @@ const timeoutId = setTimeout(() => {
 
             socket.onopen = () => {
                 const sub = ["REQ", "subscriptionId", { ids: [eventId] }];
-                console.log(`Requesting event ${eventId} from ${relay}`);
+                // console.log(`Requesting event ${eventId} from ${relay}`);
                 socket.send(JSON.stringify(sub));
             };
 
@@ -196,7 +196,7 @@ function syncLikedEventsToHex(publicKey) {
 
     // Retrieve liked events from localStorage
     const likedEvents = JSON.parse(localStorage.getItem("liked_events")) || [];
-    console.log("Liked Events in localStorage:", likedEvents);
+    // console.log("Liked Events in localStorage:", likedEvents);
 
     // Merge liked events back into HEX file
     data.likedEvents = likedEvents;
@@ -279,7 +279,7 @@ function propagateReaction(event) {
 
             socket.onmessage = (message) => {
                 const data = JSON.parse(message.data);
-                console.log(`Relay response from ${relay}:`, data);
+                // console.log(`Relay response from ${relay}:`, data);
 
                 // Check if relay returned 'OK' and propagate to others if not
                 if (data[0] === 'OK' && data[2] === true) {
@@ -436,13 +436,13 @@ function displayNote1Event(eventData, note1String) {
 
 // Toggle function for showing/hiding JSON details
 function toggleDetails(eventId) {
-    console.log(`Toggling details for eventId: ${eventId}`);
+    // console.log(`Toggling details for eventId: ${eventId}`);
 
     // Close any currently open details first
     const openDetails = document.querySelectorAll('.note-details.visible');
     openDetails.forEach(detail => {
         if (detail.id !== `note-details-${eventId}`) {
-            console.log(`Closing other open details: ${detail.id}`);
+            // console.log(`Closing other open details: ${detail.id}`);
             detail.classList.remove('visible');
         }
     });
@@ -451,7 +451,7 @@ function toggleDetails(eventId) {
     const details = document.getElementById(`note-details-${eventId}`);
     if (details) {
         details.classList.toggle('visible');
-        console.log(`Details for eventId ${eventId} are now ${details.classList.contains('visible') ? 'open' : 'closed'}`);
+        // console.log(`Details for eventId ${eventId} are now ${details.classList.contains('visible') ? 'open' : 'closed'}`);
     } else {
         console.warn(`Details for eventId ${eventId} not found!`);
     }
@@ -459,7 +459,7 @@ function toggleDetails(eventId) {
 
 // Close note details when clicking outside
 document.addEventListener('click', (event) => {
-    console.log("Click detected outside, checking for open details...");
+    // console.log("Click detected outside, checking for open details...");
 
     const noteBoxes = document.querySelectorAll('.note-box');
 
@@ -474,17 +474,17 @@ document.addEventListener('click', (event) => {
 
         // Check if the click is inside any visible note-box
         if (box.contains(event.target)) {
-            console.log(`Click detected inside note-box: ${box}`);
+            // console.log(`Click detected inside note-box: ${box}`);
             clickedInsideAnyNoteBox = true;
         }
     });
 
     // Close all details if the click was outside any note-box
     if (!clickedInsideAnyNoteBox) {
-        console.log("Click outside all note-boxes. Closing all visible details.");
+        // console.log("Click outside all note-boxes. Closing all visible details.");
         const visibleDetails = document.querySelectorAll('.note-details.visible');
         visibleDetails.forEach(details => {
-            console.log(`Closing visible details: ${details.id}`);
+            // console.log(`Closing visible details: ${details.id}`);
             details.classList.remove('visible');
         });
     }
@@ -494,7 +494,7 @@ document.addEventListener('click', (event) => {
 document.querySelectorAll('.details-icon').forEach(icon => {
     icon.addEventListener('click', (e) => {
         e.stopPropagation();
-        console.log("Click event on details-icon stopped from propagating.");
+        // console.log("Click event on details-icon stopped from propagating.");
     });
 });
 
@@ -529,7 +529,7 @@ document.querySelectorAll('.details-icon').forEach(icon => {
 
 window.onload = () => {
     const params = new URLSearchParams(window.location.search);
-    const pValue = params.get('p') || '';
+    let pValue = params.get('p') || '';
     const relayParam = params.getAll('r');
     
     const customParagraph = document.getElementById('customParagraph');
