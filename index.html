@@ -112,13 +112,13 @@
 </div>
 
 <!-- saved passwords notifications -->
-<div id="passwordNotification">
+<!-- <div id="passwordNotification">
     <p>
         You've already unlocked this page.
         To lock it again, press the button below.
     </p>
     <button id="clearHashes">Clear Stored Hashes</button>
-</div>
+</div> -->
 
 
 <!-- modal for viewing media items -->
@@ -1871,8 +1871,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.getElementById('submitPassword');
     const passwordInput = document.getElementById('passwordInput');
     const errorText = document.getElementById('passwordError');
-    const notificationBanner = document.getElementById('passwordNotification');
-    const clearHashesButton = document.getElementById('clearHashes');
+    // const notificationBanner = document.getElementById('passwordNotification');
+    // const clearHashesButton = document.getElementById('clearHashes');
     const passwordHint = document.getElementById('passwordHint');
 
     const url = window.location.href;
@@ -1895,30 +1895,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Check if the URL was previously decrypted
-    if (wasUrlDecrypted(url)) {
-        // console.log("Previously decrypted URL detected. Redirecting...");
-        const storedPassword = localStorage.getItem('storedPassword'); // Retrieve the stored password
-        if (storedPassword) {
-            // Show the notification banner
-            notificationBanner.style.display = 'block';
+    // // Check if the URL was previously decrypted
+    // if (wasUrlDecrypted(url)) {
+    //     // console.log("Previously decrypted URL detected. Redirecting...");
+    //     const storedPassword = localStorage.getItem('storedPassword'); // Retrieve the stored password
+    //     if (storedPassword) {
+    //         // Show the notification banner
+    //         notificationBanner.style.display = 'block';
 
-            // Redirect after a short delay to give time for reading the message
-            setTimeout(() => {
-                decryptAndRedirect(url, storedPassword);
-            }, 5000);
+    //         // Redirect after a short delay to give time for reading the message
+    //         setTimeout(() => {
+    //             decryptAndRedirect(url, storedPassword);
+    //         }, 5000);
 
-            // Clear hashes on button click
-            clearHashesButton.addEventListener('click', function () {
-                localStorage.removeItem('decryptedUrlHash');
-                localStorage.removeItem('storedPassword');
-                notificationBanner.style.display = 'none';
-                alert("Hashes cleared. You will be prompted for the password next time.");
-            });
+    //         // Clear hashes on button click
+    //         // clearHashesButton.addEventListener('click', function () {
+    //         //     localStorage.removeItem('decryptedUrlHash');
+    //         //     localStorage.removeItem('storedPassword');
+    //         //     notificationBanner.style.display = 'none';
+    //         //     alert("Hashes cleared. You will be prompted for the password next time.");
+    //         // });
 
-            return;
-        }
-    }
+    //         return;
+    //     }
+    // }
 
     // Show the modal for new decryption attempts
     // console.log("Showing the password modal for decryption.");
@@ -1947,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // console.log("Decryption successful, hiding modal...");
             // const decryptedUrl = window.location.href.split('?')[0]; // Base URL
             storeDecryptedUrl(url); // Save decrypted URL hash
-            localStorage.setItem('storedPassword', password); // Save the password
+            // localStorage.setItem('storedPassword', password); // Save the password
             modal.classList.remove('active'); // Hide the modal
         } else {
             errorText.textContent = "Invalid password or corrupted data!";
