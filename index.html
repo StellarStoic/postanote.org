@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <title>NostrPostr</title>
 
+    <!-- keep users safe from DIY XXS attacks -->
+    <script src="URLpolice.js"></script>
     <!-- Favicon for most browsers -->
     <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
     
@@ -17,6 +19,7 @@
     
     <!-- Web Manifest (for PWAs) -->
     <link rel="manifest" href="/img/favicon_io/site.webmanifest">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
     <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
     <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.6.1/dist/easy.qrcode.min.js"></script>
@@ -39,8 +42,8 @@
     <div>
         <img id="avatarIcon" class="avatar-icon" src="" alt="Avatar" title="Change ID">
         <p id="nostrNameDisplay" class="nostr-name"></p>  <!-- Display for nostr_name -->
-        <h1 id="mainTitle">Freedom to Speak</h1>
-        <h4 id="subTitle">No Names. Just Unfiltered Truth.</h4>
+        <h1 id="mainTitle"></h1>
+        <h4 id="subTitle"></h4>
         <div id="paragraphContainer">
             <p id="customParagraph" style="margin-top: 1rem;" data-full-content=""></p>
             <a href="#" id="readMoreLink" style="display: none;">Read more</a>
@@ -254,20 +257,37 @@ async function setDynamicContent() {
     const { t, s, p, m, h, r, l, b } = getQueryParams();
     const maxLength = 300;  // Maximum characters before truncating
 
+    console.log("URL Parameters:", { t, s, p });
+
     // Handle the title and subtitle
-    document.getElementById("mainTitle").textContent = t || "Freedom to Speak"; // Show only if `t` exists
-    document.getElementById("subTitle").textContent = s || "No Names. Just Unfiltered Truth"; // Show only if `s` exists
+    if (urlParams.has("t")) {
+        console.log("Processing title:", t);
+        document.getElementById("mainTitle").textContent = t || ""; // Show empty if `t` exists but is empty
+    } else {
+        console.log("No 't' parameter, setting default title.");
+        document.getElementById("mainTitle").textContent = ""; // Default title if no `t` param ... Freedom to Speak
+    }
+    
+    if (urlParams.has("s")) {
+        console.log("Processing subtitle:", s);
+        document.getElementById("subTitle").textContent = s || ""; // Show empty if `s` exists but is empty
+    } else {
+        console.log("No 's' parameter, setting default subtitle.");
+        document.getElementById("subTitle").textContent = ""; // Default subtitle ... No Names. Just Unfiltered Truth
+    }
 
     const paragraph = document.getElementById("customParagraph");
     const readMoreLink = document.getElementById("readMoreLink");
 
     if (p) {
+        console.log("Processing paragraph content:", p);
         // Replace media links first
         let processedContent = replaceMediaLinks(p); // Replace media links
+        console.log("After replacing media links:", processedContent);
 
         // Store the processed content for truncation and expansion
         paragraph.setAttribute('data-full-content', processedContent);
-        // console.log("Content before truncation on page load:", paragraph.innerHTML);
+        console.log("Content before truncation on page load:", paragraph.innerHTML);
         paragraph.setAttribute('data-npub-processed', 'true'); // Mark as processed
 
         // // Truncate content for initial view
@@ -275,11 +295,13 @@ async function setDynamicContent() {
 
         // Replace `nostr:npub` strings in the content
         processedContent = await replaceNpubStrings(processedContent); // Replace `nostr:npub`
+        console.log("After replacing npub strings:", processedContent);
 
         // Apply QR code replacement
-        // console.log("Before QR Replacement:", processedContent);
+        console.log("Before QR Replacement:", processedContent);
         processedContent = replaceStringWithQRCodes(processedContent);
-        // console.log("After QR Replacement:", processedContent);
+        console.log("After QR Replacement:", processedContent);
+        
 
         // Truncate content for initial view
         truncateParagraph(paragraph);
@@ -295,12 +317,14 @@ async function setDynamicContent() {
             const expanded = paragraph.getAttribute('data-expanded') === "true";
             
             if (expanded) {
+                console.log("Collapsing paragraph content.");
                 // Collapse content
                 truncateParagraph(paragraph);
                 readMoreLink.textContent = "Read more";
                 paragraph.setAttribute('data-expanded', "false");
 
             } else {
+                console.log("Expanding paragraph content.");
                // Expand content
                 let expandedContent = paragraph.getAttribute('data-full-content');
                 expandedContent = replaceMediaLinks(expandedContent); // Reapply media links to expanded content
@@ -339,6 +363,7 @@ async function setDynamicContent() {
         markLikedEvents();
 
     } else {
+        console.log("No 'p' parameter provided. Displaying fallback GIF.");
     // If no `p` parameter is provided, set default content and process random GIF links
 
     // List of media links
@@ -355,19 +380,24 @@ async function setDynamicContent() {
         "https://media1.tenor.com/m/TRhQGkZGzfEAAAAd/bh187-v-for-vendetta.gif",
         "https://media1.tenor.com/m/FSp-pDzKXKsAAAAC/girls-kissing-tired.gif",
         "https://media1.tenor.com/m/f6KifE_p2DAAAAAd/leyendo-hora-de-aventura.gif",
+        "https://media1.tenor.com/m/gaEpIfzxzPEAAAAd/pedro-monkey-puppet.gif",
         "https://media1.tenor.com/m/veoNy8bkTLMAAAAd/blink-kid.gif",
+        "https://media1.tenor.com/m/J_1rvj9mL4kAAAAd/tiktok-dog-awkward-dog.gif",
     ];
 
 
     // Pick a random link from the list
     const randomLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
+    console.log("Selected fallback GIF:", randomLink);
 
     // Process the selected link
     let fallbackContent = randomLink;
-    fallbackContent = replaceMediaLinks(fallbackContent); // Process fallback content
-    
-    replaceNpubStrings(expandedContent);
+    fallbackContent = replaceMediaLinks(fallbackContent);
+    fallbackContent = await replaceNpubStrings(fallbackContent); // Ensure `nostr:npub` handling for GIFs
+    fallbackContent = replaceStringWithQRCodes(fallbackContent);
+
     paragraph.innerHTML = fallbackContent; // Directly set processed content
+    console.log("Paragraph content set:", paragraph.innerHTML);
     readMoreLink.style.display = "none"; // Hide "Read more" if no additional content
     }
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blocked for Security</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 2rem;
+            background-color: #1e1e1e;
+        }
+        h1 {
+            color: #dc3545;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #00ff00;
+        }
+        a {
+            text-decoration: none;
+            color: #ffa600;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .malicious {
+            color: red;
+            font-weight: bold;
+        }
+
+        #url {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Potentially Malicious URL Detected</h1>
+    <p>We redirected you because the URL you attempted to open contained elements that could harm your security.</p>
+    <p>If you believe this was an error, please <a id="contactAdmin" href="#">contact the administrator</a>.</p>
+    <p><strong>Details:</strong></p>
+    <p>
+        Parameter: <span class="malicious" id="param"></span><br>
+        Value: <span class="malicious" id="value"></span><br>
+        URL: <span id="url"></span><br>
+        Date/Time: <span id="datetime"></span>
+    </p>
+    <p></p>
+    <script>
+        // Parse query parameters from the explanation page URL
+        const params = new URLSearchParams(window.location.search);
+        const param = params.get('param') || "Unknown";
+        const value = params.get('value') || "Unknown";
+        const currentURL = document.referrer || "Direct access (no referrer)";
+        const currentDateTime = new Date().toLocaleString();
+
+        // Populate the page with the detected details
+        document.getElementById('param').textContent = param;
+        document.getElementById('value').textContent = value;
+        document.getElementById('url').textContent = currentURL;
+        document.getElementById('datetime').textContent = currentDateTime;
+
+        // Construct the email body with the details
+        const emailBody = `
+Reported Date/Time: ${currentDateTime}
+URL: ${currentURL}
+Offending Parameter: ${param}
+Offending Value: ${value}`.trim();
+
+        const mailto = `mailto:report@snofl.com?subject=Potential%20Malicious%20Snofl.com%20URL%20Found%20And%20Reported%20&body=${encodeURIComponent(emailBody)}`;
+
+        // Update the email link
+        document.getElementById('contactAdmin').href = mailto;
+    </script>
+</body>
+</html>
