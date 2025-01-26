@@ -47,11 +47,12 @@
             <h2 class="faq-header-selection">FAQ (Frequently Asked Questions)</h2>
             <div class="faq-question" onclick="toggleFaq('faq1')"><a href="#faq1">Who's behind this?</a></div>
             <div id="faq1" class="faq-answer">
-                <p>It's me StellarStoic on <a href="https://njump.me/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" style="color: #f903fd;"><strong>Nostr</strong></a> and ...<a href="https://nosta.me/nprofile1qqsqqqqqqp0fmkspg7w8d305ln96a0jw0ptwqtuwskkm5pddv2kkjfcpp4mhxue69uhkummn9ekx7mqpzemhxue69uhhyetvv9ujumn0wd68ytnzv9hxgn5ehlv" style="color: #f903fd"><strong>Nostr</strong></a></p>
+                <p>It's me StellarStoic on <a href="https://njump.me/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" style="color: #f903fd;">
+                    <strong>Nostr</strong></a> and ...<a href="https://nosta.me/nprofile1qqsqqqqqqp0fmkspg7w8d305ln96a0jw0ptwqtuwskkm5pddv2kkjfcpp4mhxue69uhkummn9ekx7mqpzemhxue69uhhyetvv9ujumn0wd68ytnzv9hxgn5ehlv" style="color: #f903fd"><strong>Nostr</strong></a></p>
                 <p>But you can also find me on <a href="https://signal.org/"style="color: #01b0fb;"> SIGNAL as <strong>stellarstoic.01</strong></a> or on <a href="https://t.me/stellarstoic" style="color: #01b0fb;">TELEGRAM also as <strong>@stellarstoic</strong></a></p>
             </div>
 
-            <div class="faq-question" onclick="toggleFaq('faq2')"><a href="#faq2">Why do we use it?</a></div>
+            <!-- <div class="faq-question" onclick="toggleFaq('faq2')"><a href="#faq2">Why do we use it?</a></div>
             <div id="faq2" class="faq-answer">
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio.</p>
             </div>
@@ -74,7 +75,7 @@
             <div class="faq-question" onclick="toggleFaq('faq6')"><a href="#faq6">Where can I find Lorem Ipsum?</a></div>
             <div id="faq6" class="faq-answer">
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ullamcorper.</p>
-            </div>
+            </div> -->
 
             <div class="faq-question" onclick="toggleFaq('faq7')"><a href="#faqNTAGtype">Is NTAG memory showing wrong values?</a></div>
             <div id="faq7" class="faq-answer">
@@ -153,6 +154,77 @@
                 <div id="faqFont" class="faq-answer">
                     <p>The current font used on this website is <a id="fontLink" href="#" target="_blank">loading...</a>.</p>
             </div>
+
+            <div class="faq-question" onclick="toggleFaq('faqEncryption')">
+                <a href="#faqEncryption">How secure is the URL encryption?</a>
+            </div>
+            <div id="faqEncryption" class="faq-answer">
+                <p>
+                    The security of the URL encryption on this platform relies on <strong>AES (Advanced Encryption Standard)</strong>, 
+                    specifically AES-256. This encryption standard is widely recognized as one of the most secure methods available today 
+                    and is used globally to protect sensitive data, including government and financial information.
+                </p>
+                <h4>🔐 What Makes AES-256 Strong?</h4>
+                <ul>
+                    <li><strong>Key Length:</strong> AES-256 uses a 256-bit encryption key, offering 2<sup>256</sup> possible combinations. 
+                        This is a number so large that even modern supercomputers would take <strong>billions of years</strong> to brute-force it.
+                    </li>
+                    <li><strong>Cryptographic Strength:</strong> AES is a symmetric encryption algorithm, meaning the same key is used for encryption 
+                        and decryption. This simplicity ensures high speed without compromising security.
+                    </li>
+                </ul>
+                <h4>📊 Examples of Password Strength and Brute-Forcing</h4>
+                <table>
+                    <tr>
+                        <th>Password Length/Type</th>
+                        <th>Time to Crack (Brute Force)</th>
+                    </tr>
+                    <tr>
+                        <td>Weak (e.g., "12345")</td>
+                        <td>Instantly</td>
+                    </tr>
+                    <tr>
+                        <td>Moderate (e.g., "P@ssw0rd")</td>
+                        <td>A few hours with modern hardware</td>
+                    </tr>
+                    <tr>
+                        <td>Strong (e.g., "F&2zL!8x9wXy@#Tp")</td>
+                        <td>Over 1 trillion years</td>
+                    </tr>
+                </table>
+                <h4>🛡️ Best Practices for Maximum Security</h4>
+                <ul>
+                    <li>Choose a password with a minimum of 12 characters, including uppercase, lowercase, numbers, and special symbols.</li>
+                    <li>Avoid common words, predictable phrases, or keyboard patterns.</li>
+                    <li>Store passwords in a secure <a href="https://bitwarden.com/" target="_blank">password manager</a> instead of relying 
+                        on memory.</li>
+                </ul>
+                <h4>📜 A Brief History of AES</h4>
+                <p>
+                    AES was established as the encryption standard by the U.S. National Institute of Standards and Technology (NIST) in 2001. 
+                    It replaced the older DES 
+                    (Data Encryption Standard) due to advancements in computing power that made DES vulnerable. AES was selected through a 
+                    global competition and is based 
+                    on the Rijndael cipher, designed by cryptographers Joan Daemen and Vincent Rijmen.
+                </p>
+                <h4>🤔 Why Privacy Matters</h4>
+                <p>
+                    Protecting sensitive information like URLs ensures that your personal data and activity remain private. 
+                    Encryption plays a crucial role in safeguarding secure links and confidential content, providing peace of 
+                    mind that unauthorized access is nearly impossible.
+
+                    However, centralized institutions have a poor reputation for securely storing personal data, highlighting 
+                    the need for individuals to take control of their privacy. While encryption is a powerful tool, it’s only 
+                    as strong as its weakest link—humans. Mistakes, phishing, and social engineering can compromise even the 
+                    most robust security systems.
+                    
+                    Empowering users with knowledge and awareness is just as important as using strong encryption.</p>
+                <p>
+                    Always remember: <strong>The strength of encryption depends on the strength of your password!</strong>
+                </p>
+            </div>
+            
+
 
         </div>
     </div>
