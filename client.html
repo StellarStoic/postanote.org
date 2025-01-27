@@ -93,12 +93,12 @@
 
         .highlight {
             font-weight: bold;
-            color: purple;
+            color: rgb(216, 101, 255);
         }
 
         .hashtag {
             font-weight: bold;
-            color: green;
+            color: rgb(46, 233, 46);
         }
 
         .note-header {
@@ -334,6 +334,33 @@
             transform: scale(1.1);
         }
 
+/* Counters container */
+#counters {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    z-index: 1000;
+    border: 1px solid #666;
+    gap: 15px;
+    display: none; /* Single display property */
+    flex-direction: row; /* Add this to specify flex layout */
+}
+
+/* Processed counter */
+#processedCounter {
+    color: white;
+}
+
+/* Matches counter */
+#matchesCounter {
+    color: #00ffff;  /* Light blue */
+}
+
     </style>
 </head>
 <body>
@@ -378,12 +405,21 @@
         </div>
     </div>
 
+    <div id="counters" display="none">
+        <div id="processedCounter">P: 0</div>
+        <div id="matchesCounter">M: 0</div>
+    </div>
+
     <script>
         const fallbackRelays = [
             'wss://relay.damus.io',
-            'wss://nostr.wine/',
             'wss://nos.lol',
-            'wss://relay.mostr.pub/'
+            'wss://relay.snort.social',
+            'wss://relay.current.fyi',
+            'wss://nostr.mom',
+            'wss://brb.io/',
+            'wss://freespeech.casa',
+            'wss://relay.primal.net',
         ];
         let profileCache = {};  // Store fetched profiles to avoid duplicates
         const keywords = ['']; //default keyword
@@ -392,6 +428,8 @@
         let fetchedNoteIds = new Set();
         let newNotes = [];
         let timeRange = 0; // Default is "Now"
+        let processedCount = 0;
+        let matchCount = 0;
 
         // Convert Unix timestamp to human-readable format
         function formatTimestamp(timestamp) {
@@ -460,6 +498,11 @@ function startFetching() {
                 container.classList.remove('fetching', 'error');
                 container.classList.add('success');
                 fetchStatus.style.display = 'none';  // Hide "searching..."
+
+                // Only hide counters if no matches were found
+                if (matchCount === 0) {
+                    document.getElementById('counters').style.display = 'none';
+                }
             }
 
             // Stop fetching - Show error (Red glow)
@@ -488,10 +531,21 @@ function updateTitleWithKeywords() {
     }
 }
 
+let isInitialFetch = false; // Add this flag to track initial fetch state
+
         // Trigger fetch when user searches
         function triggerSearch() {
+            resetCounters();
             const input = document.getElementById('keywordSearch').value.trim();
+            // Full reset logic
+            processedCount = 0;
+            matchCount = 0;
+            document.getElementById('processedCounter').textContent = 'P: 0';
+            document.getElementById('matchesCounter').textContent = 'M: 0';
+            document.getElementById('counters').style.display = 'none';
+
             keywords.length = 0;  // Clear the existing array
+            isInitialFetch = true; // Set flag for initial fetch
             // keywords.push(...(input ? input.split(' ') : ['catstr']));  // Push new keywords
             if (input) {
                 keywords.push(...input.split(' '));  // Push keywords only if input exists
@@ -592,6 +646,9 @@ function updateTitleWithKeywords() {
                     ws.onclose = () => {
                         console.log(`Profile fetch complete from ${relay}`);
                     };
+                    ws.onerror = (error) => {
+                    console.error(`WebSocket error on ${relay}:`, error);
+                };
                 } catch (error) {
                     console.error(`Error fetching batch profiles from ${relay}`, error);
                 }
@@ -679,6 +736,23 @@ function calculateSinceTime(value) {
 
         // Kind 1: Note
 
+        function updateCounters() {
+            const counters = document.getElementById('counters');
+            document.getElementById('processedCounter').textContent = `P: ${processedCount}`;
+            document.getElementById('matchesCounter').textContent = `M: ${matchCount}`;
+            
+            // Auto-show counters only when processing or matches exist
+            if (processedCount > 0 || matchCount > 0) {
+                counters.style.display = 'flex';
+            }
+        }
+
+        function resetCounters() {
+            processedCount = 0;
+            matchCount = 0;
+            updateCounters();
+        }
+
         // Fetch notes from relay and collect pubkeys of authors
         async function fetchNotesFromRelay(relay) {
             return new Promise((resolve) => {
@@ -698,6 +772,8 @@ function calculateSinceTime(value) {
                 };
 
                 ws.onmessage = async (event) => {
+                    processedCount++;
+                    updateCounters();
                     const data = JSON.parse(event.data);
                     console.log("Data received:", event.data);
 
@@ -705,12 +781,9 @@ function calculateSinceTime(value) {
                         const note = data[2];
                         const noteId = note.id;
 
-
-
                     // Match exact keywords using regex
                     if (!fetchedNoteIds.has(noteId)) {
                             const content = note.content.toLowerCase();
-
                             const matches = keywords.some(keyword => {
                             // Regex to match keywords surrounded by non-alphanumeric characters or at the start
                             const regex = new RegExp(`(^|\\s|#)${keyword}(?=\\s|$)`, 'i');
@@ -718,49 +791,66 @@ function calculateSinceTime(value) {
                         });
 
                             if (matches) {
+                                matchCount++;
+                                updateCounters();
                                 const newNote = {
                                     id: note.id,
                                     content: note.content,
                                     pubkey: note.pubkey,
                                     created_at: note.created_at
                                 };
-                                newNotes.unshift(newNote);  // Add to top
-                                // newNotes.push(newNote);
-                                fetchedNoteIds.add(noteId);
 
-                                // Update the container incrementally
-                                updateNotes();
-
-                                // Switch to green border on the first note
-                                if (newNotes.length === 1) {
-                                    fetchingSuccess();  
-                                }
-
-                                console.log('Exact match note fetched:', newNote);
-                            }
-                        }
+                // Insert into notes array immediately during initial fetch
+                if (isInitialFetch) {
+                    // Find correct position based on sortOrder
+                    let insertIndex = notes.findIndex(n => 
+                        sortOrder === 'desc' 
+                            ? n.created_at <= newNote.created_at 
+                            : n.created_at >= newNote.created_at
+                    );
+                    if (insertIndex === -1) {
+                        notes.push(newNote);
+                    } else {
+                        notes.splice(insertIndex, 0, newNote);
                     }
-                };
+                    // Trim excess notes if over limit
+                    if (notes.length > maxNotes) notes.pop();
+                } else {
+                    newNotes.unshift(newNote);
+                }
+
+                fetchedNoteIds.add(noteId);
+                updateNotes(); // Refresh UI
+
+                // Show success feedback on first note
+                if (notes.length === 1) fetchingSuccess();
+            }
+            // console.log('Exact match note fetched:', newNote);
+        }
+    }
+};
+
 
                 ws.onclose = async () => {
                     console.log(`Connection closed to ${relay}`);
                     
                     // Fetch profiles for new notes
-                    await fetchProfilesForNotes(newNotes);  
+                    await fetchProfilesForNotes(isInitialFetch ? notes : newNotes);  
 
-                    // Show the first batch of notes immediately
-                    if (notes.length === 0 && newNotes.length > 0) {
-                        notes = newNotes.slice(0, maxNotes);  // Show initial fetch directly
-                        updateNotes();  // Refresh UI immediately
-                        newNotes = [];  // Clear new notes after initial load
-                    } else if (newNotes.length > 0) {
-                            const newNotesButton = document.getElementById('newNotesButton');
-                            newNotesButton.textContent = `Show ${newNotes.length} More Notes`;
-                            newNotesButton.style.display = 'block';
-                        }
+                // Handle initial fetch completion
+                if (isInitialFetch) {
+                    isInitialFetch = false; // Reset flag
+                    sortNotes(); // Final sort to ensure correctness
+                    updateNotes();
+                } else if (newNotes.length > 0) {
+                    // Show "new notes" button for subsequent updates
+                    const newNotesButton = document.getElementById('newNotesButton');
+                    newNotesButton.textContent = `Show ${newNotes.length} More Notes`;
+                    newNotesButton.style.display = 'block';
+                }
 
-                    resolve();
-                };
+                resolve();
+};
                 // Close the WebSocket if it stays open too long (timeout)
                 setTimeout(() => {
                     if (ws.readyState === WebSocket.OPEN) {
@@ -952,12 +1042,12 @@ function highlightContent(content) {
 
         // Show new notes when the button is clicked
         function showNewNotes() {
-            notes = newNotes.concat(notes).slice(0, maxNotes);  // Add new notes at the top
+            notes = [...newNotes, ...notes].slice(0, maxNotes); // Merge and limit
             newNotes = [];  // Clear the new notes array
+            sortNotes();
             updateNotes();  // Refresh the note display
 
-            const newNotesButton = document.getElementById('newNotesButton');
-            newNotesButton.style.display = 'none';  // Hide the button after showing notes
+            document.getElementById('newNotesButton').style.display = 'none';
             console.log('New notes displayed');
         }
 
