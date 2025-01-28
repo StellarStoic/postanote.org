@@ -1166,9 +1166,9 @@ function highlightContent(content) {
             console.log('New notes displayed');
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard ${note.id}');
+        function copyToClipboard(noteId) {
+            navigator.clipboard.writeText(noteId).then(() => {
+                alert(`Note ID: ${noteId} \nCopied to clipboard `);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
             });
