@@ -208,6 +208,36 @@
             text-align: right;
         }
 
+        .keyword {
+            margin: 0 5px;
+            cursor: pointer;
+            border-bottom: 1px dashed transparent;
+            transition: all 0.3s ease;
+        }
+
+        .keyword.active {
+            color: green;
+            font-weight: bold;
+            border-bottom: 1px dashed green;
+        }
+
+        .keyword.toggled {
+            color: red;
+            font-style: italic;
+            border-bottom: 1px dashed red;
+        }
+
+        .highlight {
+            color: purple;
+            font-weight: bold;
+        }
+
+        .inactive {
+            color: gray;
+            font-style: italic;
+        }
+
+
         .search-bar {
             display: flex;
             justify-content: center;
@@ -334,32 +364,32 @@
             transform: scale(1.1);
         }
 
-/* Counters container */
-#counters {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    z-index: 1000;
-    border: 1px solid #666;
-    gap: 15px;
-    display: none; /* Single display property */
-    flex-direction: row; /* Add this to specify flex layout */
-}
+        /* Counters container */
+        #counters {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1000;
+            border: 1px solid #666;
+            gap: 15px;
+            display: none; /* Single display property */
+            flex-direction: row; /* Add this to specify flex layout */
+        }
 
-/* Processed counter */
-#processedCounter {
-    color: white;
-}
+        /* Processed counter */
+        #processedCounter {
+            color: white;
+        }
 
-/* Matches counter */
-#matchesCounter {
-    color: #00ffff;  /* Light blue */
-}
+        /* Matches counter */
+        #matchesCounter {
+            color: #00ffff;  /* Light blue */
+        }
 
     </style>
 </head>
@@ -422,7 +452,11 @@
             'wss://relay.primal.net',
         ];
         let profileCache = {};  // Store fetched profiles to avoid duplicates
+
         const keywords = ['']; //default keyword
+        // Maintain keywords with their toggle state
+        let keywordStates = {}; // e.g., { dog: true, cat: true, potato: true }
+
         let maxNotes = 100;  // Default value, will adjust dynamically
         let notes = [];
         let fetchedNoteIds = new Set();
@@ -430,6 +464,8 @@
         let timeRange = 0; // Default is "Now"
         let processedCount = 0;
         let matchCount = 0;
+
+
 
         // Convert Unix timestamp to human-readable format
         function formatTimestamp(timestamp) {
@@ -516,19 +552,49 @@ function startFetching() {
             }
 
 
-            // Function to update the title dynamically
+
+//             // Function to update the title dynamically
+// function updateTitleWithKeywords() {
+//     const titleElement = document.querySelector('.title');
+//     const headTitleElement = document.querySelector('title');  // Select <title> in <head>
+
+//     if (keywords.length > 0) {
+//         const formattedKeywords = keywords.map(k => `#${k}`).join(' ');  // Format keywords as hashtags
+//         titleElement.textContent = formattedKeywords;  // Update visible title
+//         headTitleElement.textContent = `${formattedKeywords} | snofl discovery client`;  // Update <title> in head
+//     } else {
+//         titleElement.textContent = 'snofl discovery client';  // Default if no keywords
+//         headTitleElement.textContent = 'snofl discovery client';
+//     }
+// }
+
+// Function to update the title dynamically with clickable keywords
 function updateTitleWithKeywords() {
     const titleElement = document.querySelector('.title');
     const headTitleElement = document.querySelector('title');  // Select <title> in <head>
 
     if (keywords.length > 0) {
-        const formattedKeywords = keywords.map(k => `#${k}`).join(' ');  // Format keywords as hashtags
-        titleElement.textContent = formattedKeywords;  // Update visible title
-        headTitleElement.textContent = `${formattedKeywords} | snofl discovery client`;  // Update <title> in head
+        const formattedKeywords = keywords
+            .map(keyword => {
+                const isActive = keywordStates[keyword] ?? true; // Default to active if not set
+                const spanClass = isActive ? 'keyword active' : 'keyword toggled';
+                return `<span class="${spanClass}" onclick="toggleKeyword('${keyword}')">#${keyword}</span>`;
+            })
+            .join(' ');  // Format keywords as clickable spans
+
+        titleElement.innerHTML = formattedKeywords;  // Update visible title
+        headTitleElement.textContent = `${keywords.join(', ')} | snofl discovery client`;  // Update <title> in head
     } else {
         titleElement.textContent = 'snofl discovery client';  // Default if no keywords
         headTitleElement.textContent = 'snofl discovery client';
     }
+}
+
+// Function to toggle keyword state
+function toggleKeyword(keyword) {
+    keywordStates[keyword] = !keywordStates[keyword];  // Toggle the state
+    updateTitleWithKeywords(); // Update styles in the title
+    updateNotes(); // Filter results based on active keywords
 }
 
 let isInitialFetch = false; // Add this flag to track initial fetch state
@@ -545,10 +611,17 @@ let isInitialFetch = false; // Add this flag to track initial fetch state
             document.getElementById('counters').style.display = 'none';
 
             keywords.length = 0;  // Clear the existing array
+            keywordStates = {}; // Reset keyword toggle states
             isInitialFetch = true; // Set flag for initial fetch
             // keywords.push(...(input ? input.split(' ') : ['catstr']));  // Push new keywords
             if (input) {
                 keywords.push(...input.split(' '));  // Push keywords only if input exists
+
+                // Initialize all keywords as active
+                keywords.forEach(keyword => {
+                    keywordStates[keyword] = true;
+                });
+
                 console.log("Searching for keywords:", keywords);
 
                 // Start fetching feedback
@@ -958,8 +1031,21 @@ function highlightContent(content) {
 
         function updateNotes() {
             const notesContainer = document.getElementById('notes');
-            notesContainer.innerHTML = notes.map(note => {
-                const profile = profileCache[note.pubkey] || {};
+
+
+    // Filter notes based on active keywords
+    const activeKeywords = Object.keys(keywordStates).filter(k => keywordStates[k]);
+    const filteredNotes = notes.filter(note => {
+        const content = note.content.toLowerCase();
+        return activeKeywords.some(keyword => content.includes(keyword.toLowerCase()));
+    });
+
+
+
+
+            // Render all notes (hide notes with only toggled-off keywords)
+            notesContainer.innerHTML = filteredNotes.map(note => {
+                    const profile = profileCache[note.pubkey] || {};
 
                 // Generate avatar if profile image is missing
                 const avatarUrl = profile.picture 
@@ -969,21 +1055,50 @@ function highlightContent(content) {
                 // Format timestamp
                 const readableTime = formatTimestamp(note.created_at || Date.now() / 1000);
 
-                // Highlight keywords and hashtags
-                let highlightedContent = note.content;
+                // // Highlight keywords and hashtags
+                // let highlightedContent = note.content;
                 
-                keywords.forEach(keyword => {
-                    // Highlight hashtags with full words (e.g., #keyword) in green
-                    const hashtagRegex = new RegExp(`#(${keyword})\\b`, 'gi');
-                    highlightedContent = highlightedContent.replace(hashtagRegex, '<span class="hashtag">#$1</span>');
+                // keywords.forEach(keyword => {
+                //     // Highlight hashtags with full words (e.g., #keyword) in green
+                //     const hashtagRegex = new RegExp(`#(${keyword})\\b`, 'gi');
+                //     highlightedContent = highlightedContent.replace(hashtagRegex, '<span class="hashtag">#$1</span>');
                     
-                    // Highlight regular keywords not part of hashtags in purple
-                    const normalRegex = new RegExp(`(?<!#)\\b(${keyword})\\b`, 'gi');  // Ignore matches preceded by #
-                    highlightedContent = highlightedContent.replace(normalRegex, '<span class="highlight">$1</span>');
-                });
+                //     // Highlight regular keywords not part of hashtags in purple
+                //     const normalRegex = new RegExp(`(?<!#)\\b(${keyword})\\b`, 'gi');  // Ignore matches preceded by #
+                //     highlightedContent = highlightedContent.replace(normalRegex, '<span class="highlight">$1</span>');
+                // });
+
+        // Highlight keywords and hashtags
+        let highlightedContent = note.content;
+
+        keywords.forEach(keyword => {
+            const isActive = keywordStates[keyword] ?? true; // Check toggle state
+            const style = isActive ? 'highlight' : 'inactive';
+
+            // Highlight hashtags with full words (e.g., #keyword) in green
+            const hashtagRegex = new RegExp(`#(${keyword})\\b`, 'gi');
+            highlightedContent = highlightedContent.replace(
+                hashtagRegex,
+                `<span class="${isActive ? 'hashtag' : 'inactive'}">#$1</span>`
+            );
+
+            // Highlight regular keywords not part of hashtags in purple or inactive gray
+            const normalRegex = new RegExp(`(?<!#)\\b(${keyword})\\b`, 'gi'); // Ignore matches preceded by #
+            highlightedContent = highlightedContent.replace(
+                normalRegex,
+                `<span class="${style}">$1</span>`
+            );
+        });
+
+                // Determine visibility of the note
+                const noteContent = note.content.toLowerCase();
+        const hasOnlyToggledKeywords = keywords.every(keyword =>
+            noteContent.includes(keyword.toLowerCase()) && !keywordStates[keyword]
+        );
+        const visibilityStyle = hasOnlyToggledKeywords ? 'display: none;' : '';
 
                 return `
-                    <div class="note">
+                    <div class="note"style="${visibilityStyle}">
                         <button class="copy-button" onclick="copyToClipboard('${note.id}')">
                             <img src="https://img.icons8.com/material-outlined/24/000000/copy.png" alt="Copy Icon">
                         </button>
