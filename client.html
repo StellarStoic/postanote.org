@@ -217,23 +217,21 @@
 
         .keyword.active {
             color: green;
-            font-weight: bold;
-            border-bottom: 1px dashed green;
+            /* border-bottom: 1px dashed green; */
         }
 
         .keyword.toggled {
-            color: red;
+            color: rgb(157, 157, 157);
             font-style: italic;
-            border-bottom: 1px dashed red;
         }
 
         .highlight {
-            color: purple;
+            color: rgb(222, 0, 222);
             font-weight: bold;
         }
 
         .inactive {
-            color: gray;
+            color: rgb(157, 157, 157);
             font-style: italic;
         }
 
@@ -465,6 +463,8 @@
         let processedCount = 0;
         let matchCount = 0;
 
+        let activeRelays = 0;
+
 
 
         // Convert Unix timestamp to human-readable format
@@ -533,6 +533,8 @@ function startFetching() {
 
                 container.classList.remove('fetching', 'error');
                 container.classList.add('success');
+                fetchStatus.textContent = `Found ${matchCount} matches!`; // Display match count
+                fetchStatus.style.color = 'green'; // Update to green
                 fetchStatus.style.display = 'none';  // Hide "searching..."
 
                 // Only hide counters if no matches were found
@@ -541,6 +543,17 @@ function startFetching() {
                 }
             }
 
+    function fetchingNoMatches() {
+        const container = document.querySelector('.container');
+        const fetchStatus = document.getElementById('fetchStatus');
+
+        container.classList.remove('fetching', 'success', 'error');
+        container.classList.add('fetching'); // Keep yellow border
+        fetchStatus.textContent = 'No matches found'; // Update message
+        fetchStatus.style.color = 'yellow'; // Ensure the text is yellow
+        fetchStatus.style.display = 'block'; // Ensure the status is visible
+    }
+
             // Stop fetching - Show error (Red glow)
             function fetchingError() {
                 const container = document.querySelector('.container');
@@ -548,7 +561,9 @@ function startFetching() {
 
                 container.classList.remove('fetching', 'success');
                 container.classList.add('error');
-                fetchStatus.style.display = 'none';  // Hide "searching..."
+                fetchStatus.textContent = 'Error: Failed to fetch data!\nCheck your internet connection'; // Update message
+                fetchStatus.style.color = 'red'; // Make it visually distinct
+                fetchStatus.style.display = 'block';  // Show error status
             }
 
 
@@ -603,6 +618,13 @@ let isInitialFetch = false; // Add this flag to track initial fetch state
         function triggerSearch() {
             resetCounters();
             const input = document.getElementById('keywordSearch').value.trim();
+
+            if (!navigator.onLine) {
+                console.error('No internet connection.');
+                fetchingError(); // Trigger error status for no connection
+                return;
+            }
+
             // Full reset logic
             processedCount = 0;
             matchCount = 0;
@@ -633,15 +655,20 @@ let isInitialFetch = false; // Add this flag to track initial fetch state
                 newNotes = [];
                 updateNotes();
                 
-                fetchNotes().then(() => {
-                fetchingSuccess();  // Success after fetch
-                }).catch(() => {
-                    fetchingError();  // Error on failure
-                });
-            } else {
-                console.log("Empty input - not fetching.");
-            }
+            // Handle fetch result with conditional status updates
+            fetchNotes().then(() => {
+                if (matchCount > 0) {
+                    fetchingSuccess();  // Success if matches found
+                } else {
+                    fetchingNoMatches(); // Yellow status if no matches found
+                }
+            }).catch(() => {
+                fetchingError();  // Error on failure
+            });
+        } else {
+            console.log("Empty input - not fetching.");
         }
+    }
 
 
         document.getElementById('timeFilterButton').addEventListener('click', openTimeModal);
@@ -662,7 +689,7 @@ let isInitialFetch = false; // Add this flag to track initial fetch state
             if (e.key === 'Enter') {
                 triggerSearch();
                 if (!interval) {
-                    interval = setInterval(fetchNotes, 3333);  // Resume fetching every 3333 ms
+                    interval = setInterval(fetchNotes, 1500);  // Resume fetching every 1500 ms
                 }
             }
         });
@@ -831,6 +858,9 @@ function calculateSinceTime(value) {
             return new Promise((resolve) => {
                 const ws = new WebSocket(relay);
 
+                // Increment active relays count
+                activeRelays++;
+
                 ws.onopen = () => {
                     console.log(`Connected to ${relay}`);
                     // Adjust the filter for time range
@@ -888,15 +918,25 @@ function calculateSinceTime(value) {
                     }
                     // Trim excess notes if over limit
                     if (notes.length > maxNotes) notes.pop();
+
                 } else {
                     newNotes.unshift(newNote);
                 }
 
                 fetchedNoteIds.add(noteId);
-                updateNotes(); // Refresh UI
+
+
+
+                // Trigger success state on the first match
+                if (matchCount === 1) {
+                    fetchingSuccess();
+                }
 
                 // Show success feedback on first note
                 if (notes.length === 1) fetchingSuccess();
+
+                updateNotes(); // Refresh UI
+
             }
             // console.log('Exact match note fetched:', newNote);
         }
@@ -906,6 +946,9 @@ function calculateSinceTime(value) {
 
                 ws.onclose = async () => {
                     console.log(`Connection closed to ${relay}`);
+
+                    // Decrement active relays count
+                    activeRelays--;
                     
                     // Fetch profiles for new notes
                     await fetchProfilesForNotes(isInitialFetch ? notes : newNotes);  
@@ -915,11 +958,21 @@ function calculateSinceTime(value) {
                     isInitialFetch = false; // Reset flag
                     sortNotes(); // Final sort to ensure correctness
                     updateNotes();
+                
                 } else if (newNotes.length > 0) {
                     // Show "new notes" button for subsequent updates
                     const newNotesButton = document.getElementById('newNotesButton');
                     newNotesButton.textContent = `Show ${newNotes.length} More Notes`;
                     newNotesButton.style.display = 'block';
+                }
+
+                if (activeRelays === 0 && matchCount === 0) {
+                    fetchingNoMatches(); // Ensure no matches trigger yellow status
+                }
+
+                // Trigger error state only if all relays are closed and no matches were found
+                if (activeRelays === 0 && matchCount === 0) {
+                    fetchingError();
                 }
 
                 resolve();
@@ -930,7 +983,7 @@ function calculateSinceTime(value) {
                         console.warn(`Closing WebSocket due to timeout: ${relay}`);
                         ws.close();
                     }
-                }, 60000);  // 60-second timeout for each WebSocket
+                }, 30000);  // 60-second timeout for each WebSocket
             });
         }
 
@@ -961,9 +1014,16 @@ function calculateSinceTime(value) {
         async function fetchNotes() {
             const allRelays = await getOnlineRelays();
             // Get 5 random relays + ensure fallback relays are part of it and Using "Set" to ensure relays are unique
-            const selectedRelays = [...new Set([...getRandomRelays(allRelays, 10), ...fallbackRelays])];
+            const selectedRelays = [...new Set([...getRandomRelays(allRelays, 5), ...fallbackRelays])];
             const promises = selectedRelays.map(relay => fetchNotesFromRelay(relay));
             
+            if (!navigator.onLine) {
+                fetchingError();
+                return;
+            }
+
+            let matchesFound = false; // Track if any match is found
+
             // Process all relay fetches in parallel
             try {
                 await Promise.all(promises);
@@ -972,10 +1032,18 @@ function calculateSinceTime(value) {
                 sortNotes();  // Sort new notes before displaying
                 updateNotes();  // Update UI
 
-                fetchingSuccess();
+            // Check for matches before deciding the fetch status
+            if (matchCount > 0) {
+                matchesFound = true; // Mark matches as found
+                fetchingSuccess(); // Green status if matches found
+            } else if (!matchesFound) {
+                fetchingNoMatches(); // Yellow status if no matches found
+            }
+            
             } catch (error) {
-                fetchingError();
                 console.error('Fetching notes failed:', error);
+                fetchingError(); // Handle general fetch failure
+                // throw err; // Re-throw the error
             }
         }
 
@@ -1122,7 +1190,7 @@ function highlightContent(content) {
                     <div class="note-footer">
                         <div class="note-icons">
                             <span class="icon" title="Thumbs Up" onclick="handleIconClick('upvote', '${note.id}')">👍</span>
-                            <span class="icon" title="Thumbs Down" onclick="handleIconClick('downvote', '${note.id}')">👎</span>
+                            <!-- <span class="icon" title="Thumbs Down" onclick="handleIconClick('downvote', '${note.id}')">👎</span> -->
                             <span class="icon" title="Repost" onclick="handleIconClick('repost', '${note.id}')">🔁</span>
                             <span class="icon" title="Reply" onclick="handleIconClick('reply', '${note.id}')">💬</span>
                         </div>
