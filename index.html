@@ -26,8 +26,8 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="backgroundImages.js"></script>
     <script src="background.js"></script>
+    <script src="backgroundImages.js"></script>
     <script src="font.js"></script>
     <script src="fontList.js"></script>  
     <script src="crypto-js.min.js"></script>                                                                                                                   
@@ -426,10 +426,21 @@ async function setDynamicContent() {
         ]);
     }
 
-    if (b && backgroundImages[b]) {
+    if (b) {
+    // Ensure background is stored in localStorage
+    localStorage.setItem("selectedBackgroundIndex", b);
+
+    if (backgroundImages[b]) {
         document.body.style.backgroundImage = `url('img/background/${backgroundImages[b]}')`;
         document.body.style.backgroundRepeat = "repeat";
+    } else if (b.startsWith('url:')) {
+        const customUrl = b.replace('url:', '');
+        document.body.style.backgroundImage = `url('${customUrl}')`;
+    } else if (b.startsWith('#')) {
+        document.body.style.backgroundColor = b;
+        document.body.style.backgroundImage = '';
     }
+}
 
     // if (sendMessageBtn.disabled) {
     // sendMessageBtn.title = "Please use this tool with custom websites and not random posting";
@@ -903,6 +914,11 @@ var h2b = (h) =>
     relaySubscriptions = [];
 
 async function generateNewKeys() {
+    if (!document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true")) {
+        console.warn("User did NOT consent to key generation. Aborting.");
+        return; // Prevent execution if consent was not given
+    }
+    
     const { ln } = getQueryParams();  // Get the ln parameter during key generation
     // Clear existing avatar URL to ensure a new one is generated
     localStorage.removeItem("avatar_url");
@@ -952,22 +968,30 @@ async function generateNewKeys() {
     // console.log("Generated name:", randomName);
 
     // --- Modal for Key generation with Alert ---
-    const storeKeyResponse = confirm(
-        "A random Nostr ID was created.\n\n" +
-        "Do you want to store the private key in your device memory for future use in other clients?\n\n" +
-        "By clicking 'OK', the private key will be stored locally on your device. To access it later, visit the 'Show History' button at the bottom of the page."
-    );
+    // const storeKeyResponse = confirm(
+    //     "A random Nostr ID was created.\n\n" +
+    //     "Do you want to store the private key in your device memory for future use in other clients?\n\n" +
+    //     "By clicking 'OK', the private key will be stored locally on your device. To access it later, visit the 'Show History' button at the bottom of the page."
+    // );
 
-    if (storeKeyResponse) {
-        storePrivateKey = true;
-        localStorage.setItem("store_private_key", storePrivateKey);
-        localStorage.setItem("nostr_pk", pk);
-        alert("Private key stored successfully!");
-    } else {
-        storePrivateKey = false;
-        localStorage.setItem("store_private_key", storePrivateKey);
-        alert("Private key was not stored.");
-    }
+    //     // Ask for consent to store the private key and create a Nostr ID
+    // const storeKeyResponse = confirm(
+    //     "This page is asking for your consent to create a random Nostr ID since only random Nostr IDs are allowed on this page.\n\n" +
+    //     "Do you agree to save the private keys for your random Nostr ID in local storage?\n\n" +
+    //     "By clicking 'OK', the private key will be stored on your device for later use. You can manage it in the 'Show History' section."
+    // );
+
+    // if (storeKeyResponse) {
+    //     storePrivateKey = true;
+    //     localStorage.setItem("store_private_key", storePrivateKey);
+    //     localStorage.setItem("nostr_pk", pk);
+    //     document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
+    //     alert("Private key stored successfully!");
+    // } else {
+    //     storePrivateKey = false;
+    //     localStorage.setItem("store_private_key", storePrivateKey);
+    //     alert("Private key was not stored.");
+    // }
 }
 
 // Fallback - Generate random string for errors
@@ -1127,31 +1151,67 @@ async function updateNostrJson(name, pubkey) {
     }
 }
 
+// function loadKeys() {
+//     const storedPk = localStorage.getItem("nostr_pk");
+//     const storedPub = localStorage.getItem("nostr_pub");
+//     const storedStorePrivateKey =
+//         localStorage.getItem("store_private_key") === "true";
+
+//     if (storedPk && storedPub) {
+//         pk = storedPk;
+//         pub = storedPub;
+//         storePrivateKey = storedStorePrivateKey;
+
+//         // Retrieve avatar URL from HEX.json
+//         const storedData = localStorage.getItem(`HEX${pub}.json`);
+//         if (storedData) {
+//             const parsedData = JSON.parse(storedData);
+//             const avatarUrl = parsedData.avatar || getAvatarUrl(pub); // Fallback to generate if missing
+//             localStorage.setItem("avatar_url", avatarUrl); // Ensure avatar URL is stored
+//         }
+
+//         updateAvatar();
+//         console.log("Keys and avatar loaded from storage.");
+//     } else {
+//         // generateNewKeys();
+//         console.log("No keys in localStorage. Keys must be generated separately.");
+//     }
+// }
+
 function loadKeys() {
     const storedPk = localStorage.getItem("nostr_pk");
     const storedPub = localStorage.getItem("nostr_pub");
-    const storedStorePrivateKey =
-        localStorage.getItem("store_private_key") === "true";
+    const storedStorePrivateKey = localStorage.getItem("store_private_key") === "true";
 
-    if (storedPk && storedPub) {
-        pk = storedPk;
-        pub = storedPub;
-        storePrivateKey = storedStorePrivateKey;
-
-        // Retrieve avatar URL from HEX.json
-        const storedData = localStorage.getItem(`HEX${pub}.json`);
-        if (storedData) {
-            const parsedData = JSON.parse(storedData);
-            const avatarUrl = parsedData.avatar || getAvatarUrl(pub); // Fallback to generate if missing
-            localStorage.setItem("avatar_url", avatarUrl); // Ensure avatar URL is stored
-        }
-
-        updateAvatar();
-        // console.log("Keys and avatar loaded from storage.");
-    } else {
-        // generateNewKeys();
-        console.log("No keys in localStorage. Keys must be generated separately.");
+    // Do NOTHING if the ID doesn't fully exist
+    if (!storedPk || !storedPub) {
+        console.warn("No valid Nostr keys found. Skipping loadKeys().");
+        return;
     }
+
+    // Assign only if fully valid
+    pk = storedPk;
+    pub = storedPub;
+    storePrivateKey = storedStorePrivateKey;
+
+    // Retrieve stored avatar from HEX.json (ONLY if it exists)
+    const storedData = localStorage.getItem(`HEX${pub}.json`);
+    if (storedData) {
+        try {
+            const parsedData = JSON.parse(storedData);
+            const avatarUrl = parsedData.avatar;
+            if (avatarUrl) {
+                localStorage.setItem("avatar_url", avatarUrl);
+            }
+        } catch (error) {
+            console.error("Failed to parse stored HEX data:", error);
+        }
+    }
+
+    // Only update if everything is properly loaded
+    updateAvatar();
+    updateNostrNameDisplay();
+    console.log("Keys and avatar loaded from storage.");
 }
 
 // check for posted events in localStorage
@@ -1224,7 +1284,9 @@ function checkAccountAge() {
 // Avatar click handler with countdown message
 document.getElementById("avatarIcon").onclick = function () {
     const pkExists = localStorage.getItem("nostr_pk");
+    const pubExists = localStorage.getItem("nostr_pub");
     const urlParams = new URLSearchParams(window.location.search);
+    const userConsented = document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true"); // Check if consent exists
 
     // Block new ID generation without URL parameters
     if (!urlParams.toString()) {
@@ -1232,12 +1294,31 @@ document.getElementById("avatarIcon").onclick = function () {
         return;
     }
 
-    // If no private key exists, force ID generation without post requirement
-    if (!pkExists) {
-        generateNewKeys();
-        alert("New ID generated.");
-        return;
+    // If no keys exist, ask for consent
+    if (!pkExists || !pubExists) {
+        if (!userConsented) {
+            const consent = confirm(
+                "This page requires a random Nostr ID to function, as only randomly generated Nostr IDs are allowed.\n\n" +
+                "Do you agree to create a random Nostr ID and store its private key in your device’s local storage? A consent cookie will also be saved.\n\n" +
+                "Without this, you will not be able to fully use this website."
+            );
+
+            if (consent) {
+                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
+                generateNewKeys(); // Generate only after consent
+            } else {
+                alert("You declined to create a Nostr ID. If you change your mind, click the Avatar again.");
+            }
+        }
+        return; // Stop execution if no consent
     }
+
+    // If no private key exists, force ID generation without post requirement
+    // if (!pkExists) {
+    //     generateNewKeys();
+    //     alert("New ID generated.");
+    //     return;
+    // }
 
     const hasPosts = checkIfPostsExist();
     const remainingMinutes = checkAccountAge();
@@ -1259,17 +1340,16 @@ document.getElementById("avatarIcon").onclick = function () {
     }
 
     if (!hasPosts) {
-        alert("You must post at least once before generating a new ID.\n\n\
-If you need a suggestion just post GM or GN ");
+        alert("You must post at least once before generating a new ID.\n\nIf you need a suggestion, just post GM or GN.");
         return;
     }
 
     // Confirm ID regeneration
     if (
         confirm(
-            "Are you sure you want to generate a new random ID? This will replace your current one.\n\n\
-All your previous IDs used with this domain are stored locally with all other details. You can easily reuse them in other Nostr clients if needed.\n\n\
-To access your history in your device memory, please check the showHistory button at the bottom of the page."
+            "Are you sure you want to generate a new random ID? This will replace your current one.\n\n" +
+            "All your previous IDs used with this domain are stored locally with all other details. You can easily reuse them in other Nostr clients if needed.\n\n" +
+            "To access your history in your device memory, please check the 'Show History' button at the bottom of the page."
         )
     ) {
         generateNewKeys();
@@ -1337,6 +1417,12 @@ document.getElementById("sendMessageBtn").onclick = async () => {
         alert("Cannot send messages. Please use custom websites to use this tool");
         return;  // Prevent further execution
     }
+
+    if (!localStorage.getItem("nostr_pk")) {
+        alert("No private key found. Please create an ID first.");
+        return; // Stop execution if no ID exists
+    }
+
 
     // Proceed if parameters exist
     if (!localStorage.getItem("nostr_pk")) {
@@ -1772,7 +1858,10 @@ This was your last warning! By clicking OK, you will wipe your previous interact
             )
         ) {
             localStorage.clear();
-            alert("All data has been erased.");
+            // Delete consent cookie
+            document.cookie = "snofl_random_Nostr_ID_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+            alert("All data, including your consent cookie, has been erased.");
             location.reload(); // Reload to reflect changes
         } else {
             alert("Cancelled.");
@@ -1874,12 +1963,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
 
     if (!urlParams.toString()) {
+        // Disable elements on base domain
         sendMessageBtn.disabled = true;
         avatarIcon.style.pointerEvents = "none";
         avatarIcon.style.opacity = "0.5";
         // console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
 
-        // Show the warning message
+        // Show the warning message only if it's the homepage
         warningMessage.style.display = "block";
         // console.log("No URL attributes detected. Send button and avatar are disabled to avoid spam IDs and Notes.");
     } else {
@@ -2041,15 +2131,39 @@ updateAvatar();
 document.addEventListener('DOMContentLoaded', () => {
     const pkExists = localStorage.getItem("nostr_pk");
     const pubExists = localStorage.getItem("nostr_pub");
+    const userConsented = document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true"); // Check if consent exists
 
-    if (!pkExists || !pubExists) {
-        // If no keys exist, generate new ones
-        // console.log("No existing keys found. Generating new keys...");
-        generateNewKeys();
+//     if (!pkExists || !pubExists) {
+//         // If no keys exist, generate new ones
+//         // console.log("No existing keys found. Generating new keys...");
+//         generateNewKeys();
+//     } else {
+//         // If keys exist, load them
+//         loadKeys();
+//         // console.log("Existing keys loaded.");
+//     }
+// });
+
+if (!pkExists || !pubExists) {
+        // Ask for consent if no existing Nostr ID and no prior consent
+        if (!userConsented) {
+            const consent = confirm(
+                "This page requires a random Nostr ID to function, as only randomly generated Nostr IDs are allowed.\n\n" +
+                "Do you agree to create a random Nostr ID and store its private key in your device’s local storage? A consent cookie will also be saved.\n\n" +
+                "Without this, you will not be able to fully use this website."
+            );
+
+            if (consent) {
+                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent to avoid asking again
+                generateNewKeys();
+            } else {
+                alert("You declined to create a random Nostr ID. Without one, you cannot use this page. Sorry. If you change your mind, reload the page or click on Avatar to create a new random ID");
+                return; // STOP execution if they decline
+            }
+        }
     } else {
         // If keys exist, load them
         loadKeys();
-        // console.log("Existing keys loaded.");
     }
 });
 
