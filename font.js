@@ -1,14 +1,34 @@
+let isFontListLoaded = false;
+
 // Dynamically load fontList.js
 function loadFontList(callback) {
+    if (isFontListLoaded) {
+        console.log('fontList.js already loaded. Skipping...');
+        callback();
+        return;
+    }
+
     const script = document.createElement('script');
     script.src = 'fontList.js';
-    script.onload = callback;
-    script.onerror = () => console.error('Failed to load fontList.js');
+    script.onload = () => {
+        isFontListLoaded = true;
+        callback();
+    };
+    script.onerror = () => {
+        console.error('Failed to load fontList.js. Retrying in 10 seconds...');
+        setTimeout(() => loadFontList(callback), 10000); // Retry after 10 seconds
+    };
     document.head.appendChild(script);
 }
 
 // Apply font from storage or URL parameters
-function applyFont() {
+function applyFont(retryCount = 0) {
+    const MAX_RETRIES = 3; // Set a maximum number of retries
+    if (retryCount >= MAX_RETRIES) {
+        console.error('Max retries reached. Falling back to sans-serif.');
+        document.documentElement.style.setProperty('--main-font', 'sans-serif');
+        return;
+    }
     const params = new URLSearchParams(window.location.search);
     const urlFontIndex = params.get('f');  // Font from URL
     const storedFontIndex = localStorage.getItem('selectedFontIndex') || sessionStorage.getItem('selectedFontIndex');
@@ -18,8 +38,8 @@ function applyFont() {
 
     // Check if fontList is loaded
     if (typeof fontList === 'undefined') {
-        console.error('Font list not loaded. Retrying...');
-        setTimeout(applyFont, 50);  // Retry if fontList isn't ready yet
+        console.error('Font list not loaded. Retrying in 10 seconds...');
+        setTimeout(() => applyFont(retryCount + 1), 10000); // Retry after 10 seconds
         return;
     }
 
@@ -32,22 +52,26 @@ function applyFont() {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = `https://fonts.bunny.net/css?family=${fontImport}`;
+            link.onerror = () => {
+                console.error(`Failed to load Bunny font: ${fontImport}. Retrying in 10 seconds...`);
+                setTimeout(() => applyFont(retryCount + 1), 10000); // Retry after 10 seconds
+            };
             document.head.appendChild(link);
 
             // Extract font name and replace dashes with spaces
             const fontName = fontImport.split(':')[0].replace(/-/g, ' '); 
             document.documentElement.style.setProperty('--main-font', `'${fontName}', sans-serif`);
-            // console.log(`Applied Bunny font: ${fontName} (Index: ${fontIndex})`);
+            console.log(`Applied Bunny font: ${fontName} (Index: ${fontIndex})`);
         } else {
             // Apply system fonts directly (like Arial, sans-serif)
             document.documentElement.style.setProperty('--main-font', fontImport);
-            // console.log(`Applied system font: ${fontImport} (Index: ${fontIndex})`);
+            console.log(`Applied system font: ${fontImport} (Index: ${fontIndex})`);
         }
 
         // Save the applied font index to storage if it was from the URL
         if (urlFontIndex) {
             localStorage.setItem('selectedFontIndex', urlFontIndex);  // Persist user choice
-            // console.log(`Saved font index to storage: ${urlFontIndex}`);
+            console.log(`Saved font index to storage: ${urlFontIndex}`);
         }
     } else {
         // Fallback to sans-serif if font index not found

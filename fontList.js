@@ -1,4 +1,5 @@
-const fontList = {
+// Declare fontList in the global scope
+window.fontList = {
     1: 'inconsolata:200',
     2: 'vt323:400',
     3: 'aboreto:400',
