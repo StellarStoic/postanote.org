@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html5>
 <html lang="en">
 
 <head>
@@ -7,6 +7,9 @@
 
     <!-- Favicon for most browsers -->
     <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
+
+        <!-- sec -->
+        <meta http-equiv="Content-Security-Policy" content="font-src 'self' https://fonts.bunny.net;">
     
     <!-- PNG icons for better resolution -->
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon_io/favicon-32x32.png">
@@ -283,19 +286,19 @@
             <input type="radio" id="random1" name="random_relay1" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay2" placeholder="wss://relay.damus.io" disabled>
+            <input type="text" id="relay2" placeholder="wss://relay.nostr.band/" disabled>
             <input type="radio" id="random2" name="random_relay2" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay3" placeholder="wss://njump.me" disabled>
+            <input type="text" id="relay3" placeholder="wss://bostr.nokotaro.com" disabled>
             <input type="radio" id="random3" name="random_relay3" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay4" placeholder="wss://relay.snort.social" disabled>
+            <input type="text" id="relay4" placeholder="wss://relay.cxplay.org" disabled>
             <input type="radio" id="random4" name="random_relay4" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay5" placeholder="wss://nos.lol" disabled>
+            <input type="text" id="relay5" placeholder="wss://relay.bostr.online/" disabled>
             <input type="radio" id="random5" name="random_relay5" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
     </div>
@@ -1841,7 +1844,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Fetch relay list from API
-        fetch('https://api.nostr.watch/v1/online')
+        fetch('https://api.nostr.watch/v1/nip/50')
         .then(response => response.json())
         .then(data => {
             relayList = data;
