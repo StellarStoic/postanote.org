@@ -9,6 +9,9 @@
     <script src="URLpolice.js"></script>
     <!-- Favicon for most browsers -->
     <link rel="icon" href="/img/favicon_io/favicon.ico" type="image/x-icon">
+
+    <!-- sec -->
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' https://fonts.bunny.net;">
     
     <!-- PNG icons for better resolution -->
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon_io/favicon-32x32.png">
@@ -69,9 +72,8 @@
     <p id="relayWarning" style="color:red; display:none; background-color: rgba(0, 0, 0, 0.672);">
         Possible connection error! <br>
         None of the relays are available please try later. <br>
-        <span style="color: rgb(239, 219, 0);">Would you like to try the default relays listed bellow?</span> <br>
-        <span style="color: #00ff5599;">relay.nostr.band, relay.damus.io,
-        njump.me, relay.snort.social and nos.lol?</span> <br>
+        <span style="color: rgb(239, 219, 0);">Would you like to try the default NIP50 relays listed bellow?</span> <br>
+        <span style="color: #00ff5599;">relay.nostr.band, bostr.bitcointxoko.com, bostr.nokotaro.com, relay.cxplay.org, wss://relay.bostr.online/",?</span> <br>
         
         <button id="useDefaultRelaysBtn">Yes</button>
         <button id="closeRelayWarning">No</button>
@@ -113,15 +115,6 @@
         <p id="passwordError" style="color: red;">Invalid password. Please try again.</p>
     </div>
 </div>
-
-<!-- saved passwords notifications -->
-<!-- <div id="passwordNotification">
-    <p>
-        You've already unlocked this page.
-        To lock it again, press the button below.
-    </p>
-    <button id="clearHashes">Clear Stored Hashes</button>
-</div> -->
 
 
 <!-- modal for viewing media items -->
@@ -290,9 +283,6 @@ async function setDynamicContent() {
         console.log("Content before truncation on page load:", paragraph.innerHTML);
         paragraph.setAttribute('data-npub-processed', 'true'); // Mark as processed
 
-        // // Truncate content for initial view
-        // truncateParagraph(paragraph);
-
         // Replace `nostr:npub` strings in the content
         processedContent = await replaceNpubStrings(processedContent); // Replace `nostr:npub`
         console.log("After replacing npub strings:", processedContent);
@@ -418,11 +408,18 @@ async function setDynamicContent() {
         setRelays(r);
     } else {
         setRelays([
-            "wss://relay.nostr.band",
-            "wss://relay.damus.io",
-            "wss://njump.me",
-            "wss://relay.snort.social",
-            "wss://nos.lol",
+        "wss://relay.nostr.band",
+        "bostr.bitcointxoko.com",
+        "bostr.nokotaro.com",
+        "relay.cxplay.org",
+        "wss://relay.bostr.online/",
+        // "relay.roli.social",
+        // "wss://relay.nostpy.lol/",
+        // "wss://social.protest.net/relay",
+        // "wss://bostr.lightningspore.com/",
+        // "wss://gleasonator.dev/relay",
+        // "wss://eclipse.pub/relay",
+        // "wss://ditto.pub/relay",
         ]);
     }
 
@@ -442,25 +439,12 @@ async function setDynamicContent() {
     }
 }
 
-    // if (sendMessageBtn.disabled) {
-    // sendMessageBtn.title = "Please use this tool with custom websites and not random posting";
-    // }
-
     if (!urlParams.toString()) {
     sendMessageBtn.title = "Send button disabled. Build s custom website with URLmkr tool for posting.";
     avatarIcon.title = "Avatar disabled. ID change is only allowed on custom websites. Build one with URLmkr";
     }
 
 }
-
-// // helper function scans the paragraph for note1 strings and invokes fetchNote1Event function
-// function fetchNote1Strings(content, relays) {
-//     const note1Matches = content.match(/note1\w+/g) || [];
-//     note1Matches.forEach(note1String => {
-//         const { eventId } = decodeNote1(note1String) || {};
-//         if (eventId) fetchNote1Event(eventId, relays, note1String);
-//     });
-// }
 
 // Helper function scans the paragraph for nostr:note1 strings and invokes fetchNote1Event function
 function fetchNote1Strings(content, relays) {
@@ -712,9 +696,8 @@ const npubDefaultRelays = [
         "wss://nos.lol"
     ];
 
-    /**
-     * Converts a `nostr:npub` string to a hexadecimal public key.
-     */
+
+    // Converts a `nostr:npub` string to a hexadecimal public key.
 function npubToHex(npub) {
     // Remove the "nostr:" prefix if it exists
     const bech32String = npub.replace("nostr:", "");
@@ -729,14 +712,9 @@ function npubToHex(npub) {
     return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-// document.addEventListener("DOMContentLoaded", () => {
-//         const testNpub = "nostr:npub1r0rs5q2gk0e3dk3nlc7gnu378ec6cnlenqp8a3cjhyzu6f8k5sgs4sq9ac";
-//         console.log("Hexadecimal Key:", npubToHex(testNpub));
-//     });
 
-    /**
-     * Searches metadata for a given hex public key using default relays.
-     */
+    //  Searches metadata for a given hex public key using default relays.
+
      async function searchMetadata(hex) {
     for (const relay of defaultRelays) {
         try {
@@ -785,16 +763,15 @@ function npubToHex(npub) {
 }
 
 
-    /**
-     * Generates a profile link for a given hex public key.
-     */
+
+    // Generates a profile link for a given hex public key.
     function generateProfileLink(hex) {
         return `https://njump.me/p/${hex}`;
     }
 
-    /**
-     * Processes a single `nostr:npub` string into its replacement HTML.
-     */
+
+    //  Processes a single `nostr:npub` string into its replacement HTML.
+
      async function processNpub(npub) {
     try {
         const hex = npubToHex(npub);
@@ -815,9 +792,9 @@ function npubToHex(npub) {
     }
 }
 
-    /**
-     * Replaces all `nostr:npub` strings in the provided content with the processed HTML.
-     */
+
+    //  Replaces all `nostr:npub` strings in the provided content with the processed HTML.
+
      async function replaceNpubStrings(content) {
     const matches = content.match(/nostr:npub\w+/g) || [];
 
@@ -845,9 +822,8 @@ function npubToHex(npub) {
 }
 
 
-    /**
-     * Updates the paragraph content dynamically, processing `nostr:npub` strings.
-     */
+    // Updates the paragraph content dynamically, processing `nostr:npub` strings.
+
     async function updateParagraphContentForNpubStrings() {
         const paragraph = document.getElementById("customParagraph");
         const fullContent = paragraph.getAttribute("data-full-content");
@@ -964,34 +940,7 @@ async function generateNewKeys() {
 
     updateAvatar();
     updateNostrNameDisplay();  // Update the nostr_name display immediately
-    // console.log(`New keys generated. Avatar URL: ${avatarUrl}`);
-    // console.log("Generated name:", randomName);
 
-    // --- Modal for Key generation with Alert ---
-    // const storeKeyResponse = confirm(
-    //     "A random Nostr ID was created.\n\n" +
-    //     "Do you want to store the private key in your device memory for future use in other clients?\n\n" +
-    //     "By clicking 'OK', the private key will be stored locally on your device. To access it later, visit the 'Show History' button at the bottom of the page."
-    // );
-
-    //     // Ask for consent to store the private key and create a Nostr ID
-    // const storeKeyResponse = confirm(
-    //     "This page is asking for your consent to create a random Nostr ID since only random Nostr IDs are allowed on this page.\n\n" +
-    //     "Do you agree to save the private keys for your random Nostr ID in local storage?\n\n" +
-    //     "By clicking 'OK', the private key will be stored on your device for later use. You can manage it in the 'Show History' section."
-    // );
-
-    // if (storeKeyResponse) {
-    //     storePrivateKey = true;
-    //     localStorage.setItem("store_private_key", storePrivateKey);
-    //     localStorage.setItem("nostr_pk", pk);
-    //     document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
-    //     alert("Private key stored successfully!");
-    // } else {
-    //     storePrivateKey = false;
-    //     localStorage.setItem("store_private_key", storePrivateKey);
-    //     alert("Private key was not stored.");
-    // }
 }
 
 // Fallback - Generate random string for errors
@@ -1085,7 +1034,6 @@ async function postMetadata() {
                 "alt",
                 `Random Nostrich ${name} who's avatar was created with dicebear.com API for use in snofl.com`,
             ],
-            // ["i", `nostr:${name}`, b2h(await sha256(new TextEncoder().encode(name)))]
         ],
     };
 
@@ -1151,32 +1099,6 @@ async function updateNostrJson(name, pubkey) {
     }
 }
 
-// function loadKeys() {
-//     const storedPk = localStorage.getItem("nostr_pk");
-//     const storedPub = localStorage.getItem("nostr_pub");
-//     const storedStorePrivateKey =
-//         localStorage.getItem("store_private_key") === "true";
-
-//     if (storedPk && storedPub) {
-//         pk = storedPk;
-//         pub = storedPub;
-//         storePrivateKey = storedStorePrivateKey;
-
-//         // Retrieve avatar URL from HEX.json
-//         const storedData = localStorage.getItem(`HEX${pub}.json`);
-//         if (storedData) {
-//             const parsedData = JSON.parse(storedData);
-//             const avatarUrl = parsedData.avatar || getAvatarUrl(pub); // Fallback to generate if missing
-//             localStorage.setItem("avatar_url", avatarUrl); // Ensure avatar URL is stored
-//         }
-
-//         updateAvatar();
-//         console.log("Keys and avatar loaded from storage.");
-//     } else {
-//         // generateNewKeys();
-//         console.log("No keys in localStorage. Keys must be generated separately.");
-//     }
-// }
 
 function loadKeys() {
     const storedPk = localStorage.getItem("nostr_pk");
@@ -1409,8 +1331,8 @@ function isDuplicateContent(hash) {
 
 
 document.getElementById("sendMessageBtn").onclick = async () => {
-
     const urlParams = new URLSearchParams(window.location.search);
+    const { h, r = [] } = getQueryParams(); // Get hashtags and relay params safely
 
     // Block if no query parameters exist
     if (!urlParams.toString()) {
@@ -1506,9 +1428,54 @@ Please generate a new ID by pressing OK."
     // Save hash to prevent duplicate posts
     saveHash(contentHash);
 
-    // Update the status message
-    const statusMessage = document.getElementById("statusMessage");
-    statusMessage.textContent = "Message has been sent.";
+    // // Update the status message
+    // const statusMessage = document.getElementById("statusMessage");
+    // statusMessage.textContent = "Message has been sent.";
+
+// If no hashtags exist, default to "general"
+// Collect hashtags from URL parameters or use default
+const hashtagList = allHashtags.split(" ")
+    .map(tag => tag.replace("#", "").trim()) // Remove "#" and clean
+    .filter(Boolean); // Remove empty values
+
+const hashtags = hashtagList.length > 0 ? hashtagList.join(",") : "general"; // Join with commas
+
+// // Collect relays from URL parameters or use defaults
+// const relayList = r.length > 0 ? r : [
+//         "wss://relay.nostr.band",
+//         "wss://bostr.bitcointxoko.com",
+//         "wss://bostr.nokotaro.com",
+//         "wss://relay.cxplay.org",
+//         "wss://relay.roli.social",
+// ];
+
+// Collect relays from URL parameters or use defaults
+const relayList = r.length > 0 ? r : []; // Only include if `r` exists
+
+// Construct base client link
+let clientLink = `https://snofl.com/client.html?h=${hashtags}`;
+
+// Only append `r=` if relays exist in the URL parameters
+if (relayList.length > 0) {
+    const relays = relayList.join(",");
+    clientLink += `&r=${relays}`;
+}
+
+
+// Update the status message
+const statusMessage = document.getElementById("statusMessage");
+
+if (statusMessage) {
+    statusMessage.innerHTML = `
+        <span style="color: #00ff55; font-weight: bold;">✅ Message has been sent.</span> <br>
+        <a href="${clientLink}" target="_blank" style="color: #00ff55; text-decoration: underline;">
+            🔗 View messages with your hashtags
+        </a>
+    `;
+} else {
+    console.error("❌ statusMessage element not found in the DOM!");
+}
+
 
     // Clear Previous Event Details
     const eventDetails = document.getElementById("eventDetails");
@@ -2015,30 +1982,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // // Check if the URL was previously decrypted
-    // if (wasUrlDecrypted(url)) {
-    //     // console.log("Previously decrypted URL detected. Redirecting...");
-    //     const storedPassword = localStorage.getItem('storedPassword'); // Retrieve the stored password
-    //     if (storedPassword) {
-    //         // Show the notification banner
-    //         notificationBanner.style.display = 'block';
-
-    //         // Redirect after a short delay to give time for reading the message
-    //         setTimeout(() => {
-    //             decryptAndRedirect(url, storedPassword);
-    //         }, 5000);
-
-    //         // Clear hashes on button click
-    //         // clearHashesButton.addEventListener('click', function () {
-    //         //     localStorage.removeItem('decryptedUrlHash');
-    //         //     localStorage.removeItem('storedPassword');
-    //         //     notificationBanner.style.display = 'none';
-    //         //     alert("Hashes cleared. You will be prompted for the password next time.");
-    //         // });
-
-    //         return;
-    //     }
-    // }
 
     // Show the modal for new decryption attempts
     // console.log("Showing the password modal for decryption.");
@@ -2103,12 +2046,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById("useDefaultRelaysBtn").onclick = function () {
     document.getElementById("relayWarning").style.display = "none";
+    // NIP50 relays
     setRelays([
-        "wss://relay.nostr.band",
-        "wss://relay.damus.io",
-        "wss://njump.me",
-        "wss://relay.snort.social",
-        "wss://nos.lol",
+        "wss://bostr.bitcointxoko.com/",
+        "wss://satellite.hzrd149.com/",
+        "wss://relay.nostr.band/",
+        "wss://relay.bostr.online/",
     ]);
 };
 document.getElementById("closeRelayWarning").onclick = function () {
@@ -2133,16 +2076,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pubExists = localStorage.getItem("nostr_pub");
     const userConsented = document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true"); // Check if consent exists
 
-//     if (!pkExists || !pubExists) {
-//         // If no keys exist, generate new ones
-//         // console.log("No existing keys found. Generating new keys...");
-//         generateNewKeys();
-//     } else {
-//         // If keys exist, load them
-//         loadKeys();
-//         // console.log("Existing keys loaded.");
-//     }
-// });
 
 if (!pkExists || !pubExists) {
         // Ask for consent if no existing Nostr ID and no prior consent
