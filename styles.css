@@ -923,7 +923,7 @@ input[type="checkbox"], input[type="radio"] {
     position: sticky;
     top: 0; 
     margin: 0;
-    height: 3%;
+    height: 150px;
     max-height: 30vw;
     background-color: #272727c2;
     backdrop-filter: blur(10px);
