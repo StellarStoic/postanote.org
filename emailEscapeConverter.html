@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Entity Converter</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #00ff00;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        textarea, input, button {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #00ff00;
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        textarea:focus, input:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        button {
+            cursor: pointer;
+        }
+        .output {
+            border: 1px dashed #00ff00;
+            padding: 10px;
+            margin-top: 10px;
+            width: 80%;
+            min-height: 50px;
+            word-break: break-word;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTML Entity Converter</h1>
+    <textarea id="inputText" placeholder="Enter text or HTML escaped string..." oninput="convertBothWays()"></textarea>
+    <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    <div class="output" id="outputText">Converted HTML entities will appear here...</div>
+    <div class="footer">Built with ❤ for real-time conversions.</div>
+
+    <script>
+        const htmlEntities = {
+            " ": "&#32;", "!": "&#33;", '"': "&#34;", "#": "&#35;", "$": "&#36;",
+            "%": "&#37;", "&": "&#38;", "'": "&#39;", "(": "&#40;", ")": "&#41;",
+            "*": "&#42;", "+": "&#43;", ",": "&#44;", "-": "&#45;", ".": "&#46;",
+            "/": "&#47;", "0": "&#48;", "1": "&#49;", "2": "&#50;", "3": "&#51;",
+            "4": "&#52;", "5": "&#53;", "6": "&#54;", "7": "&#55;", "8": "&#56;",
+            "9": "&#57;", ":": "&#58;", ";": "&#59;", "<": "&#60;", "=": "&#61;",
+            ">": "&#62;", "?": "&#63;", "@": "&#64;", "A": "&#65;", "B": "&#66;",
+            "C": "&#67;", "D": "&#68;", "E": "&#69;", "F": "&#70;", "G": "&#71;",
+            "H": "&#72;", "I": "&#73;", "J": "&#74;", "K": "&#75;", "L": "&#76;",
+            "M": "&#77;", "N": "&#78;", "O": "&#79;", "P": "&#80;", "Q": "&#81;",
+            "R": "&#82;", "S": "&#83;", "T": "&#84;", "U": "&#85;", "V": "&#86;",
+            "W": "&#87;", "X": "&#88;", "Y": "&#89;", "Z": "&#90;", "[": "&#91;",
+            "\\": "&#92;", "]": "&#93;", "^": "&#94;", "_": "&#95;", "`": "&#96;",
+            "a": "&#97;", "b": "&#98;", "c": "&#99;", "d": "&#100;", "e": "&#101;",
+            "f": "&#102;", "g": "&#103;", "h": "&#104;", "i": "&#105;", "j": "&#106;",
+            "k": "&#107;", "l": "&#108;", "m": "&#109;", "n": "&#110;", "o": "&#111;",
+            "p": "&#112;", "q": "&#113;", "r": "&#114;", "s": "&#115;", "t": "&#116;",
+            "u": "&#117;", "v": "&#118;", "w": "&#119;", "x": "&#120;", "y": "&#121;",
+            "z": "&#122;", "{": "&#123;", "|": "&#124;", "}": "&#125;", "~": "&#126;"
+        };
+
+        const reverseEntities = Object.entries(htmlEntities).reduce((acc, [key, value]) => {
+            acc[value] = key;
+            return acc;
+        }, {});
+
+        function convertBothWays() {
+            const inputText = document.getElementById("inputText").value;
+            let output = inputText.split("").map(char => htmlEntities[char] || char).join("");
+            
+            // Check if input contains HTML entities to decode
+            if (inputText.includes("&#")) {
+                output = inputText.replace(/&#\d+;/g, entity => reverseEntities[entity] || entity);
+            }
+
+            document.getElementById("outputText").textContent = output || "Converted HTML entities will appear here...";
+        }
+
+        function copyToClipboard() {
+            const outputText = document.getElementById("outputText").textContent;
+            navigator.clipboard.writeText(outputText).then(() => {
+                alert("Copied to clipboard!");
+            }).catch(err => {
+                alert("Failed to copy: " + err);
+            });
+        }
+    </script>
+</body>
+</html>
