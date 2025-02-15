@@ -512,16 +512,29 @@ function replaceMediaLinks(content) {
     const imageRegex = /(https?:\/\/\S+\.(?:png|jpe?g|gif|webp))(?![^<>]*>)/gi;
     const videoRegex = /(https?:\/\/\S+\.(?:mp4|webm|ogg))(?![^<>]*>)/gi;
 
-    let imageIdCounter = 0; // Counter for unique image IDs
-    let videoIdCounter = 0; // Counter for unique video IDs
+    // Match YouTube (watch & youtu.be), Vimeo
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/gi;
+    const vimeoRegex = /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/gi;
 
-    // Replace image URLs with <img> tags and assign unique IDs
+    // Match Markdown-style links [Text](https://example.com)
+    const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g;
+
+
+    // Match general URLs (excluding media links)
+    const generalUrlRegex = /(?:^|\s)(https?:\/\/[^\s<>"]+)(?=\s|$)/g;
+
+    let imageIdCounter = 0;
+    let videoIdCounter = 0;
+    let iframeIdCounter = 0;
+
+
+    // Replace image URLs with <img> tags
     content = content.replace(imageRegex, (match) => {
         const id = `embedded-image-${imageIdCounter++}`;
         return `<img id="${id}" src="${match}" alt="Embedded Image">`;
     });
 
-    // Replace video URLs with <video> tags and assign unique IDs
+    // Replace video URLs with <video> tags
     content = content.replace(videoRegex, (match) => {
         const id = `embedded-video-${videoIdCounter++}`;
         return `
@@ -532,7 +545,78 @@ function replaceMediaLinks(content) {
         `;
     });
 
+    // Replace YouTube links (watch & youtu.be) with lazy-loaded iframes
+    content = content.replace(youtubeRegex, (match, videoId) => {
+        const id = `iframe-${iframeIdCounter++}`;
+        return `
+            <div id="${id}-wrapper" class="iframe-container">
+                <img id="${id}-thumbnail" class="iframe-thumbnail" 
+                     src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" 
+                     onclick="loadIframe('${id}', 'https://www.youtube.com/embed/${videoId}')" 
+                     alt="YouTube Video Thumbnail">
+                <iframe id="${id}" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen style="display:none;"></iframe>
+                <div id="${id}-error" class="iframe-error" style="display:none;">
+                    Failed to load video. <button onclick="retryIframe('${id}', 'https://www.youtube.com/embed/${videoId}')">Retry</button>
+                </div>
+            </div>
+        `;
+    });
+
+
+    // Replace Vimeo links with lazy-loaded iframes
+    content = content.replace(vimeoRegex, (match, videoId) => {
+        const id = `iframe-${iframeIdCounter++}`;
+        return `
+            <div id="${id}-wrapper" class="iframe-container">
+                <img id="${id}-thumbnail" class="iframe-thumbnail" 
+                     src="https://vumbnail.com/${videoId}.jpg" 
+                     onclick="loadIframe('${id}', 'https://player.vimeo.com/video/${videoId}')" 
+                     alt="Vimeo Video Thumbnail">
+                <iframe id="${id}" src="" frameborder="0" allow="autoplay; fullscreen" 
+                    allowfullscreen style="display:none;"></iframe>
+                <div id="${id}-error" class="iframe-error" style="display:none;">
+                    Failed to load video. <button onclick="retryIframe('${id}', 'https://player.vimeo.com/video/${videoId}')">Retry</button>
+                </div>
+            </div>
+        `;
+    });
+
+    // Replace Markdown-style links [Title](URL)
+    content = content.replace(markdownLinkRegex, (match, text, url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
+
+    // Replace general URLs with clickable links
+    content = content.replace(generalUrlRegex, (match, url) => {
+        return ` <a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
+
     return content;
+}
+
+// Function to load iframe on click (Lazy Loading)
+function loadIframe(id, src) {
+    const thumbnail = document.getElementById(`${id}-thumbnail`);
+    const iframe = document.getElementById(id);
+    
+    if (thumbnail) thumbnail.style.display = "none"; // Hide thumbnail
+    if (iframe) {
+        iframe.src = src; // Load video
+        iframe.style.display = "block"; // Show iframe
+    }
+}
+
+// Function to retry loading the iframe
+function retryIframe(id, src) {
+    const iframe = document.getElementById(id);
+    if (iframe) {
+        iframe.src = src; // Reload iframe
+        iframe.style.display = "block"; // Show iframe
+    }
+
+    const errorDiv = document.getElementById(`${id}-error`);
+    if (errorDiv) errorDiv.style.display = "none"; // Hide error
 }
 
 /*
@@ -891,9 +975,20 @@ var h2b = (h) =>
 
 async function generateNewKeys() {
     if (!document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true")) {
-        console.warn("User did NOT consent to key generation. Aborting.");
+    // Alert the user about the Lorem Ipsum consent requirement
+    const consent = confirm(
+        "This website requires your consent to generate a random Nostr ID. By agreeing, a cookie will be stored with your agreement for 1 year. Do you accept?"
+    );
+
+    if (consent) {
+        // Set the consent cookie if they agree
+        document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+        console.log("User consent granted.");
+    } else {
+        console.warn("User did NOT consent to key generation. Touché.");
         return; // Prevent execution if consent was not given
     }
+}
     
     const { ln } = getQueryParams();  // Get the ln parameter during key generation
     // Clear existing avatar URL to ensure a new one is generated
@@ -916,6 +1011,7 @@ async function generateNewKeys() {
 
     // Store keys and avatar URL in localStorage
     localStorage.setItem("nostr_pk", pk);
+    localStorage.setItem("store_private_key", "true");
     localStorage.setItem("nostr_pub", pub);
     localStorage.setItem("avatar_url", avatarUrl); // Store avatar URL
     localStorage.setItem("nostr_name", randomName); // Store the generated name
@@ -1226,7 +1322,7 @@ document.getElementById("avatarIcon").onclick = function () {
             );
 
             if (consent) {
-                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
+                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString(); // Store consent
                 generateNewKeys(); // Generate only after consent
             } else {
                 alert("You declined to create a Nostr ID. If you change your mind, click the Avatar again.");
@@ -1240,6 +1336,23 @@ document.getElementById("avatarIcon").onclick = function () {
     //     generateNewKeys();
     //     alert("New ID generated.");
     //     return;
+    // }
+
+    //     // If no keys exist OR consent was deleted, ask for consent again
+    //     if (!pkExists || !pubExists || !userConsented) {
+    //     const consent = confirm(
+    //         "This page requires a random Nostr ID to function, as only randomly generated Nostr IDs are allowed.\n\n" +
+    //         "Do you agree to create a random Nostr ID and store its private key in your device’s local storage? A consent cookie will also be saved.\n\n" +
+    //         "Without this, you will not be able to fully use this website."
+    //     );
+
+    //     if (consent) {
+    //         document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
+    //         generateNewKeys(); // Generate only after explicit consent
+    //     } else {
+    //         alert("You declined to create a Nostr ID. If you change your mind, click the Avatar again.");
+    //         return; // Stop execution if they decline
+    //     }
     // }
 
     const hasPosts = checkIfPostsExist();
@@ -1275,7 +1388,7 @@ document.getElementById("avatarIcon").onclick = function () {
         )
     ) {
         generateNewKeys();
-        alert("New ID generated.");
+        // alert("New ID generated.");
     } else {
         alert("Cancelled.");
     }
@@ -1340,10 +1453,11 @@ document.getElementById("sendMessageBtn").onclick = async () => {
         return;  // Prevent further execution
     }
 
-    if (!localStorage.getItem("nostr_pk")) {
-        alert("No private key found. Please create an ID first.");
-        return; // Stop execution if no ID exists
-    }
+    // if (!localStorage.getItem("nostr_pk")) {
+    //     alert("No private key found. Please create an ID first.");
+    //     generateNewKeys();
+    //     return; // Stop execution if no ID exists
+    // }
 
 
     // Proceed if parameters exist
@@ -1357,14 +1471,14 @@ Please generate a new ID by pressing OK."
         return;
     }
 
-    // Prevent Posting Without ID
-    if (!localStorage.getItem("nostr_pk")) {
-        alert(
-            "No private key found. please generate a new ID by pressing OK btn."
-        );
-        generateNewKeys(); // Regenerate the key if needed
-        return; // Stop execution if no key is present
-    }
+    // // Prevent Posting Without ID
+    // if (!localStorage.getItem("nostr_pk")) {
+    //     alert(
+    //         "No private key found. please generate a new ID by pressing OK btn."
+    //     );
+    //     generateNewKeys(); // Regenerate the key if needed
+    //     return; // Stop execution if no key is present
+    // }
 
     // 2. Proceed with Message Sending Logic
     const um = document.getElementById("userMessage").value,
@@ -1575,11 +1689,8 @@ function saveEvent(event) {
         ), // Add this line to include the relays
     });
 
-    if (storePrivateKey) {
-        localStorage.setItem(fileName, JSON.stringify({ events, pk }));
-    } else {
-        localStorage.setItem(fileName, JSON.stringify({ events }));
-    }
+    // Save events along with the private key (always store the private key)
+    localStorage.setItem(fileName, JSON.stringify({ events, pk }));
 }
 
 function generateQRCode(pk) {
@@ -1826,7 +1937,7 @@ This was your last warning! By clicking OK, you will wipe your previous interact
         ) {
             localStorage.clear();
             // Delete consent cookie
-            document.cookie = "snofl_random_Nostr_ID_cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
 
             alert("All data, including your consent cookie, has been erased.");
             location.reload(); // Reload to reflect changes
@@ -2058,18 +2169,6 @@ document.getElementById("closeRelayWarning").onclick = function () {
     document.getElementById("relayWarning").style.display = "none";
 };
 
-// Apply tilt after name update
-document.addEventListener('DOMContentLoaded', () => {
-    updateNostrNameDisplay();
-    applyRandomTiltForNostrName();
-});
-
-// Load keys and set dynamic content based on URL parameters
-loadKeys();
-setDynamicContent();
-updateAvatar();
-
-
 // Prevent key generation from happening twice
 document.addEventListener('DOMContentLoaded', () => {
     const pkExists = localStorage.getItem("nostr_pk");
@@ -2087,7 +2186,7 @@ if (!pkExists || !pubExists) {
             );
 
             if (consent) {
-                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent to avoid asking again
+                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString(); // Store consent to avoid asking again
                 generateNewKeys();
             } else {
                 alert("You declined to create a random Nostr ID. Without one, you cannot use this page. Sorry. If you change your mind, reload the page or click on Avatar to create a new random ID");
@@ -2099,6 +2198,20 @@ if (!pkExists || !pubExists) {
         loadKeys();
     }
 });
+
+// Apply tilt after name update
+document.addEventListener('DOMContentLoaded', () => {
+    updateNostrNameDisplay();
+    applyRandomTiltForNostrName();
+});
+
+// Load keys and set dynamic content based on URL parameters
+loadKeys();
+setDynamicContent();
+updateAvatar();
+
+
+
 
 </script>
 <script src="footer.js"></script>       
