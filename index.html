@@ -73,7 +73,7 @@
         Possible connection error! <br>
         None of the relays are available please try later. <br>
         <span style="color: rgb(239, 219, 0);">Would you like to try the default NIP50 relays listed bellow?</span> <br>
-        <span style="color: #00ff5599;">relay.nostr.band, bostr.bitcointxoko.com, bostr.nokotaro.com, relay.cxplay.org, wss://relay.bostr.online/",?</span> <br>
+        <span style="color: #00ff5599;">relay.nostr.band, bostr.bitcointxoko.com, bostr.nokotaro.com, wss://ditto.pub/relay, wss://relay.bostr.online/",?</span> <br>
         
         <button id="useDefaultRelaysBtn">Yes</button>
         <button id="closeRelayWarning">No</button>
@@ -289,7 +289,7 @@ async function setDynamicContent() {
 
         // Apply QR code replacement
         console.log("Before QR Replacement:", processedContent);
-        processedContent = replaceStringWithQRCodes(processedContent);
+        processedContent = await replaceStringWithQRCodes(processedContent);
         console.log("After QR Replacement:", processedContent);
         
 
@@ -319,7 +319,7 @@ async function setDynamicContent() {
                 let expandedContent = paragraph.getAttribute('data-full-content');
                 expandedContent = replaceMediaLinks(expandedContent); // Reapply media links to expanded content
                 expandedContent = await replaceNpubStrings(expandedContent);
-                expandedContent = replaceStringWithQRCodes(expandedContent);
+                expandedContent = await replaceStringWithQRCodes(expandedContent);
 
                 // Skip reprocessing if already processed
                 // Ensure `replaceNpubStrings` is applied only to raw content
@@ -384,7 +384,7 @@ async function setDynamicContent() {
     let fallbackContent = randomLink;
     fallbackContent = replaceMediaLinks(fallbackContent);
     fallbackContent = await replaceNpubStrings(fallbackContent); // Ensure `nostr:npub` handling for GIFs
-    fallbackContent = replaceStringWithQRCodes(fallbackContent);
+    fallbackContent = await replaceStringWithQRCodes(fallbackContent);
 
     paragraph.innerHTML = fallbackContent; // Directly set processed content
     console.log("Paragraph content set:", paragraph.innerHTML);
@@ -411,7 +411,7 @@ async function setDynamicContent() {
         "wss://relay.nostr.band",
         "bostr.bitcointxoko.com",
         "bostr.nokotaro.com",
-        "relay.cxplay.org",
+        "wss://ditto.pub/relay",
         "wss://relay.bostr.online/",
         // "relay.roli.social",
         // "wss://relay.nostpy.lol/",
@@ -494,7 +494,7 @@ async function truncateParagraph(paragraph) {
     displayContent = await replaceNpubStrings(displayContent);
 
     // Apply QR code replacement
-    displayContent = replaceStringWithQRCodes(displayContent);
+    displayContent = await replaceStringWithQRCodes(displayContent);
 
     paragraph.innerHTML = displayContent;
     paragraph.setAttribute('data-expanded', "false");
@@ -622,53 +622,177 @@ function retryIframe(id, src) {
 /*
 Replaces keywords with QR codes in the content.
  */
- function replaceStringWithQRCodes(content) {
-    const patterns = {
-        lightning: /lightning:([^\s]+)/g,
-        bitcoin: /bitcoin:([^\s]+)/g,
-        ecash: /ecash:([^\s]+)/g,
-        qr: /qr:([^\s]+)/g,
-    };
+// function replaceStringWithQRCodes(content) {
+//     // Patterns for each type of keyword
+//     const patterns = {
+//         lightning: /lightning:([^\s]+)/g,
+//         bitcoin: /bitcoin:([^\s]+)/g,
+//         ecash: /ecash:([^\s]+)/g,
+//         monero: /monero:([^\s]+)/g,
+//         qr: /qr:([^\s]+)/g,
+//     };
+    
+//     // Mapping of each keyword to its corresponding image logo
+//     const logoMap = {
+//         lightning: "img/QRcode_logo/ln.png",
+//         bitcoin: "img/QRcode_logo/bitcoin.png",
+//         ecash: "img/QRcode_logo/ecash.png",
+//         monero: "img/QRcode_logo/monero.png",
+//     };
 
-    const tempContainer = document.createElement('div');
-    document.body.appendChild(tempContainer);
+//     // Preload all logo images to ensure they're cached.
+//     Object.values(logoMap).forEach((src) => {
+//         const img = new Image();
+//         img.src = src;
+//     });
 
-    Object.keys(patterns).forEach((key) => {
-        content = content.replace(patterns[key], (match, capturedValue) => {
-            try {
-                // Generate the QR code in a temporary container
-                const qrCode = new QRCode(tempContainer, {
-                    text: capturedValue,
-                    width: 200,
-                    height: 200,
-                    quietZone: 10,
-                    correctLevel: QRCode.CorrectLevel.H,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                });
+//     const tempContainer = document.createElement('div');
+//     document.body.appendChild(tempContainer);
 
-                const canvas = tempContainer.querySelector('canvas');
-                const dataURL = canvas.toDataURL();
+//     // Loop through each pattern and replace the matched keywords
+//     Object.keys(patterns).forEach((key) => {
+//         content = content.replace(patterns[key], (match, capturedValue) => {
+//             try {
+//                 // Select the logo based on the keyword; use fallback if not found.
+//                 let logo = logoMap[key] || "img/QRcode_logo/nostrUniverse.png";
 
-                // Clean up temporary container
-                tempContainer.innerHTML = '';
+//                 // Generate the QR code in a temporary container
+//                 // Create a new QRCode using EasyQRCodeJS
+//                 new QRCode(tempContainer, {
+//                     text: capturedValue,
+//                     width: 200,
+//                     height: 200,
+//                     colorDark: "#000000",
+//                     colorLight: "#ffffff",
+//                     title: `${key}`, // Optionally add a title
+//                     titleColor: "#000000",
+//                     titleBackgroundColor: "#ffffff",
+//                     titleHeight: 30,
+//                     titleTop: 15,
+//                     logo: logo, // Add the logo here
+//                     logoWidth: 20, // Adjust logo size
+//                     logoHeight: 20,
 
-                // Return a clickable wrapper with the QR code image
-                return `
-                    <div class="paragraph-qr-code-wrapper" style="cursor: pointer;" title="Click to copy a string">
-                        <img src="${dataURL}" alt="QR Code for ${capturedValue}" class="paragraph-qr-code" data-address="${capturedValue}" />
-                    </div>
-                `;
-            } catch (error) {
-                console.error(`Error generating QR code for ${match}:`, error);
-                return match;
-            }
-        });
+//                 });
+
+//                 const canvas = tempContainer.querySelector('canvas');
+//                 const dataURL = canvas.toDataURL();
+
+//                 // Clean up temporary container
+//                 tempContainer.innerHTML = '';
+
+//                 // Return a clickable wrapper with the QR code image
+//                 return `
+//                     <div class="paragraph-qr-code-wrapper" style="cursor: pointer;" title="Click to copy a string">
+//                         <img src="${dataURL}" alt="QR Code for ${capturedValue}" class="paragraph-qr-code" data-address="${capturedValue}" />
+//                     </div>
+//                 `;
+//             } catch (error) {
+//                 console.error(`Error generating QR code for ${match}:`, error);
+//                 return match;
+//             }
+//         });
+//     });
+
+//     document.body.removeChild(tempContainer);
+//     return content;
+// }
+
+// Make sure to call this function with await, e.g.:
+// processedContent = await replaceStringWithQRCodes(processedContent);
+async function replaceStringWithQRCodes(content) {
+  // Patterns for each type of keyword
+  const patterns = {
+    lightning: /lightning:([^\s]+)/g,
+    bitcoin: /bitcoin:([^\s]+)/g,
+    ecash: /ecash:([^\s]+)/g,
+    monero: /monero:([^\s]+)/g,
+    qr: /qr:([^\s]+)/g,
+  };
+
+  // Mapping of each keyword to its corresponding logo image
+  const logoMap = {
+    lightning: "img/QRcode_logo/ln.png",
+    bitcoin: "img/QRcode_logo/bitcoin.png",
+    ecash: "img/QRcode_logo/ecash.png",
+    monero: "img/QRcode_logo/monero.png",
+  };
+
+  // Preload all logo images to ensure they're cached.
+  Object.values(logoMap).forEach((src) => {
+    const img = new Image();
+    img.src = src;
+  });
+
+  // Create a temporary container for generating QR codes.
+  const tempContainer = document.createElement("div");
+  document.body.appendChild(tempContainer);
+
+  // Helper to perform asynchronous replacements.
+  async function asyncReplace(str, regex, asyncFn) {
+    const segments = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(str)) !== null) {
+      // Append text before the match.
+      segments.push(str.slice(lastIndex, match.index));
+      // Get the replacement asynchronously.
+      const replacement = await asyncFn(match);
+      segments.push(replacement);
+      lastIndex = match.index + match[0].length;
+    }
+    segments.push(str.slice(lastIndex));
+    return segments.join("");
+  }
+
+  // Process each pattern key one at a time.
+  for (const key in patterns) {
+    const regex = patterns[key];
+    content = await asyncReplace(content, regex, async (match) => {
+      const capturedValue = match[1];
+      // Select the logo image based on the keyword. If none is defined, use a fallback.
+      let logo = logoMap[key] || "img/QRcode_logo/nostrUniverse.png";
+
+      // Generate the QR code in the temporary container.
+      new QRCode(tempContainer, {
+        text: capturedValue,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        // title: `${key}`, // Optionally add a title
+        // titleColor: "#000000",
+        // titleBackgroundColor: "#ffffff",
+        // titleHeight: 30,
+        // titleTop: 15,
+        logo: logo, // Use the correct logo based on the keyword
+        logoWidth: 40,
+        logoHeight: 40,
+      });
+
+      // Wait a short timeout to allow the logo to load.
+      await new Promise((resolve) => setTimeout(resolve, 333)); // Adjust the delay as needed
+
+      // Grab the generated canvas and convert it to a data URL.
+      const canvas = tempContainer.querySelector("canvas");
+      const dataURL = canvas.toDataURL();
+
+      // Clean up the temporary container for the next QR code.
+      tempContainer.innerHTML = "";
+
+      // Return a clickable wrapper with the QR code image.
+      return `
+        <div class="paragraph-qr-code-wrapper" style="cursor: pointer;" title="Click to copy a string">
+          <img src="${dataURL}" alt="QR Code for ${capturedValue}" class="paragraph-qr-code" data-address="${capturedValue}" />
+        </div>
+      `;
     });
+  }
 
-    document.body.removeChild(tempContainer);
-    return content;
+  document.body.removeChild(tempContainer);
+  return content;
 }
+
 
 // Add event listener for QR code clicks
 document.addEventListener('click', (e) => {
@@ -1698,11 +1822,12 @@ function generateQRCode(pk) {
     qrCodeContainer.innerHTML = "";  // Clear previous QR codes
 
     // Generate URL for private key import (adjust as necessary)
-    const importUrl = `nostr:npub/${pk}`;
+    // const importUrl = `nostr:npub/${pk}`;
+    const privateKeyQRcode = `${pk}`;
 
     // Create QR Code using EasyQRCodeJS
     new QRCode(qrCodeContainer, {
-        text: importUrl,
+        text: privateKeyQRcode,
         width: 500,
         height: 500,
         colorDark: "#000000",
@@ -2163,6 +2288,7 @@ document.getElementById("useDefaultRelaysBtn").onclick = function () {
         "wss://satellite.hzrd149.com/",
         "wss://relay.nostr.band/",
         "wss://relay.bostr.online/",
+        "wss://ditto.pub/relay/",
     ]);
 };
 document.getElementById("closeRelayWarning").onclick = function () {
