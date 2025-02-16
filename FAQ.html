@@ -30,132 +30,244 @@
 
 <body>
     <div id="dim-overlay" class="dim-overlay"></div>
-
+    <div id="main-content">
     <div class="FAQcontainer">
         <div class="FAQheader">
             <h1>FAQ</h1>
             <h3>what this button do?</h3>
-            <h4> Is Comming in the near future! </h4>
+            <h4>Is slowly updating!</h4>
         </div>
         <div class="content">
-            <p class="content-paragraph">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin euismod, vel tempor magna vulputate.</p>
-            <p class="content-paragraph">Quisque in semper ipsum. Donec id erat sed urna tempor venenatis. Nulla risus aliquet.</p>
+            <p class="content-paragraph">
+                Here you'll find questions categorized by colors you might have about what is what. I'll add more content slowly as I get more questions.
+            </p>
+            <p class="content-paragraph clickable-category" style="color: rgb(99, 134, 123); font-weight: bold;" onclick="filterFAQs('all')">
+                Show All Questions
+            </p>
+            <p class="content-paragraph clickable-category" style="color: rgb(230, 244, 119); font-weight: bold;" onclick="filterFAQs('uni')">
+                Universal Questions
+            </p>
+            <p class="content-paragraph clickable-category" style="color: rgb(0, 252, 4); font-weight: bold;" onclick="filterFAQs('client')">
+                Questions about Client
+            </p>
+            <p class="content-paragraph clickable-category" style="color: rgb(152, 152, 247); font-weight: bold;" onclick="filterFAQs('urlmkr')">
+                Questions about URL Maker
+            </p>
+            <p class="content-paragraph clickable-category" style="color: orange; font-weight: bold;" onclick="filterFAQs('index')">
+                Questions about the Home Site
+            </p>
+            <p class="content-paragraph clickable-category" style="color: rgb(253, 128, 149); font-weight: bold;" onclick="filterFAQs('showhistory')">
+                Questions about ShowHistory
+            </p>
+            
+            
+            
+            <p class="content-paragraph">If you have any questions, please feel free to ask! I'll do my best to include them asap.</p>
+
+
         </div>
 
         <!-- FAQ Section -->
         <div class="faq-section">
             <h2 class="faq-header-selection">FAQ (Frequently Asked Questions)</h2>
-            <div class="faq-question" onclick="toggleFaq('faq1')"><a href="#faq1">Who's behind this?</a></div>
+
+            <div class="faq-question uni" onclick="toggleFaq('faq1')"><a href="#faqWhoMadeThis">Who's behind this and where can I find you?</a></div>
             <div id="faq1" class="faq-answer">
-                <p>It's me StellarStoic on <a href="https://njump.me/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" style="color: #9203d5;">
+                <p>It's me, StellarStoic! Unknown to the world because I always keep my distance from it. But you can find me on the protocols like <a href="https://njump.me/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" style="color: #9203d5;">
                     <strong>Nostr</strong></a> and ...<a href="https://nosta.me/nprofile1qqsqqqqqqp0fmkspg7w8d305ln96a0jw0ptwqtuwskkm5pddv2kkjfcpp4mhxue69uhkummn9ekx7mqpzemhxue69uhhyetvv9ujumn0wd68ytnzv9hxgn5ehlv" style="color: #9203d5"><strong>Nostr</strong></a></p>
-                <p>But you can also find me on <a href="https://signal.me/#eu/MhhiDpAJwzngrTkJMp1LVEmTv3SaGc2WDlKD5603oOgiyCWpvXBHvbKg18tQhQOo"style="color: #01b0fb;"> SIGNAL</a> or <a href="https://t.me/stellarstoic" style="color: #01b0fb;">TELEGRAM</a></p>
+                <p>or on the internets like <a href="https://signal.me/#eu/MhhiDpAJwzngrTkJMp1LVEmTv3SaGc2WDlKD5603oOgiyCWpvXBHvbKg18tQhQOo"style="color: #01b0fb;"> SIGNAL</a> and <a href="https://t.me/stellarstoic" style="color: #01b0fb;">TELEGRAM</a></p>
             </div>
 
-            <div class="faq-question" onclick="toggleFaq('faq2')"><a href="#faq2">How to Report a Content</a></div>
+            <div class="faq-question uni" onclick="toggleFaq('faq2')"><a href="#faqHowToReport">How to Report a Content</a></div>
             <div id="faq2" class="faq-answer">
                 <p>If you find something you believe is illegal, disturbing, or malicious, you can report the URL by emailing to <a href="mailto:&#114;&#101;&#112;&#111;&#114;&#116;&#64;&#115;&#110;&#111;&#102;&#108;&#46;&#99;&#111;&#109;?subject=URL%20Report&body=URL:%20%0AWhere%20the%20URL%20was%20found:%20%0AWhy%20are%20you%20reporting:%20">report@snofl.com</a>. Please provide as many details as possible about the URL in question in your email. I will do everything within my power to make the URL inaccessible if it is found to violate our policies.</p>
             </div>
 
-            <!-- <div class="faq-question" onclick="toggleFaq('faq3')"><a href="#faq3">Where can I get some?</a></div>
+            <div class="faq-question urlmkr" onclick="toggleFaq('faq3')">
+                <a href="#faqParagraphSection">How should I format text and content in the "Your Content" section?</a>
+            </div>
             <div id="faq3" class="faq-answer">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce nec tellus.</p>
-            </div> -->
+                <p>
+                    The "Your Content" section is where you present your content to the end user. You can type freely and structure it as you like.  
+                    <br><br>
+                    You can embed Nostr notes and npub profiles by adding a prefix:
+                    <ul>
+                        <li><code>nostr:note1t9wfaksdutq0hlnvqpzud5cq4wm9574mey0ykg3ju65stgezvsds56fg9z</code></li>
+                        <li><code>nostr:npub1sg6plzptd64u62a878hep2kev88swjh3tw00gjsfl8f237lmu63q0uf63m</code></li>
+                    </ul>
+                    Only the <code>note1...</code> format is supported—sorry!  
+                    <br><br>
+                    You can also include links to images or videos to display them in your custom page. Both Vimeo and YouTube links are supported and will generate thumbnails.  
+                    <br><br>
+                    QR codes can be embedded using the <code>qr:</code> prefix, such as <code>qr:somethingSomething</code>. Some QR codes can include logos, which are used with specific prefixes:
+                    <ul>
+                        <li><code>bitcoin:</code></li>
+                        <li><code>lightning:</code></li>
+                        <li><code>ecash:</code></li>
+                        <li><code>monero:</code></li>
+                    </ul>
+                    (If you think more should be added, let me know.)  
+                    <br><br>
+                    Links starting with <code>https://</code> will be formatted to open on click.  
+                    <br><br>
+                    Note: Script tags are not supported in this section. If you attempt to post code, the URL will be invalid for the end user. If you must share code, take a screenshot and upload it as an image link instead.  
+                </p>
+            </div>
+            
 
-            <!-- <div class="faq-question" onclick="toggleFaq('faq4')"><a href="#faq4">What is the origin of Lorem Ipsum?</a></div>
+            <div class="faq-question showhistory" onclick="toggleFaq('faq4')">
+                <a href="#faqShowHistory">What are all the features in ShowHistory?</a>
+            </div>
             <div id="faq4" class="faq-answer">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec quam felis.</p>
-            </div> -->
+                <p>
+                    The <strong>ShowHistory</strong> section contains all the Nostr events you have posted.  
+                    <br><br>
+                    If you have created and used multiple Nostr IDs, each ID will have a different **color** to distinguish them. Each ID is given a **randomly generated name**, which consists of:
+                    <ul>
+                        <li>A random adjective</li>
+                        <li>A random noun</li>
+                        <li>A random number from <strong>01 to 21</strong></li>
+                    </ul>
+                    This name is always displayed under your avatar like <strong>weepy_bumph_13</strong>.  
+                    <br><br>
+                    In the ShowHistory section, you will see a **number** in front of each name, which represents the **total number of notes** you have posted with that specific ID.  
+                    <br><br>
+                    The details also include:
+                    <ul>
+                        <li>Your **private key** (masked with <code>*****</code> for security). Click to reveal it.</li>
+                        <li>A **QR code** on the other side, which allows you to easily import the ID into any Nostr client.</li>
+                        <li>Basic **Nostr event details** (following <a href="https://github.com/nostr-protocol/nips/blob/master/01.md" target="_blank">Kind 1 Nostr Events</a> specifications).</li>
+                    </ul>
+                    <br>
+                    <strong>I am aware of the security risks associated with storing private keys in plain sight, but these are disposable IDs, and you should treat them as such.</strong>
+                    <br>
+                    <strong>Extra Features:</strong>
+                    <ul>
+                        <li>A large **Download** button at the top to export your full history in JSON format.</li>
+                        <li>A **Delete All (Panic Button)** at the bottom if you want to erase everything quickly.</li>
+                    </ul>
+                </p>
+            </div>
+            
 
-            <!-- <div class="faq-question" onclick="toggleFaq('faq5')"><a href="#faq5">Is Lorem Ipsum random text?</a></div>
+            <div class="faq-question index" onclick="toggleFaq('faq5')">
+                <a href="#faqNotePosting">I posted a Note, but where did it go?</a>
+            </div> 
             <div id="faq5" class="faq-answer">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam rhoncus.</p>
-            </div> -->
+                <p>
+                    When you post a response (a note), you receive feedback containing the event details. The note has been broadcasted to Nostr relays and is now part of Nostr forever.
+                    <br><br>
+                    You have several options to search for your note:
+                    <ul>
+                        <li>Use the <a href="https://snofl.com/client.com" target="_blank">search client</a> to look up similar content.</li>
+                        <li>Copy the event ID in the event details and search for it manually.</li>
+                        <li>Visit <a href="https://njump.me" target="_blank">njump.me</a> using the buttons below the event details.</li>
+                        <li>Copy the event ID with a button bellow the event details and search for it manually.</li>
+                    </ul>
+                </p>
+                <p>If you lost track of your posted note details, don't worry. All your posted notes are stored in the ShowHistory section, located in the footer below.</p>
+            </div>
+            
 
-            <!-- <div class="faq-question" onclick="toggleFaq('faq6')"><a href="#faq6">Where can I find Lorem Ipsum?</a></div>
+            <div class="faq-question client" onclick="toggleFaq('faq6')"><a href="#faqAboutClient">You say there's a search client?</a></div>
             <div id="faq6" class="faq-answer">
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ullamcorper.</p>
-            </div>  -->
+                <p>
+                    Yes, you can use the <a href="https://snofl.com/client.html" target="_blank">search client</a> to look up content on Nostr relays that support 
+                    <a href="https://github.com/nostr-protocol/nips/blob/master/50.md" target="_blank">NIP-50</a>.
+                    <br><br>
+                    You can search using multiple keywords, either combined or separately.  
+                    You can toggle the view by keyword, or even block publishers you don't like.  
+                    <br><br>
+                    It's still a work in progress, so some features may not work as expected.  
+                    <strong>Reactions don’t work yet</strong>, and things are still a bit clunky because, honestly, I suck at understanding WebSockets. 😅  
+                </p>
+                
+            </div> 
 
-            <div class="faq-question" onclick="toggleFaq('faq7')"><a href="#faqNTAGtype">Is NTAG memory showing wrong values?</a></div>
+            <div class="faq-question urlmkr" onclick="toggleFaq('faq7')"><a href="#faqNTAGtype">Is NTAG memory showing wrong values?</a></div>
             <div id="faq7" class="faq-answer">
-                <h3>NTAG memory has been set with a carefull reading of the documentation papers (1. & 2.).</h3>
+                <h4>NTAG memory has been set with a careful reading of the NXP <a href="https://www.nxp.com/docs/en/data-sheet/NTAG213_215_216.pdf" target="_blank" title="nxp ntags documentation papers"> documentation papers </a> </h4>
 
                 <h2>NTAG Memory Comparison</h2>
 
-<table>
-    <tr>
-        <th>NTAG Type</th>
-        <th>Total Memory</th>
-        <th>User Memory</th>
-        <th>Max NDEF (Writable Data)</th>
-        <th>Max Text (Char.)</th>
-        <th>Max URL (Char.)</th>
-        <th>Use Case</th>
-    </tr>
-    <tr>
-        <td>NTAG 203</td>
-        <td>168 bytes</td>
-        <td>144 bytes</td>
-        <td>~137 bytes</td>
-        <td>137</td>
-        <td>135</td>
-        <td>Short URLs, automation</td>
-    </tr>
-    <tr>
-        <td>NTAG 213</td>
-        <td>180 bytes</td>
-        <td>144 bytes</td>
-        <td>~137 bytes</td>
-        <td>137</td>
-        <td>135</td>
-        <td>Basic vCards, small automation</td>
-    </tr>
-    <tr>
-        <td>NTAG 215</td>
-        <td>540 bytes</td>
-        <td>504 bytes</td>
-        <td>~492 bytes</td>
-        <td>492</td>
-        <td>490</td>
-        <td>Amiibo, longer vCards</td>
-    </tr>
-    <tr>
-        <td>NTAG 216</td>
-        <td>924 bytes</td>
-        <td>888 bytes</td>
-        <td>~868 bytes</td>
-        <td>868</td>
-        <td>866</td>
-        <td>Large records, WiFi configs</td>
-    </tr>
-    <tr>
-        <td>NTAG 413 DNA</td>
-        <td>416 bytes</td>
-        <td>404 bytes</td>
-        <td>~398 bytes</td>
-        <td>398</td>
-        <td>396</td>
-        <td>Secure URLs, anti-counterfeit</td>
-    </tr>
-    <tr>
-        <td>NTAG 424 DNA</td>
-        <td>928 bytes</td>
-        <td>916 bytes</td>
-        <td>~888 bytes</td>
-        <td>888</td>
-        <td>886</td>
-        <td>Secure vCards, payments</td>
-    </tr>
-</table>
+                <table>
+                    <tr>
+                        <th>NTAG Type</th>
+                        <th>Total Memory</th>
+                        <th>User Memory</th>
+                        <th>Max NDEF (Writable Data)</th>
+                        <th>Max Text (Char.)</th>
+                        <th>Max URL (Char.)</th>
+                        <th>Use Case</th>
+                    </tr>
+                    <tr>
+                        <td>NTAG 203</td>
+                        <td>168 bytes</td>
+                        <td>144 bytes</td>
+                        <td>~137 bytes</td>
+                        <td>137</td>
+                        <td>135</td>
+                        <td>Short URLs, automation</td>
+                    </tr>
+                    <tr>
+                        <td>NTAG 213</td>
+                        <td>180 bytes</td>
+                        <td>144 bytes</td>
+                        <td>~137 bytes</td>
+                        <td>137</td>
+                        <td>135</td>
+                        <td>Basic vCards, small automation</td>
+                    </tr>
+                    <tr>
+                        <td>NTAG 215</td>
+                        <td>540 bytes</td>
+                        <td>504 bytes</td>
+                        <td>~492 bytes</td>
+                        <td>492</td>
+                        <td>490</td>
+                        <td>Amiibo, longer vCards</td>
+                    </tr>
+                    <tr>
+                        <td>NTAG 216</td>
+                        <td>924 bytes</td>
+                        <td>888 bytes</td>
+                        <td>~868 bytes</td>
+                        <td>868</td>
+                        <td>866</td>
+                        <td>Large records, WiFi configs</td>
+                    </tr>
+                    <tr>
+                        <td>NTAG 413 DNA</td>
+                        <td>416 bytes</td>
+                        <td>404 bytes</td>
+                        <td>~398 bytes</td>
+                        <td>398</td>
+                        <td>396</td>
+                        <td>Secure URLs, anti-counterfeit</td>
+                    </tr>
+                    <tr>
+                        <td>NTAG 424 DNA</td>
+                        <td>928 bytes</td>
+                        <td>916 bytes</td>
+                        <td>~888 bytes</td>
+                        <td>888</td>
+                        <td>886</td>
+                        <td>Secure vCards, payments</td>
+                    </tr>
+                </table>
+
             </div>
                 <!-- New FAQ Question -->
-                <div class="faq-question" onclick="toggleFaq('faqFont')"><a href="#faqFont">What font does this website use?</a></div>
+                <div class="faq-question uni" onclick="toggleFaq('faqFont')"><a href="#faqFont">What font does this website use?</a></div>
                 <div id="faqFont" class="faq-answer">
                     <p>The current font used on this website is <a id="fontLink" href="#" target="_blank">loading...</a>.</p>
+                    <p>
+                        You don't like the <span id="currentFontName">loading...</span> font? Not a biggie! 
+                        <a href="#" id="changeFont">Click here to choose a new random one.</a>
+                    </p>
             </div>
 
-            <div class="faq-question" onclick="toggleFaq('faqEncryption')">
+            <div class="faq-question urlmkr" onclick="toggleFaq('faqEncryption')">
                 <a href="#faqEncryption">How secure is the URL encryption?</a>
             </div>
             <div id="faqEncryption" class="faq-answer">
@@ -173,7 +285,7 @@
                         and decryption. This simplicity ensures high speed without compromising security.
                     </li>
                 </ul>
-                <h4>📊 Examples of Password Strength and Brute-Forcing</h4>
+                <h4>Examples of Password Strength and Brute-Forcing</h4>
                 <table>
                     <tr>
                         <th>Password Length/Type</th>
@@ -192,14 +304,14 @@
                         <td>Over 1 trillion years</td>
                     </tr>
                 </table>
-                <h4>🛡️ Best Practices for Maximum Security</h4>
+                <h4>Best Practices for Maximum Security</h4>
                 <ul>
                     <li>Choose a password with a minimum of 12 characters, including uppercase, lowercase, numbers, and special symbols.</li>
                     <li>Avoid common words, predictable phrases, or keyboard patterns.</li>
                     <li>Store passwords in a secure <a href="https://bitwarden.com/" target="_blank">password manager</a> instead of relying 
                         on memory.</li>
                 </ul>
-                <h4>📜 A Brief History of AES</h4>
+                <h4>A Brief History of AES</h4>
                 <p>
                     AES was established as the encryption standard by the U.S. National Institute of Standards and Technology (NIST) in 2001. 
                     It replaced the older DES 
@@ -207,7 +319,7 @@
                     global competition and is based 
                     on the Rijndael cipher, designed by cryptographers Joan Daemen and Vincent Rijmen.
                 </p>
-                <h4>🤔 Why Privacy Matters</h4>
+                <h4>Why Privacy Matters</h4>
                 <p>
                     Protecting sensitive information like URLs ensures that your personal data and activity remain private. 
                     Encryption plays a crucial role in safeguarding secure links and confidential content, providing peace of 
@@ -220,12 +332,19 @@
                     
                     Empowering users with knowledge and awareness is just as important as using strong encryption.</p>
                 <p>
-                    Always remember: <strong>The strength of encryption depends on the strength of your password!</strong>
+                    Always remember: <strong>The strength of encryption depends on the strength of your password, your opsec and people you share this password with!</strong>
                 </p>
             </div>
-            
+
+        <!-- New FAQ Question -->
+        <div class="faq-question index" onclick="toggleFaq('faq10')"><a href="#faqCanIdelete">How can I delete a Note I posted?</a></div>
+        <div id="faq10" class="faq-answer">
+            <p><strong>You can't</strong></p>
+        </div>
 
 
+
+        </div>
         </div>
     </div>
 
@@ -237,37 +356,109 @@
     </footer>
 
     <script>
-        function toggleFaq(faqId) {
-            // Close all faq answers
-            const answers = document.querySelectorAll('.faq-answer');
-            answers.forEach(answer => {
-                if (answer.id !== faqId) {
-                    answer.style.display = 'none';
-                }
-            });
+    function toggleFaq(faqId) {
+        // Close all other FAQ answers
+        const answers = document.querySelectorAll('.faq-answer');
+        let selectedFaq = document.getElementById(faqId);
 
-            // Toggle the selected faq answer
-            const selectedFaq = document.getElementById(faqId);
-            if (selectedFaq.style.display === 'block') {
-                selectedFaq.style.display = 'none';
+        answers.forEach(answer => {
+            if (answer.id !== faqId) {
+                answer.style.display = 'none';
+            }
+        });
+
+        // Toggle visibility
+        if (selectedFaq.style.display === 'block') {
+            selectedFaq.style.display = 'none';
+        } else {
+            selectedFaq.style.display = 'block';
+            
+            // Scroll to the FAQ smoothly
+            selectedFaq.scrollIntoView({ behavior: "smooth", block: "start" });
+
+            // Adjust scroll after `scrollIntoView` completes
+            setTimeout(() => {
+                window.scrollBy(0, -window.innerHeight / 4); // Moves up by 1/4th of screen height
+            }, 500); // Delay to allow scrollIntoView animation to finish
+        }
+    }
+
+
+        function filterFAQs(category) {
+            const allQuestions = document.querySelectorAll('.faq-question');
+            const allAnswers = document.querySelectorAll('.faq-answer');
+
+            if (category === 'all') {
+                // Show all questions
+                allQuestions.forEach(question => {
+                    question.style.display = 'block';
+                });
+                // Hide all answers to prevent confusion
+                allAnswers.forEach(answer => {
+                    answer.style.display = 'none';
+                });
             } else {
-                selectedFaq.style.display = 'block';
+                // Hide all questions
+                allQuestions.forEach(question => {
+                    question.style.display = 'none';
+                });
+
+                // Show only the selected category
+                const selectedQuestions = document.querySelectorAll(`.faq-question.${category}`);
+                selectedQuestions.forEach(question => {
+                    question.style.display = 'block';
+                });
+
+                // Hide all answers
+                allAnswers.forEach(answer => {
+                    answer.style.display = 'none';
+                });
             }
         }
 
-        // Function to display the current font
-        function displayCurrentFont() {
-            const selectedFontIndex = localStorage.getItem('selectedFontIndex') || 1;
-            const fontName = fontList[selectedFontIndex].split(':')[0];  // Extract font name only
-            const fontLink = `https://fonts.bunny.net/family/${fontName.replace(/\s+/g, '+')}`;
 
-            const fontAnchor = document.getElementById('fontLink');
-            fontAnchor.textContent = fontName;
-            fontAnchor.href = fontLink;
-        }
+// Function to display the current font
+function displayCurrentFont() {
+    const selectedFontIndex = localStorage.getItem('selectedFontIndex') || 1;
+    const fontName = fontList[selectedFontIndex].split(':')[0];  // Extract font name only
+    const fontLink = `https://fonts.bunny.net/family/${fontName.replace(/\s+/g, '+')}`;
 
-        // Initialize font display
-        displayCurrentFont();
+    const fontAnchor = document.getElementById('fontLink');
+    const fontDisplay = document.getElementById('currentFontName');
+    
+    fontAnchor.textContent = fontName;
+    fontAnchor.href = fontLink;
+    
+    // Also update the text in the "change font" message
+    fontDisplay.textContent = fontName;
+}
+
+// Function to randomly change the font
+function changeFontRandomly() {
+    const newFontIndex = Math.floor(Math.random() * 50) + 1; // Random number between 1 and 50
+    localStorage.setItem('selectedFontIndex', newFontIndex); // Save new font index
+
+    // Reload page to apply the new font
+    location.reload();
+}
+
+// Attach click event to the "change font" link
+document.getElementById('changeFont').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+    changeFontRandomly();
+});
+
+// Initialize font display
+displayCurrentFont();
+
+// Close FAQ when clicking outside of an open question
+document.addEventListener('click', function (event) {
+    const openFaq = document.querySelector('.faq-answer[style="display: block;"]');
+    
+    if (openFaq && !openFaq.contains(event.target) && !event.target.closest('.faq-question')) {
+        openFaq.style.display = 'none';
+    }
+});
 
     </script>
 </body>

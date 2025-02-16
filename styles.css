@@ -344,6 +344,13 @@ video[id^="embedded-video-"]:hover {
     box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
 }
 
+/* .iframe-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+} */
+
+
 /* Full-screen modal styles */
 .fullscreen-modal {
     position: fixed;
@@ -1595,6 +1602,7 @@ small {
     display: flex;
     flex-direction: column;
     align-items: center;
+    word-wrap: break-word;
 }
 
 .FAQheader {
@@ -1613,11 +1621,11 @@ small {
     margin-right: auto;
 }
 
-/* FAQ Styles */
 .faq-header-selection {
     font-family: 'Bodoni Moda SC', serif;
     font-size: 2rem;
     margin-top: 50px;
+
 }
 
 .faq-section {
@@ -1643,13 +1651,44 @@ small {
     display: none;
 }
 
-.faq-question a {
-    text-decoration: none;
-    color: #efefef;
+/* FAQ Question Colors */
+.faq-question.uni a {
+    color: rgb(230, 244, 119);
 }
 
-.faq-question a:hover {
+.faq-question.client a {
+    color: rgb(0, 252, 4);
+}
+
+.faq-question.urlmkr a {
+    color: rgb(152, 152, 247);
+}
+
+.faq-question.index a {
+    color: orange;
+}
+
+.faq-question.showhistory a {
+    color: rgb(253, 128, 149);
+}
+
+/* Hover Effect */
+.faq-question.uni a:hover,
+.faq-question.client a:hover,
+.faq-question.urlmkr a:hover,
+.faq-question.index a:hover,
+.faq-question.showhistory a:hover {
     text-decoration: underline;
+    opacity: 0.8;
+}
+
+.clickable-category {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.clickable-category:hover {
+    opacity: 0.8;
 }
 
 table {
