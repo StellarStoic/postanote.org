@@ -1,0 +1,22 @@
+[
+    {
+        "shortened": "none",
+        "full_url": "https://snofl.com/index.html?t=badcontent",
+        "reason": "Spam content"
+    },
+    {
+        "shortened": "",
+        "full_url": "https://snofl.com/index.html?p=illegalstuff",
+        "reason": "Illegal content"
+    },
+    {
+        "shortened": "xyz123",
+        "full_url": "https://snofl.com/index.html?t=explicitcontent",
+        "reason": "Explicit Content"
+    },
+    {
+        "shortened": "54272e",
+        "full_url": "https://snofl.com/index.html?f=1&t=yx&p=this%20Content%20Should%20be%20blocked!!!&h=syx",
+        "reason": "testing blockage"
+    }
+]
