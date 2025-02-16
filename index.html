@@ -328,6 +328,8 @@ async function setDynamicContent() {
                     expandedContent = await replaceNpubStrings(expandedContent);
                     paragraph.setAttribute("data-npub-processed", "true");
                 }
+
+                expandedContent = convertNewlinesToBreaks(expandedContent);
                 
                 paragraph.innerHTML = expandedContent;
                 readMoreLink.textContent = "Close";
@@ -385,6 +387,9 @@ async function setDynamicContent() {
     fallbackContent = replaceMediaLinks(fallbackContent);
     fallbackContent = await replaceNpubStrings(fallbackContent); // Ensure `nostr:npub` handling for GIFs
     fallbackContent = await replaceStringWithQRCodes(fallbackContent);
+
+    // *** Insert the newlines conversion:
+    fallbackContent = convertNewlinesToBreaks(fallbackContent);
 
     paragraph.innerHTML = fallbackContent; // Directly set processed content
     console.log("Paragraph content set:", paragraph.innerHTML);
@@ -496,6 +501,9 @@ async function truncateParagraph(paragraph) {
     // Apply QR code replacement
     displayContent = await replaceStringWithQRCodes(displayContent);
 
+    // *** Insert the newlines conversion:
+    displayContent = convertNewlinesToBreaks(displayContent);
+
     paragraph.innerHTML = displayContent;
     paragraph.setAttribute('data-expanded', "false");
     // console.log("Final truncated content:", paragraph.innerHTML);
@@ -545,42 +553,32 @@ function replaceMediaLinks(content) {
         `;
     });
 
-    // Replace YouTube links (watch & youtu.be) with lazy-loaded iframes
-    content = content.replace(youtubeRegex, (match, videoId) => {
-        const id = `iframe-${iframeIdCounter++}`;
-        return `
-            <div id="${id}-wrapper" class="iframe-container">
-                <img id="${id}-thumbnail" class="iframe-thumbnail" 
-                     src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" 
-                     onclick="loadIframe('${id}', 'https://www.youtube.com/embed/${videoId}')" 
-                     alt="YouTube Video Thumbnail">
-                <iframe id="${id}" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen style="display:none;"></iframe>
-                <div id="${id}-error" class="iframe-error" style="display:none;">
-                    Failed to load video. <button onclick="retryIframe('${id}', 'https://www.youtube.com/embed/${videoId}')">Retry</button>
-                </div>
-            </div>
-        `;
-    });
+// Replace YouTube links with lazy-loaded iframes, play button overlay, and a close button
+content = content.replace(youtubeRegex, (match, videoId) => {
+  const id = `iframe-${iframeIdCounter++}`;
+  return `
+    <div id="${id}-wrapper" class="iframe-container" style="max-width:560px; margin:20px auto; position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
+      <iframe id="${id}" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen 
+              style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+    </div>
+  `;
+});
 
 
-    // Replace Vimeo links with lazy-loaded iframes
-    content = content.replace(vimeoRegex, (match, videoId) => {
-        const id = `iframe-${iframeIdCounter++}`;
-        return `
-            <div id="${id}-wrapper" class="iframe-container">
-                <img id="${id}-thumbnail" class="iframe-thumbnail" 
-                     src="https://vumbnail.com/${videoId}.jpg" 
-                     onclick="loadIframe('${id}', 'https://player.vimeo.com/video/${videoId}')" 
-                     alt="Vimeo Video Thumbnail">
-                <iframe id="${id}" src="" frameborder="0" allow="autoplay; fullscreen" 
-                    allowfullscreen style="display:none;"></iframe>
-                <div id="${id}-error" class="iframe-error" style="display:none;">
-                    Failed to load video. <button onclick="retryIframe('${id}', 'https://player.vimeo.com/video/${videoId}')">Retry</button>
-                </div>
-            </div>
-        `;
-    });
+
+
+// Replace Vimeo links with lazy-loaded iframes, play button overlay, and a close button
+content = content.replace(vimeoRegex, (match, videoId) => {
+  const id = `iframe-${iframeIdCounter++}`;
+  return `
+    <div id="${id}-wrapper" class="iframe-container" style="max-width:640px; margin:20px auto; position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
+      <iframe id="${id}" src="https://player.vimeo.com/video/${videoId}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen 
+              style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+    </div>
+  `;
+});
+
+
 
     // Replace Markdown-style links [Title](URL)
     content = content.replace(markdownLinkRegex, (match, text, url) => {
@@ -595,111 +593,66 @@ function replaceMediaLinks(content) {
     return content;
 }
 
-// Function to load iframe on click (Lazy Loading)
+// Load the iframe on click and display the video
 function loadIframe(id, src) {
-    const thumbnail = document.getElementById(`${id}-thumbnail`);
-    const iframe = document.getElementById(id);
-    
-    if (thumbnail) thumbnail.style.display = "none"; // Hide thumbnail
-    if (iframe) {
-        iframe.src = src; // Load video
-        iframe.style.display = "block"; // Show iframe
-    }
+  const container = document.getElementById(`${id}-wrapper`);
+  const iframe = document.getElementById(id);
+  const closeBtn = document.getElementById(`${id}-close`);
+
+  if (iframe) {
+    iframe.src = src;
+    iframe.style.display = "block";
+  }
+  if (closeBtn) {
+    closeBtn.style.display = "block";
+  }
+  // Optionally, hide the container's background (if needed) here
 }
 
-// Function to retry loading the iframe
-function retryIframe(id, src) {
-    const iframe = document.getElementById(id);
-    if (iframe) {
-        iframe.src = src; // Reload iframe
-        iframe.style.display = "block"; // Show iframe
-    }
-
-    const errorDiv = document.getElementById(`${id}-error`);
-    if (errorDiv) errorDiv.style.display = "none"; // Hide error
+// Close the iframe and revert to the placeholder
+function closeIframe(id) {
+  const iframe = document.getElementById(id);
+  const closeBtn = document.getElementById(`${id}-close`);
+  if (iframe) {
+    iframe.style.display = "none";
+    iframe.src = "";
+  }
+  if (closeBtn) {
+    closeBtn.style.display = "none";
+  }
 }
 
-/*
-Replaces keywords with QR codes in the content.
- */
-// function replaceStringWithQRCodes(content) {
-//     // Patterns for each type of keyword
-//     const patterns = {
-//         lightning: /lightning:([^\s]+)/g,
-//         bitcoin: /bitcoin:([^\s]+)/g,
-//         ecash: /ecash:([^\s]+)/g,
-//         monero: /monero:([^\s]+)/g,
-//         qr: /qr:([^\s]+)/g,
-//     };
-    
-//     // Mapping of each keyword to its corresponding image logo
-//     const logoMap = {
-//         lightning: "img/QRcode_logo/ln.png",
-//         bitcoin: "img/QRcode_logo/bitcoin.png",
-//         ecash: "img/QRcode_logo/ecash.png",
-//         monero: "img/QRcode_logo/monero.png",
-//     };
+// Add this after the retryIframe() function
+function convertNewlinesToBreaks(htmlString) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlString;
+  function processNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (/[\n\u2028\u2029]/.test(node.textContent)) {
+        const fragments = node.textContent.split(/[\n\u2028\u2029]/);
+        const fragment = document.createDocumentFragment();
+        fragments.forEach((frag, index) => {
+          fragment.appendChild(document.createTextNode(frag));
+          // Insert a <br> between each line (but not after the last fragment)
+          if (index < fragments.length - 1) {
+            fragment.appendChild(document.createElement('br'));
+          }
+        });
+        node.parentNode.replaceChild(fragment, node);
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // Do not process inside elements that already render content (like iframes, videos, images, or links)
+      if (!['iframe', 'video', 'img', 'a'].includes(node.tagName.toLowerCase())) {
+        Array.from(node.childNodes).forEach(processNode);
+      }
+    }
+  }
+  Array.from(tempDiv.childNodes).forEach(processNode);
+  return tempDiv.innerHTML;
+}
 
-//     // Preload all logo images to ensure they're cached.
-//     Object.values(logoMap).forEach((src) => {
-//         const img = new Image();
-//         img.src = src;
-//     });
 
-//     const tempContainer = document.createElement('div');
-//     document.body.appendChild(tempContainer);
-
-//     // Loop through each pattern and replace the matched keywords
-//     Object.keys(patterns).forEach((key) => {
-//         content = content.replace(patterns[key], (match, capturedValue) => {
-//             try {
-//                 // Select the logo based on the keyword; use fallback if not found.
-//                 let logo = logoMap[key] || "img/QRcode_logo/nostrUniverse.png";
-
-//                 // Generate the QR code in a temporary container
-//                 // Create a new QRCode using EasyQRCodeJS
-//                 new QRCode(tempContainer, {
-//                     text: capturedValue,
-//                     width: 200,
-//                     height: 200,
-//                     colorDark: "#000000",
-//                     colorLight: "#ffffff",
-//                     title: `${key}`, // Optionally add a title
-//                     titleColor: "#000000",
-//                     titleBackgroundColor: "#ffffff",
-//                     titleHeight: 30,
-//                     titleTop: 15,
-//                     logo: logo, // Add the logo here
-//                     logoWidth: 20, // Adjust logo size
-//                     logoHeight: 20,
-
-//                 });
-
-//                 const canvas = tempContainer.querySelector('canvas');
-//                 const dataURL = canvas.toDataURL();
-
-//                 // Clean up temporary container
-//                 tempContainer.innerHTML = '';
-
-//                 // Return a clickable wrapper with the QR code image
-//                 return `
-//                     <div class="paragraph-qr-code-wrapper" style="cursor: pointer;" title="Click to copy a string">
-//                         <img src="${dataURL}" alt="QR Code for ${capturedValue}" class="paragraph-qr-code" data-address="${capturedValue}" />
-//                     </div>
-//                 `;
-//             } catch (error) {
-//                 console.error(`Error generating QR code for ${match}:`, error);
-//                 return match;
-//             }
-//         });
-//     });
-
-//     document.body.removeChild(tempContainer);
-//     return content;
-// }
-
-// Make sure to call this function with await, e.g.:
-// processedContent = await replaceStringWithQRCodes(processedContent);
+// Replaces keywords with QR codes in the content and add logo to each keyword.
 async function replaceStringWithQRCodes(content) {
   // Patterns for each type of keyword
   const patterns = {
@@ -756,8 +709,8 @@ async function replaceStringWithQRCodes(content) {
       // Generate the QR code in the temporary container.
       new QRCode(tempContainer, {
         text: capturedValue,
-        width: 200,
-        height: 200,
+        width: 350,
+        height: 350,
         colorDark: "#000000",
         colorLight: "#ffffff",
         // title: `${key}`, // Optionally add a title
@@ -874,8 +827,15 @@ function applyModalListenersToMedia(container) {
         // Avoid duplicate event listeners
         if (media.dataset.modalListener === "true") return;
 
-        media.addEventListener("click", () => {
+        media.addEventListener("click", (event) => {
             // console.log("Media item clicked:", media);
+            event.preventDefault();
+            event.stopPropagation();
+
+            // If the media is a video, pause it immediately
+            if (media.tagName.toLowerCase() === "video") {
+                media.pause();
+            }
 
             const modal = document.querySelector(".fullscreen-modal");
             const modalContent = modal.querySelector(".modal-content");
@@ -883,6 +843,12 @@ function applyModalListenersToMedia(container) {
             const clone = media.cloneNode(true);
             clone.style.maxWidth = "100%";
             clone.style.maxHeight = "100%";
+
+            // For videos, set autoplay and sync currentTime
+            if (clone.tagName.toLowerCase() === "video") {
+                clone.setAttribute("autoplay", "autoplay");
+                clone.currentTime = media.currentTime;
+            }
 
             modalContent.innerHTML = ""; // Clear previous content
             modalContent.appendChild(clone);
@@ -1034,6 +1000,7 @@ function npubToHex(npub) {
 
     async function updateParagraphContentForNpubStrings() {
         const paragraph = document.getElementById("customParagraph");
+        const readMoreLink = document.getElementById("readMoreLink");
         const fullContent = paragraph.getAttribute("data-full-content");
 
         if (fullContent) {
@@ -1455,30 +1422,6 @@ document.getElementById("avatarIcon").onclick = function () {
         return; // Stop execution if no consent
     }
 
-    // If no private key exists, force ID generation without post requirement
-    // if (!pkExists) {
-    //     generateNewKeys();
-    //     alert("New ID generated.");
-    //     return;
-    // }
-
-    //     // If no keys exist OR consent was deleted, ask for consent again
-    //     if (!pkExists || !pubExists || !userConsented) {
-    //     const consent = confirm(
-    //         "This page requires a random Nostr ID to function, as only randomly generated Nostr IDs are allowed.\n\n" +
-    //         "Do you agree to create a random Nostr ID and store its private key in your device’s local storage? A consent cookie will also be saved.\n\n" +
-    //         "Without this, you will not be able to fully use this website."
-    //     );
-
-    //     if (consent) {
-    //         document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/"; // Store consent
-    //         generateNewKeys(); // Generate only after explicit consent
-    //     } else {
-    //         alert("You declined to create a Nostr ID. If you change your mind, click the Avatar again.");
-    //         return; // Stop execution if they decline
-    //     }
-    // }
-
     const hasPosts = checkIfPostsExist();
     const remainingMinutes = checkAccountAge();
 
@@ -1828,8 +1771,8 @@ function generateQRCode(pk) {
     // Create QR Code using EasyQRCodeJS
     new QRCode(qrCodeContainer, {
         text: privateKeyQRcode,
-        width: 500,
-        height: 500,
+        width: 350,
+        height: 350,
         colorDark: "#000000",
         colorLight: "#ffffff",
         logo: "img/QRcode_logo/nostrUniverse.png",  // Add your logo URL here
