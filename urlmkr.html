@@ -67,8 +67,8 @@
 
     
     <!-- QR Code Modal -->
-    <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;">
-        <div style="z-index: 1005 !important; background: #fff; padding: 20px; border-radius: 8px; text-align: center;">
+    <div id="shortURL-qr-modal" style="display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center;">
+        <div style="z-index: 9999 !important; background: #fff; padding: 20px; border-radius: 8px; text-align: center;">
             <div id="qr-code"></div>
             <div id="qr-title">Spread it!</div>
             <button id="save_qr_button" class="copy-button">Save QR Code</button>
@@ -238,7 +238,7 @@
         <label for="include_p">
             Your Content<input type="checkbox" id="include_p">
         </label>
-        <textarea id="p_input" placeholder="Let me tell you a story..." disabled></textarea>
+        <textarea id="p_input" placeholder="You can type whatever. read FAQ to learn what is supported" disabled></textarea>
     </div>
 
     <hr class="hrLine">
@@ -286,7 +286,7 @@
             <input type="radio" id="random1" name="random_relay1" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay2" placeholder="wss://relay.nostr.band/" disabled>
+            <input type="text" id="relay2" placeholder="wss://bostr.bitcointxoko.com" disabled>
             <input type="radio" id="random2" name="random_relay2" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
@@ -294,7 +294,7 @@
             <input type="radio" id="random3" name="random_relay3" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
-            <input type="text" id="relay4" placeholder="wss://relay.cxplay.org" disabled>
+            <input type="text" id="relay4" placeholder="wss://ditto.pub/relay" disabled>
             <input type="radio" id="random4" name="random_relay4" title="Clicking this will chose random online relays from the nostr.watch" disabled> <small>random</small>
         </div>
         <div class="relay-group">
@@ -1351,7 +1351,7 @@ function reverseString(str) {
     }
 
         // Function to set all radio buttons z-index. I had issues with z-index and JS was the only way to hide them 
-        // behind the qr-modal. also if I did hide the relay radio btns, they stopped working when qr-modal was 
+        // behind the shortURL-qr-modal. also if I did hide the relay radio btns, they stopped working when shortURL-qr-modal was 
         // not displayed. (other checkboxes and radio btns worked ok but not radio btns in relays). That's why I used JS just for that
         // CSS is hard!
 
@@ -1511,7 +1511,7 @@ function reverseString(str) {
         });
 
         // Open modal and update dependent elements
-        document.getElementById('qr-modal').style.display = 'flex';
+        document.getElementById('shortURL-qr-modal').style.display = 'flex';
         toggleModalDependentElements(true);
     } catch (error) {
         console.error("Error generating QR code:", error);
@@ -1523,7 +1523,7 @@ function reverseString(str) {
 });
 
 document.getElementById('close_qr_button').addEventListener('click', function () {
-    document.getElementById('qr-modal').style.display = 'none';
+    document.getElementById('shortURL-qr-modal').style.display = 'none';
     // Restore dependent elements
     toggleModalDependentElements(false);
 });
