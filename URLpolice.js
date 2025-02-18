@@ -75,8 +75,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             // 2. **Check if 'p=' parameter matches, ignoring other parameters**
-            const blockedParams = new URLSearchParams(blockedUrlDecoded);
-            if (blockedParams.has("p") && urlParams.get("p") === blockedParams.get("p")) {
+            const blockedParams = new URLSearchParams(entry.full_url);
+            if (blockedParams.has("p") && urlParams.get("p") === blockedParams.get("p") === urlParams.get("p")) {
                 console.warn(`🚫 Blocked URL due to 'p=' parameter: ${currentUrl}`);
                 redirectToWarning(entry.reason);
                 return;
@@ -99,7 +99,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function redirectToWarning(reason) {
     console.log(`🚨 Redirecting user due to block: ${reason}`);
-    const warningUrl = `https://snofl.com/index.html?f=1&b=%233d48e6&t=Requested%20page%20was%20blocked%20because%20of&s=violating%20our%20terms%20of%20service.%20Reason%3A&p=${encodeURIComponent(reason)}&h=bummer`;
+    // const warningUrl = `https://snofl.com/index.html?f=1&b=%233d48e6&t=Requested%20page%20was%20blocked%20because%20of&s=violating%20our%20terms%20of%20service.%20Reason%3A&p=${encodeURIComponent(reason)}&h=bummer`;
+    const warningUrl = `https://snofl.com/index.html?f=1&b=%23c14949&t=Attention!&s=This%20is%20not%20the%20page%20you%20are%20looking%20for.&p=Why%3F%0A%0AYou've%20been%20redirected%20because%20the%20original%20link%20was%20blocked%20for%20violating%20our%20terms%20of%20service.%0A%0AReason%3A${encodeURIComponent(reason)}%0A%0AForget%20about%20it%2C%20move%20on%20with%20your%20life%2C%20go%20outside%2C%20and%20touch%20grass!%0A%0Ahttps%3A%2F%2Fmedia1.tenor.com%2Fm%2FhBb-jRuH95gAAAAd%2Ftouch-grass-grass.gif&m=&h=ohbummerbummerohoh`;
+    // const warningUrl = `http://127.0.0.1:5500/index.html?f=1&b=%23c14949&t=Attention!&s=This%20is%20not%20the%20page%20you%20are%20looking%20for.&p=Why%3F%0A%0AYou've%20been%20redirected%20because%20the%20original%20link%20was%20blocked%20for%20violating%20our%20terms%20of%20service.%0A%0AReason%3A${encodeURIComponent(reason)}%0A%0AForget%20about%20it%2C%20move%20on%20with%20your%20life%2C%20go%20outside%2C%20and%20touch%20grass!%0A%0Ahttps%3A%2F%2Fmedia1.tenor.com%2Fm%2FhBb-jRuH95gAAAAd%2Ftouch-grass-grass.gif&m=&h=ohbummerbummerohoh`;
     console.log(`➡️ Redirecting to: ${warningUrl}`);
     window.location.href = warningUrl;
 }

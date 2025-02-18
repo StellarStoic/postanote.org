@@ -7,16 +7,27 @@ import os
 import sys
 import random
 import string
+import urllib.parse
 from datetime import datetime, timedelta
+import logging
 
 app = Flask(__name__)
 # DB_FILE = "/home/postanote.org/urls.db"
 DB_FILE = os.path.join(os.path.dirname(__file__), "urls.db")
+BLOCKLIST_FILE = os.path.join(os.path.dirname(__file__), "blockedUrls.json")
 
 # Paths to .well-known directories
 NOSTR_JSON_PATH = '/home/postanote.org/.well-known/nostr.json'
 LNURLP_DIR = '/home/postanote.org/.well-known/lnurlp'
 
+LOG_FILE = os.path.join(os.path.dirname(__file__), "blocked_urls.log")
+
+# **Setup logging**
+logging.basicConfig(filename=LOG_FILE, level=logging.CRITICAL, format="%(asctime)s - %(message)s")
+
+def log_event(message):
+    """Log events to the log file."""
+    logging.info(message)
 
 # Initialize database
 def init_db():
@@ -78,13 +89,57 @@ def shorten_url():
 
     return jsonify({"short_url": f"https://snofl.com/{url_hash}"}), 201
 
+def load_blocked_urls():
+    """Load blocked URLs from the external JSON file."""
+    try:
+        with open(BLOCKLIST_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []  # Return an empty list if file is missing
+
+def get_warning_url(reason):
+    """Format the new custom warning URL with the reason encoded."""
+    base_url = "https://snofl.com/index.html"
+    
+    # Combine the reason with the additional message
+    full_message = (
+        f"You've been redirected because the original link was blocked for violating our terms of service. "
+        f"Reason: {reason}"
+        f"Forget about it, move on with your life, go outside, and touch grass!"
+        f"https://media1.tenor.com/m/hBb-jRuH95gAAAAd/touch-grass-grass.gif"
+    )
+    
+    params = {
+        "f": "1",
+        "b": "#c14949",
+        "t": "Attention!",
+        "s": "This is not the page you are looking for.",
+        "p": full_message,  # Use the combined message here
+        "h": "ohbummerbummerohoh"
+    }
+    
+    return f"{base_url}?{urllib.parse.urlencode(params)}"
+
+
 @app.route('/<short>', methods=['GET'])
 def redirect_short_url(short):
-    # Connect to the database
+    # **Step 1: Ignore WebSocket requests**
+    if short.startswith("wss:") or short.endswith(".com") or short.endswith(".net") or short.endswith(".org"):
+        log_event(f"🛑 Ignored WebSocket or external request: {short}")
+        return jsonify({"error": "Invalid request"}), 400
+
+    blocked_urls = load_blocked_urls()
+
+    # **Step 2: Block shortened URLs before querying the database**
+    for entry in blocked_urls:
+        if entry.get("shortened") and entry["shortened"].lower() not in ["none", ""]:
+            if f"https://snofl.com/{short}" == entry["shortened"]:
+                log_event(f"🚫 Blocked shortened URL: {short}")
+                return redirect(get_warning_url(entry["reason"]), code=302)
+
+    # **Step 3: Query database for full URLs**
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-
-    # Look for the short URL in the database
     cursor.execute("SELECT original, visits FROM urls WHERE short = ?", (short,))
     result = cursor.fetchone()
 
@@ -92,7 +147,35 @@ def redirect_short_url(short):
         original_url = html.unescape(result[0])
         visits = result[1] if result[1] is not None else 0
 
-        # Increment visits and update last_accessed
+        # **Normalize encoding properly**
+        normalized_original = urllib.parse.unquote_plus(original_url).strip()
+
+        log_event(f"🔍 Checking Original URL: {original_url}")
+        log_event(f"🔍 Normalized Original URL: {normalized_original}")
+
+        for entry in blocked_urls:
+            blocked_url = urllib.parse.unquote_plus(entry["full_url"]).strip()
+
+            log_event(f"🔍 Checking against blocklist (Normalized): {blocked_url}")
+
+            # **Exact Full URL Match**
+            if normalized_original == blocked_url:
+                log_event(f"🚫 Blocked full URL match: {original_url}")
+                conn.close()
+                return redirect(get_warning_url(entry["reason"]), code=302)
+
+            # **Step 4: Check if 'p=' parameter matches**
+            parsed_original = urllib.parse.urlparse(original_url)
+            original_params = dict(urllib.parse.parse_qsl(parsed_original.query))
+            blocked_params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(entry["full_url"]).query))
+
+            # Normalize `p=` parameter encoding
+            if "p" in blocked_params and urllib.parse.unquote_plus(blocked_params["p"]) == urllib.parse.unquote_plus(original_params.get("p", "")):
+                log_event(f"🚫 Blocked due to 'p=' parameter match: {original_url}")
+                conn.close()
+                return redirect(get_warning_url(entry["reason"]), code=302)
+
+        # **Step 5: If not blocked, update visit count and redirect**
         cursor.execute(
             "UPDATE urls SET visits = ?, last_accessed = CURRENT_TIMESTAMP WHERE short = ?",
             (visits + 1, short)
@@ -100,19 +183,18 @@ def redirect_short_url(short):
         conn.commit()
         conn.close()
 
-        # Redirect to the original URL
+        log_event(f"✅ Allowed URL: {original_url}")
         return redirect(original_url, code=302)
 
-    # Close the connection if the short URL is not found
+    # **Step 6: Handle invalid short URLs**
     conn.close()
+    log_event(f"❌ Invalid short URL: {short}")
 
-    # Handle as a static file if it’s not a valid short URL
     try:
         return send_from_directory('.', short)
     except FileNotFoundError:
-        pass  # Continue to 404 handling
+        pass
 
-    # Return 404 for invalid short URLs or files
     return jsonify({"error": "URL not found"}), 404
 
 # get visitor counter and time of last visit
@@ -133,19 +215,38 @@ def get_visits():
     data = cursor.fetchall()
     conn.close()
 
-    # Log fetched data for debugging
-    app.logger.debug(f"Fetched data: {data}")
+    # Calculate URL age and time until deletion
+    now = datetime.utcnow()
+    deletion_time_limit = timedelta(days=2100)  # URLs expire after 2100 days
 
-    return jsonify([
-        {
+    result = []
+    for short, original, timestamp, visits, last_accessed in data:
+        created_at = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+
+        # Calculate age (now - creation time)
+        age = now - created_at
+        url_age = f"{age.days//365}Y:{(age.days%365)//30}M:{age.days%30}D:{age.seconds//3600}H:{(age.seconds%3600)//60}M"
+
+        # Calculate time until deletion (creation time + 180 days - now)
+        deletion_time = created_at + deletion_time_limit
+        time_remaining = deletion_time - now
+
+        if time_remaining.total_seconds() > 0:
+            time_till_deletion = f"{time_remaining.days//365}Y:{(time_remaining.days%365)//30}M:{time_remaining.days%30}D:{time_remaining.seconds//3600}H:{(time_remaining.seconds%3600)//60}M"
+        else:
+            time_till_deletion = "EXPIRED"
+
+        result.append({
             "short": short,
             "original": original,
             "timestamp": timestamp,
             "visits": visits,
-            "last_accessed": last_accessed
-        }
-        for short, original, timestamp, visits, last_accessed in data
-    ])
+            "last_accessed": last_accessed,
+            "url_age": url_age,
+            "time_till_deletion": time_till_deletion
+        })
+
+    return jsonify(result)
     
 @app.route('/<path:filename>', methods=['GET'])
 def serve_static_file(filename):
