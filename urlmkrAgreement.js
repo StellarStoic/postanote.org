@@ -183,7 +183,7 @@ agreementText.addEventListener('scroll', () => {
 // Utility function to set a cookie
 function setCookie(name, value, days) {
     const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Convert days to milliseconds
+    date.setUTCFullYear(date.getUTCFullYear() + 1); // Always add 1 year
     const expires = `expires=${date.toUTCString()}`;
     document.cookie = `${name}=${value};${expires};path=/`;
     console.log('Cookie expiration date:', date.toUTCString());

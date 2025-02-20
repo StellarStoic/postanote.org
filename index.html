@@ -134,6 +134,24 @@
 
 <script>
 
+// Utility function to set a cookie with a specific expiration in days
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setUTCFullYear(date.getUTCFullYear() + 1); // Ensure exactly 1 year
+    document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/; Secure; SameSite=Lax`;
+}
+
+// Utility function to retrieve a cookie value
+function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+    for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.split("=");
+        if (cookieName === name) return cookieValue;
+    }
+    return null;
+}
+
+
 // Function to load JSON files
 async function loadJson(file) {
     const response = await fetch(file);
@@ -1065,15 +1083,15 @@ var h2b = (h) =>
     relaySubscriptions = [];
 
 async function generateNewKeys() {
-    if (!document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true")) {
+    if (!getCookie("snofl_random_Nostr_ID_cookie_consent")) {
     // Alert the user about the Lorem Ipsum consent requirement
     const consent = confirm(
-        "This website requires your consent to generate a random Nostr ID. By agreeing, a cookie will be stored with your agreement for 1 year. Do you accept?"
+        "This website requires your consent to generate a random Nostr ID. By agreeing, a cookie will be stored in your device with your agreement for 1 year. Do you accept?"
     );
 
     if (consent) {
         // Set the consent cookie if they agree
-        document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+        setCookie("snofl_random_Nostr_ID_cookie_consent", "true", 365); // Set the consent cookie
         console.log("User consent granted.");
     } else {
         console.warn("User did NOT consent to key generation. Touché.");
@@ -1395,7 +1413,7 @@ document.getElementById("avatarIcon").onclick = function () {
     const pkExists = localStorage.getItem("nostr_pk");
     const pubExists = localStorage.getItem("nostr_pub");
     const urlParams = new URLSearchParams(window.location.search);
-    const userConsented = document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true"); // Check if consent exists
+    const userConsented = getCookie("snofl_random_Nostr_ID_cookie_consent"); // Check if consent exists
 
     // Block new ID generation without URL parameters
     if (!urlParams.toString()) {
@@ -1413,7 +1431,7 @@ document.getElementById("avatarIcon").onclick = function () {
             );
 
             if (consent) {
-                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString(); // Store consent
+                setCookie("snofl_random_Nostr_ID_cookie_consent", "true", 365); // Store consent
                 generateNewKeys(); // Generate only after consent
             } else {
                 alert("You declined to create a Nostr ID. If you change your mind, click the Avatar again.");
@@ -2005,7 +2023,7 @@ This was your last warning! By clicking OK, you will wipe your previous interact
         ) {
             localStorage.clear();
             // Delete consent cookie
-            document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+            setCookie("snofl_random_Nostr_ID_cookie_consent", "false", -1); // Expire immediately
 
             alert("All data, including your consent cookie, has been erased.");
             location.reload(); // Reload to reflect changes
@@ -2242,7 +2260,7 @@ document.getElementById("closeRelayWarning").onclick = function () {
 document.addEventListener('DOMContentLoaded', () => {
     const pkExists = localStorage.getItem("nostr_pk");
     const pubExists = localStorage.getItem("nostr_pub");
-    const userConsented = document.cookie.includes("snofl_random_Nostr_ID_cookie_consent=true"); // Check if consent exists
+    const userConsented = getCookie("snofl_random_Nostr_ID_cookie_consent"); // Check if consent exists
 
 
 if (!pkExists || !pubExists) {
@@ -2255,7 +2273,7 @@ if (!pkExists || !pubExists) {
             );
 
             if (consent) {
-                document.cookie = "snofl_random_Nostr_ID_cookie_consent=true; path=/; expires=" + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString(); // Store consent to avoid asking again
+                setCookie("snofl_random_Nostr_ID_cookie_consent", "true", 365); // Store consent to avoid asking again
                 generateNewKeys();
             } else {
                 alert("You declined to create a random Nostr ID. Without one, you cannot use this page. Sorry. If you change your mind, reload the page or click on Avatar to create a new random ID");
