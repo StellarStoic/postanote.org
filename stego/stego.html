@@ -181,6 +181,11 @@
       color: #F0F8FF; /* Alice Blue */
     }
 
+    #imageHiddenDownloadLink {
+      display: none;
+      color: #F0F8FF; /* Alice Blue */
+    }
+
 
     /* Nostr Section (light purple theme) */
     .nostr-section {
@@ -590,8 +595,9 @@
     <a id="fileHiddenDownloadLink" style="display:none;">Download Secret File</a>
   </div>
   <!-- Decoded image preview (only shown if an image was extracted) -->
-  <div class="thumbnail-container">
-    <img id="decodedThumbnail" alt="Decoded Image Preview" >
+  <div class="decodedImage-thumbnail-container thumbnail-container" >
+    <img id="decodedThumbnail" alt="Decoded Image Preview" style="display:none;">
+    <a id="imageHiddenDownloadLink">Download Decoded Image</a>
   </div>
   </div>
   <br>
@@ -659,7 +665,6 @@
       });
     }
 
-    // Modal functionality
     // Modal functionality using the template.
     const helpIcon = document.getElementById("helpIcon");
     const infoModal = document.getElementById("infoModal");

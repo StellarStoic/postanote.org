@@ -219,8 +219,31 @@ function decodeFileStego() {
         const imgPreview = document.getElementById("decodedThumbnail");
         imgPreview.src = payloadJSON.data;
         imgPreview.style.display = "block";
+
+        // ✅ Ensure the download button exists and is placed correctly
+        let downloadLink = document.getElementById("imageHiddenDownloadLink");
+
+        if (!downloadLink) {
+            downloadLink = document.createElement("a");
+            downloadLink.id = "imageHiddenDownloadLink";
+            downloadLink.textContent = "Download Decoded Image";
+            downloadLink.className = "download-button";
+            downloadLink.style.display = "none"; // Initially hidden
+        }
+
+        downloadLink.href = payloadJSON.data;
+        downloadLink.download = payloadJSON.name || "decoded_image.png";
+        downloadLink.style.display = "block"; // Make it visible
+
+        // Place btn below the decoded image
+        const thumbnailContainer = document.querySelector(".decodedImage-thumbnail-container");
+        if (thumbnailContainer && !thumbnailContainer.contains(downloadLink)) {
+            thumbnailContainer.appendChild(downloadLink);
+        }
+
         // 🎇 Trigger sparkle effect for successful image extraction
         triggerSparkleEffect();
+
 
       } else if (payloadJSON.type === "text/plain") {
         // For plain text, decode and display in the text container
