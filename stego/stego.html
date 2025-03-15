@@ -410,6 +410,10 @@
         <li><em>Two Zero-Width Characters Method (ZWNJ & ZWJ):</em> Binary data hidden using two zero-width characters.</li>
         <li><em>Three Zero-Width Characters Method (ZWSP, ZWNJ & WORD JOINER):</em> Enhanced compatibility with external steganography tools.</li>
         <li><em>File Payload Embedding:</em> Files appended to carriers in Base64 format using unique markers.</li>
+        <li><em>Emoji Steganography Decoding (Decode-Only):</em> Extracts hidden messages from variation selectors in emojis. 
+          Based on <a href="https://github.com/paulgb/emoji-encoder" target="_blank" rel="noopener noreferrer">Paul Butler’s emoji-encoder</a>, it identifies Unicode VS-1 to VS-256 markers to reconstruct the original 
+          hidden bytes. <strong>Note: This method is for decoding only and does not support encoding.</strong>
+        </li>
       </ul>
       For further exploration, refer to:
       <a href="https://exo.substack.com/p/the-exo-guide-to-data-cloaking" target="_blank">The EXO Guide to Data Cloaking</a>,
@@ -424,13 +428,22 @@
     <p>
       <strong>Nostr Integration:</strong><br>
       The tool uses the Nostr protocol to fetch events and extract hidden messages directly from relays.
-      By entering a Nostr event ID and optionally relay URLs, the tool connects via WebSockets, fetches the event,
-      and displays both the original and hidden secret message hidden in the text or emoji.
+      By entering a Nostr event ID (HEX, note1, nevent) and optionally relay URLs, the tool connects via WebSockets, fetches the event,
+      and displays both the original and hidden secret message hidden in the text or emoji. 
+      When pasting in the nevent string the tool will automatically extract and use its relay hints.
       Secrets in files are not available with this option. For testing purposes, you can use the event ID: 
       <span class="copy-nostr-id" id="nostrEventToCopy" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span>
       <span class="copy-success" id="copySuccessMsg" style="display: none;">✔ Copied!</span>
     </p>
-    
+
+    <p>
+      <strong>Visual effects after successful decoding:</strong><br>
+      If the decoding of files and messages is successful, you will receive visual feedback.
+      In some cases, such as when the message includes at the start of the message prefixes 
+      like <code>bitcoin:</code>, <code>cashu</code>, <code>lnbc</code>, <code>monero:</code>, <code>nostr:</code> and others, 
+      it will show a visual effect relevant to the message content. If no special prefixes are included, you'll only see sparkles.
+      If you have any special visual effects requests, please reach out to me.
+    </p>
 
     <!-- Zap the Developer Section with QR Codes -->
     <div class="zap-dev-section">
