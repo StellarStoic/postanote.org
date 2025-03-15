@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:," />  <!-- Prevents favicon 404 error -->
   <title>Steganography Tool</title>
+  <link rel="stylesheet" href="/stego/emojiConfetti.css">
   <style>
     * {
       box-sizing: border-box;
@@ -173,6 +174,12 @@
     .file-section .thumbnail-container img {
       border: 1px solid #FFA500;
     }
+
+    #stegoDownloadLink {
+      display: none;
+      color: #F0F8FF; /* Alice Blue */
+    }
+
 
     /* Nostr Section (light purple theme) */
     .nostr-section {
@@ -540,7 +547,7 @@
   </div>
   
   <div class="output-container">
-    <a id="stegoDownloadLink" style="display:none;">Download Stego File</a>
+    <a id="stegoDownloadLink">Download file with a secret</a>
   </div>
   <br>
     <hr>
@@ -559,6 +566,9 @@
   <h6>Decoded Hidden Text (if applicable) will show here:</h6>
   <div class="output-container">
     <div id="decodedHiddenText" class="output" style="display:none;">Hidden Text Appears Here</div>
+    <div class="copy-container">
+      <button id="copyDecodedTextButton" class="copy-button" style="display:none;" onclick="copyToClipboard('decodedHiddenText')">Copy</button>
+    </div>
   </div>
 
   <!-- Decoded file download -->
@@ -668,6 +678,8 @@
   </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="text-stego.js"></script>
+    <script src="emojiDecoder.js"></script>
+    <script src="emojiConfetti.js"></script>
     <script src="threeZeroWidthCharactersDecoder.js"></script>
     <script src="file-stego.js"></script>
     <script src="truncate.js"></script>

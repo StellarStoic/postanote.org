@@ -1,0 +1,89 @@
+function checkForConfettiTrigger(secretMessage) {
+    if (!secretMessage) return;
+
+    const trimmedMessage = secretMessage.trimStart();
+    const prefixes = {
+        "cashu": "/img/QRcode_logo/ecash.png",  // Cashu
+        "lnbc": "/img/QRcode_logo/ln.png",  // Lightning
+        "lightning:": "⚡",  // Lightning
+        "bitcoin:": "/img/QRcode_logo/bitcoin.png", // Bitcoin
+        "bc1": "/img/QRcode_logo/bitcoin.png", // Bitcoin
+        "nostr:": "/img/othrIcon/purpleFeather.png", // Nostr
+        "nevent": "/img/othrIcon/purpleFeather.png", // Nostr
+        "note1": "/img/othrIcon/purpleFeather.png", // Nostr
+        "npub": "/img/othrIcon/purpleFeather.png", // Nostr
+        "nsec": "/img/othrIcon/purpleFeather.png", // Nostr
+        "monero:": "/img/QRcode_logo/monero.png", // Monero
+    };
+
+    for (const [prefix, emoji] of Object.entries(prefixes)) {
+        if (trimmedMessage.startsWith(prefix)) {
+            startEmojiConfetti(emoji);
+            break;
+        }
+    }
+}
+
+function startEmojiConfetti(confettiType) {
+    const container = document.createElement('div');
+    container.classList.add('confetti-container');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.pointerEvents = 'none';
+    container.style.overflow = 'hidden';
+    document.body.appendChild(container);
+
+    let isImage = confettiType.endsWith(".png") || confettiType.endsWith(".jpg") || confettiType.endsWith(".jpeg");
+    
+    let active = 0;
+    let spawnFinished = false;
+    const spawnDuration = 3000;
+    const intervalMs = 150;
+
+    const spawner = setInterval(() => {
+        const now = Date.now();
+        const endTime = startTime + spawnDuration;
+        if (now >= endTime) {
+            clearInterval(spawner);
+            spawnFinished = true;
+            if (active === 0) container.remove();
+            return;
+        }
+
+        const confetti = document.createElement('span');  // Wrap in a span
+        confetti.className = 'confetti-emoji';
+
+        const size = 20 + Math.random() * 40; // Random size between 20px - 40px
+
+        if (isImage) {
+            const img = document.createElement('img');
+            img.src = confettiType;
+            img.style.width = `${size}px`; // Match emoji size range
+            img.style.height = "auto";
+            confetti.appendChild(img);
+        } else {
+            confetti.textContent = confettiType;
+            confetti.style.fontSize = `${size}px`; // Match text size
+        }
+
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.top = "-10px"; // Start above the screen
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        container.appendChild(confetti);
+        active++;
+
+        confetti.style.animation = `fall ${3 + Math.random() * 2}s linear`;
+
+        confetti.addEventListener('animationend', () => {
+            confetti.remove();
+            active--;
+            if (spawnFinished && active === 0) container.remove();
+        });
+    }, intervalMs);
+
+    const startTime = Date.now();
+}

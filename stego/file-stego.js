@@ -225,6 +225,24 @@ function decodeFileStego() {
         const textContainer = document.getElementById("decodedHiddenText");
         displayTruncatedText(textContainer, decodedText, 300);
         textContainer.style.display = "block";
+        // 🎉 Check for trigger words (e.g., cashu, lnbc, bc1) and start confetti animation
+        checkForConfettiTrigger(decodedText);
+
+    // ✅ Get the existing copy button and make it visible
+    let copyButton = document.getElementById("copyDecodedTextButton");
+    if (copyButton) {
+        copyButton.style.display = "inline-block";  // Show the button
+    }
+
+    // ✅ Update the function to copy the correct text
+    copyButton.onclick = function () {
+        navigator.clipboard.writeText(decodedText).then(() => {
+            alert("Copied to clipboard!");
+        }).catch(err => {
+            alert("Failed to copy!");
+        });
+    };
+
       } else {
         // For any other type, treat it as a downloadable file
         const hiddenBuffer = base64ToArrayBuffer(payloadJSON.data);

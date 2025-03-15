@@ -77,13 +77,21 @@ function decodeMessage() {
     //     return;
     // }
 
-    if (!encodedMsg.includes(MARKER)) {
+    if (!encodedMsg.includes(MARKER)) { 
         // Try alternative three-char method
         const altDecoded = decodeMessageWithThreeChar(encodedMsg, key);
         if (altDecoded) {
             document.getElementById('decodedOutput').textContent = `\n${altDecoded}`;
+            checkForConfettiTrigger(altDecoded); // Check if we need to trigger confetti
         } else {
-            document.getElementById('decodedOutput').textContent = "No hidden message found using either method.";
+            // Last resort: try emoji-based decoding
+            const emojiDecoded = decodeEmoji(encodedMsg);
+            if (emojiDecoded && emojiDecoded !== "No secrets found.") {
+                document.getElementById('decodedOutput').textContent = `\n${emojiDecoded}`;
+                checkForConfettiTrigger(emojiDecoded); // Check for confetti on emoji decoding
+            } else {
+                document.getElementById('decodedOutput').textContent = "No hidden message found using any method.";
+            }
         }
         hideLoader();
         return;
