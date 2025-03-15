@@ -347,18 +347,21 @@ function hexToBytes(hex) {
             if (decodedText && decodedText.trim()) {
                 hiddenMessage = `\n${decodedText}`;
                 checkForConfettiTrigger(decodedText); // Check if we need to trigger confetti
+                triggerSparkleEffect(); // ✨ Trigger sparkle effect for any successful extraction
             } else {
                 // Fallback to three-char zero-width method
                 const altDecoded = decodeMessageWithThreeChar(content, password);
                 if (altDecoded && altDecoded.trim()) {
                     hiddenMessage = `\n${altDecoded}`;
                     checkForConfettiTrigger(altDecoded); // Check for confetti on three-char decoding
+                    triggerSparkleEffect(); // ✨ Trigger sparkle effect for any successful extraction
                 } else {
                     // Final fallback: emoji-based decoding
                     const emojiDecoded = decodeEmoji(content);
                     if (emojiDecoded && emojiDecoded !== "No secrets found.") {
                         hiddenMessage = `\n${emojiDecoded}`;
                         checkForConfettiTrigger(emojiDecoded); // Check for confetti on emoji decoding
+                        triggerSparkleEffect(); // ✨ Trigger sparkle effect for any successful extraction
                     } else {
                         hiddenMessage = "No hidden message found using any method.";
                     }

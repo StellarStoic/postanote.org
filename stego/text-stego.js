@@ -83,12 +83,14 @@ function decodeMessage() {
         if (altDecoded) {
             document.getElementById('decodedOutput').textContent = `\n${altDecoded}`;
             checkForConfettiTrigger(altDecoded); // Check if we need to trigger confetti
+            triggerSparkleEffect(); // Trigger sparkles as a secondary effect
         } else {
             // Last resort: try emoji-based decoding
             const emojiDecoded = decodeEmoji(encodedMsg);
             if (emojiDecoded && emojiDecoded !== "No secrets found.") {
                 document.getElementById('decodedOutput').textContent = `\n${emojiDecoded}`;
                 checkForConfettiTrigger(emojiDecoded); // Check for confetti on emoji decoding
+                triggerSparkleEffect(); // Trigger sparkles if emoji decoding succeeds
             } else {
                 document.getElementById('decodedOutput').textContent = "No hidden message found using any method.";
             }
@@ -105,6 +107,11 @@ function decodeMessage() {
     
     const decodedOutput = document.getElementById('decodedOutput');
     displayTruncatedText(decodedOutput, decodedText, 300);
+
+    // 🎉 Check for secret trigger words (if applicable) and apply effects
+    checkForConfettiTrigger(decodedText);
+    triggerSparkleEffect(); // Sparkles for general successful decoding
+
     hideLoader(); // Hide loader when decoding is done
 }
 
