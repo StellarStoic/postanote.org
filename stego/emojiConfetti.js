@@ -1,7 +1,7 @@
 function checkForConfettiTrigger(secretMessage) {
-    if (!secretMessage) return;
+    if (!secretMessage) return false; // Ensure there's a message to check
 
-    const trimmedMessage = secretMessage.trimStart();
+    const lowerMessage = secretMessage.toLowerCase(); // Normalize for case-insensitive search
     const prefixes = {
         "cashu": "/img/QRcode_logo/ecash.png",  // Cashu
         "lnbc": "/img/QRcode_logo/ln.png",  // Lightning
@@ -17,11 +17,12 @@ function checkForConfettiTrigger(secretMessage) {
     };
 
     for (const [prefix, emoji] of Object.entries(prefixes)) {
-        if (trimmedMessage.startsWith(prefix)) {
+        if (lowerMessage.includes(prefix)) {  // ✅ Check ANYWHERE in the message
             startEmojiConfetti(emoji);
-            break;
+            return true; // ✅ Confetti triggered, return true
         }
     }
+    return false; // ❌ No confetti triggered
 }
 
 function startEmojiConfetti(confettiType) {

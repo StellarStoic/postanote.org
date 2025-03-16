@@ -251,15 +251,19 @@ function decodeFileStego() {
         const textContainer = document.getElementById("decodedHiddenText");
         displayTruncatedText(textContainer, decodedText, 300);
         textContainer.style.display = "block";
-        // 🎉 Check for trigger words (e.g., cashu, lnbc, bc1) and start confetti animation
-        checkForConfettiTrigger(decodedText);
-        // 🎇 Trigger sparkle effect for successfully decoded text
-        triggerSparkleEffect();
+
+        // ✅ First, check if confetti should trigger
+        let confettiTriggered = checkForConfettiTrigger(decodedText);
+
+        // ✅ If confetti did NOT trigger, then trigger sparkles
+        if (!confettiTriggered) {
+            triggerSparkleEffect();
+        }
 
         // ✅ Get the existing copy button and make it visible
         let copyButton = document.getElementById("copyDecodedTextButton");
         if (copyButton) {
-            copyButton.style.display = "inline-block";  // Show the button
+            copyButton.style.display = "inline-block";
         }
 
         // ✅ Update the function to copy the correct text

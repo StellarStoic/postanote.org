@@ -71,26 +71,30 @@ function decodeMessage() {
         return;
     }
 
-    // if (!encodedMsg.includes(MARKER)) {
-    //     document.getElementById('decodedOutput').textContent = "No hidden message found!";
-    //     hideLoader();
-    //     return;
-    // }
-
     if (!encodedMsg.includes(MARKER)) { 
         // Try alternative three-char method
         const altDecoded = decodeMessageWithThreeChar(encodedMsg, key);
         if (altDecoded) {
             document.getElementById('decodedOutput').textContent = `\n${altDecoded}`;
-            checkForConfettiTrigger(altDecoded); // Check if we need to trigger confetti
-            triggerSparkleEffect(); // Trigger sparkles as a secondary effect
+            // ✅ First, check for confetti trigger
+            let confettiTriggered = checkForConfettiTrigger(altDecoded);
+            
+            // ✅ If confetti was NOT triggered, then trigger sparkles
+            if (!confettiTriggered) {
+                triggerSparkleEffect();
+            }
         } else {
             // Last resort: try emoji-based decoding
             const emojiDecoded = decodeEmoji(encodedMsg);
             if (emojiDecoded && emojiDecoded !== "No secrets found.") {
                 document.getElementById('decodedOutput').textContent = `\n${emojiDecoded}`;
-                checkForConfettiTrigger(emojiDecoded); // Check for confetti on emoji decoding
-                triggerSparkleEffect(); // Trigger sparkles if emoji decoding succeeds
+                // ✅ First, check for confetti trigger
+                let confettiTriggered = checkForConfettiTrigger(emojiDecoded);
+                
+                // ✅ If confetti was NOT triggered, then trigger sparkles
+                if (!confettiTriggered) {
+                    triggerSparkleEffect();
+                }
             } else {
                 document.getElementById('decodedOutput').textContent = "No hidden message found using any method.";
             }
@@ -108,9 +112,13 @@ function decodeMessage() {
     const decodedOutput = document.getElementById('decodedOutput');
     displayTruncatedText(decodedOutput, decodedText, 300);
 
-    // 🎉 Check for secret trigger words (if applicable) and apply effects
-    checkForConfettiTrigger(decodedText);
-    triggerSparkleEffect(); // Sparkles for general successful decoding
+    // ✅ First, check for confetti trigger
+    let confettiTriggered = checkForConfettiTrigger(decodedText);
+    
+    // ✅ If confetti was NOT triggered, then trigger sparkles
+    if (!confettiTriggered) {
+        triggerSparkleEffect();
+    }
 
     hideLoader(); // Hide loader when decoding is done
 }
