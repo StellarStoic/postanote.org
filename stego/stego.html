@@ -571,8 +571,8 @@
   <br>
     <hr>
   <br>
-  <h3>Decode a Secret in a File</h3>
-  <div class="input-container">
+  <h3 id="decodeFileInputContainer">Decode a Secret in a File</h3>
+  <div class="input-container" >
     <label for="stegoFile">Stego File</label>
     <input type="file" id="stegoFile">
   
@@ -626,12 +626,12 @@
   <button id="fetchNostrButton">Fetch Nostr Event</button>
 
   <div class="output-container">
+    <label for="decodedNostrEvent" style="color: #444; font-size: xx-small;">Nostr fetcher decodes <strong style="font-size: x-small;">text and emojis only</strong>. For files like images, download them and use the <a style="color: #aaa; font-size: xx-small;" href="#decodeFileInputContainer">File Decoder Tool</a></label>
     <div id="nostrOriginal" class="output original-message" style="display:none;">Original message appears here</div>
     <div class="copy-container">
       <button class="copy-button" onclick="copyToClipboard('nostrOriginal')">Copy Original</button>
     </div>
   </div>
-
   <div class="output-container">
     <div id="nostrOutput" class="output" style="display:none;">Hidden message appears here</div>
     <div class="copy-container">
@@ -656,14 +656,34 @@
   
   <!-- Scripts -->
   <script>
-    function copyToClipboard(elementId) {
-      let text = document.getElementById(elementId).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-      }).catch(err => {
-        alert("Failed to copy!");
-      });
+function copyToClipboard(elementId) {
+    let element = document.getElementById(elementId);
+
+    if (!element) {
+        alert("Element not found!");
+        return;
     }
+
+    // Clone the element to avoid modifying the original
+    let tempElement = element.cloneNode(true);
+
+    // Remove all download links and media elements from the cloned element
+    tempElement.querySelectorAll("a, img, video").forEach(el => el.remove());
+
+    // Extract only the cleaned-up text content
+    let text = tempElement.textContent.trim();
+
+    if (!text) {
+        alert("Nothing to copy!");
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+    }).catch(err => {
+        alert("Failed to copy!");
+    });
+}
 
     // Modal functionality using the template.
     const helpIcon = document.getElementById("helpIcon");

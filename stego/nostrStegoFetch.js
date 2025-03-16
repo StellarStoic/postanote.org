@@ -384,15 +384,82 @@ function hexToBytes(hex) {
             }
         }
   
-          // Display the hidden message.
-          const outputElement = document.getElementById("nostrOutput");
-          displayTruncatedText(outputElement, hiddenMessage, 300);
-          outputElement.style.display = "block";
+        // Display the hidden message.
+        const outputElement = document.getElementById("nostrOutput");
+        displayTruncatedText(outputElement, hiddenMessage, 300);
+        outputElement.style.display = "block";
   
-          // Also display the original event content in a separate, dimmed container.
-          const originalElement = document.getElementById("nostrOriginal");
-          originalElement.textContent = content;
-          originalElement.style.display = "block";
+        // Also display the original event content in a separate, dimmed container.
+        const originalElement = document.getElementById("nostrOriginal");
+        originalElement.textContent = content;
+        originalElement.style.display = "block";
+
+
+        // **Extract and display image, video, and file links from the original content**
+        const urlRegex = /https?:\/\/[^\s]+/g;
+        const imageExtRegex = /\.(?:png|jpe?g|gif|webp)(?=$|[?#])/i;
+        const videoExtRegex = /\.(?:mp4|webm|ogg)(?=$|[?#])/i;
+        const fileExtRegex = /\.(?:zip|pdf|txt|mp3|csv|json|docx?)(?=$|[?#])/i;
+
+        const allUrls = content.match(urlRegex) || [];
+        let attachmentsFound = false;
+
+        allUrls.forEach(rawUrl => {
+            // Remove trailing punctuation (like ".,!?;")
+            const url = rawUrl.replace(/[)\]\}.,!?;:"']+$/, "");
+
+            if (imageExtRegex.test(url) || videoExtRegex.test(url)) {
+                if (!attachmentsFound) {
+                    originalElement.appendChild(document.createElement("br"));
+                    attachmentsFound = true;
+                }
+
+                // Create a clickable thumbnail (opens in new tab)
+                const mediaLink = document.createElement("a");
+                mediaLink.href = url;
+                mediaLink.target = "_blank";
+
+                if (imageExtRegex.test(url)) {
+                    // Image thumbnail
+                    const img = document.createElement("img");
+                    img.src = url;
+                    img.alt = "Image";
+                    img.style.maxWidth = "150px";
+                    img.style.maxHeight = "150px";
+                    img.style.margin = "5px";
+                    mediaLink.appendChild(img);
+                } else {
+                    // Video thumbnail
+                    const video = document.createElement("video");
+                    video.src = url;
+                    video.alt = "Video";
+                    video.style.maxWidth = "150px";
+                    video.style.maxHeight = "150px";
+                    video.style.margin = "5px";
+                    video.controls = true; // Allow play/pause
+                    mediaLink.appendChild(video);
+                }
+
+                originalElement.appendChild(mediaLink);
+            } else if (fileExtRegex.test(url)) {
+                if (!attachmentsFound) {
+                    originalElement.appendChild(document.createElement("br"));
+                    attachmentsFound = true;
+                }
+
+                // Create a download button for files
+                const fileName = url.split("/").pop().split("?")[0].split("#")[0];
+                const downloadLink = document.createElement("a");
+                downloadLink.href = url;
+                downloadLink.textContent = "Download " + fileName;
+                downloadLink.target = "_blank";
+                downloadLink.setAttribute("download", fileName);
+                downloadLink.style.display = "block";
+                downloadLink.style.color = "#ffff";
+                downloadLink.style.margin = "5px 0";
+                originalElement.appendChild(downloadLink);
+            }
+        });
   
           // Close all WebSocket connections.
           wsConnections.forEach(wsConn => {
