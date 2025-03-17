@@ -1,3 +1,5 @@
+// clickToCopy is for the about modal and the qr codes
+
 document.addEventListener("DOMContentLoaded", () => {
     // console.log("DOM fully loaded. Searching for QR codes...");
 

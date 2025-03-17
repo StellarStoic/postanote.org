@@ -52,6 +52,12 @@ function encodeFileStego() {
     return;
   }
 
+  if (hiddenInput.files.length > 0 && hiddenTextInput !== "") {
+    alert("You can only hide either a file or text, not both. Please choose one.");
+    hideLoader();
+    return;
+  }
+
   if (hiddenInput.files.length === 0 && hiddenTextInput === "") {
     alert("Please enter hidden text or select a hidden file.");
     hideLoader(); // Hide loader on error
@@ -97,7 +103,8 @@ function encodeFileStego() {
     hiddenMeta = {
       name: "hidden_text.txt",
       type: "text/plain",
-      data: window.btoa(hiddenTextInput),
+    //   data: window.btoa(hiddenTextInput),
+    data: btoa(unescape(encodeURIComponent(hiddenTextInput))), // Ensure UTF-8 encoding,
     };
     proceedWithEncoding(hiddenMeta, carrierFile, encryptionKey);
   }
@@ -247,7 +254,9 @@ function decodeFileStego() {
 
       } else if (payloadJSON.type === "text/plain") {
         // For plain text, decode and display in the text container
-        const decodedText = window.atob(payloadJSON.data);
+        // Convert Base64 to UTF-8 correctly
+        const decodedText = decodeURIComponent(escape(atob(payloadJSON.data))); 
+        hiddenMessage = `\n${decodedText}`;
         const textContainer = document.getElementById("decodedHiddenText");
         displayTruncatedText(textContainer, decodedText, 300);
         textContainer.style.display = "block";
