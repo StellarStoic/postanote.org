@@ -17,7 +17,10 @@ function checkForConfettiTrigger(secretMessage) {
     };
 
     for (const [prefix, emoji] of Object.entries(prefixes)) {
-        if (lowerMessage.includes(prefix)) {  // ✅ Check ANYWHERE in the message
+        // if (lowerMessage.includes(prefix)) {  // ✅ Check ANYWHERE in the message
+        // Build a regex to match the prefix only if it starts at the beginning of a word
+        const regex = new RegExp(`\\b${prefix}`, 'i'); // \b = word boundary, 'i' = case insensitive
+        if (regex.test(secretMessage)) {
             startEmojiConfetti(emoji);
             return true; // ✅ Confetti triggered, return true
         }
