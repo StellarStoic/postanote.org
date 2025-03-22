@@ -11,9 +11,26 @@
     * {
       box-sizing: border-box;
     }
+
+    body.dark-theme {
+      --background-color: #121212;
+      --background-reverse-color: #f0f0f0;
+      --text-color: #00ff00;
+      --file-color: #FFA500;
+      --nostr-color: #9457b0;
+    }
+
+    body.light-theme {
+      --background-color: #f0f0f0;
+      --background-reverse-color:#121212;
+      --text-color: #267b3a;
+      --file-color: #70592d;
+      --nostr-color: #4d245e;
+    }
+
     body {
-      background-color: #121212;
-      color: #00ff00;
+      background-color: var(--background-color);
+      color: var(--text-color);
       font-family: monospace, Arial, Helvetica, sans-serif;
       display: flex;
       flex-direction: column;
@@ -49,7 +66,7 @@
       font-size: 14px;
       margin-bottom: 5px;
       display: block;
-      color: #00ff00;
+      color: var(--text-color);
     }
     textarea, input, button {
       width: 100%;
@@ -57,8 +74,8 @@
       padding: 12px;
       margin: 10px 0;
       border: 1px solid #00ff00;
-      background-color: #1e1e1e;
-      color: #00ff00;
+      background-color: var(--background-color);
+      color: var(--text-color);
       font-size: 16px;
       border-radius: 5px;
       transition: all 0.3s ease-in-out;
@@ -95,8 +112,8 @@
       margin-top: 5px;
     }
     .copy-button {
-      background-color: #00ff00;
-      color: #121212;
+      background-color: var(--text-color);
+      color: var(--background-color);
       border: none;
       cursor: pointer;
       padding: 5px 10px;
@@ -104,7 +121,7 @@
       border-radius: 3px;
     }
     .copy-button:hover {
-      background-color: #00cc00;
+      background-color: var(--text-color);
     }
     /* New: Carrier image thumbnail */
     .thumbnail-container {
@@ -141,14 +158,14 @@
     /*file section styling*/
 
     .file-section {
-      color: #FFA500;
+      color: var(--file-color);
       width: 100%;
       max-width: 550px; /* Match the input container's max-width */
     }
 
     /* Change the labels to orange */
     .file-section .input-container label {
-      color: #FFA500;
+      color: var(--file-color);
     }
 
     /* Override input, textarea, and button styling for the file section */
@@ -156,19 +173,19 @@
     .file-section textarea,
     .file-section button {
       border: 1px solid #FFA500;
-      color: #FFA500;
+      color: var(--file-color);
     }
 
     /* Adjust the output box border and text color */
     .file-section .output {
       border: 1px dashed #FFA500;
-      color: #FFA500;
+      color: var(--file-color);
     }
 
     /* Change the copy button background for file section */
     .file-section .copy-button {
-      background-color: #FFA500;
-      color: #121212;
+      background-color: var(--file-color);
+      color: var(--background-color);
     }
 
     /* Update thumbnail image border */
@@ -178,29 +195,29 @@
 
     #stegoDownloadLink {
       display: none;
-      color: #F0F8FF; /* Alice Blue */
+      color: var(--background-reverse-color); /* Alice Blue */
     }
 
     #imageHiddenDownloadLink {
       display: none;
-      color: #F0F8FF; /* Alice Blue */
+      color: var(--background-color); /* Alice Blue */
     }
 
 
     /* Nostr Section (light purple theme) */
     .nostr-section {
-      color: #9457b0; /* dark purple */
+      color: var(--nostr-color); /* dark purple */
       width: 100%;
       max-width: 550px; /* Match the input container's max-width */
     }
     .nostr-section h2, .nostr-section h3, .nostr-section label {
-      color: #9457b0; /* dark purple */
+      color: var(--nostr-color); /* dark purple */
     }
     .nostr-section input,
     .nostr-section textarea,
     .nostr-section button {
       border: 1px solid #9457b0;
-      color: #9457b0;
+      color: var(--nostr-color);
     }
     .nostr-section .original-message {
       opacity: 0.6;
@@ -212,11 +229,11 @@
     }
     .nostr-section .output {
       border: 1px dashed #9457b0;
-      color: #9457b0;
+      color: var(--nostr-color);
     }
     .nostr-section .copy-button {
-      background-color: #9457b0;
-      color: #fff;
+      background-color: var(--nostr-color);
+      color: var(--background-color);
     }
 
     /* Modal styling */
@@ -232,8 +249,8 @@
       display: none;
     }
     .modal-content {
-      background-color: #181818;
-      color: #FFA500;
+      background-color: var(--background-color);
+      color: var(--file-color);
       margin: 10% auto;
       padding: 20px;
       border: 1px solid #888;
@@ -244,7 +261,7 @@
     }
     /* Light grey color for links inside the modal */
     .modal-content a {
-        color: lightgrey;
+        color: var(--background-reverse-color);
         text-decoration: underline;
     }
 
@@ -377,6 +394,11 @@
     <img src="/img/othrIcon/question-mark.png" alt="Help">
   </div>
 
+  <!-- Theme Toggle Icon -->
+  <div id="themeToggle" style="position: absolute; top: 20px; left: 20px; cursor: pointer;">
+    <img id="themeIcon" src="/img/othrIcon/spy_dark.png" alt="Toggle Theme" width="30" height="30">
+  </div>
+
   <!-- Modal (empty initially) -->
   <div id="infoModal" class="modal">
     <div class="modal-content" id="modalContent">
@@ -495,7 +517,7 @@
     <input type="file" id="hiddenFile"> -->
     
     <label for="encryptionKey">Optional Encryption Key</label>
-    <input type="password" id="encryptionKey" placeholder="Optional encryption key" autocomplete="new-password">
+    <input type="password" id="encryptionKey" placeholder="*** 🔐 ***" autocomplete="new-password">
   </div>
   
   <button id="encodeButton">Encode</button>
@@ -517,7 +539,7 @@
     <textarea id="encodedMessage" placeholder="Paste encoded emoji or text here"></textarea>
   
     <label for="decryptionKey">Decryption Key (if used)</label>
-    <input type="password" id="decryptionKey" placeholder="Enter decryption key (if used)" autocomplete="new-password">
+    <input type="password" id="decryptionKey" placeholder="Decryption key (if used) 🔑" autocomplete="new-password">
   </div>
   
   <button id="decodeButton">Decode</button>
@@ -537,9 +559,9 @@
   <!-- File Steganography Section -->
   <div class="file-section">
   <h2>File Steganography</h2>
-  <h3>Encode a File</h3>
+  <h3>Encode a secret in a file</h3>
   <div class="input-container">
-    <label for="carrierFile">Carrier File (e.g., image, video)</label>
+    <label for="carrierFile">Carrier File (e.g., image, video...)</label>
     <input type="file" id="carrierFile">
     <label for="fileHiddenFile">Hidden File</label>
     <input type="file" id="fileHiddenFile">
@@ -548,7 +570,7 @@
     <textarea id="hiddenText" placeholder="Enter text to hide instead of a file"></textarea>
   
     <label for="fileEncryptionKey">Optional Encryption Key</label>
-    <input type="password" id="fileEncryptionKey" placeholder="Optional encryption key" autocomplete="new-password">
+    <input type="password" id="fileEncryptionKey" placeholder="*** 🔐 ***" autocomplete="new-password">
   </div>
   <button onclick="encodeFileStego()">Encode File</button>
 
@@ -572,11 +594,13 @@
   <br>
   <h3 id="decodeFileInputContainer">Decode a Secret in a File</h3>
   <div class="input-container" >
-    <label for="stegoFile">Stego File</label>
+    <label for="stegoFile">Choose a file</label>
     <input type="file" id="stegoFile">
+    <label for="stegoFile">or paste a file URL</label>
+    <input type="text" id="stegoFileUrl" placeholder="file URL as https://example.com/file.png">
   
     <label for="fileDecryptionKey">Decryption Key (if used)</label>
-    <input type="password" id="fileDecryptionKey" placeholder="Enter decryption key (if used)" autocomplete="new-password">
+    <input type="password" id="fileDecryptionKey" placeholder="Decryption key (if used) 🔑" autocomplete="new-password">
   </div>
   <button onclick="decodeFileStego()">Decode File</button>
 
@@ -612,7 +636,7 @@
   </div>
   <div class="input-container">
     <label for="nostrDecryptionKey">Decryption Key (if used)</label>
-    <input type="password" id="nostrDecryptionKey" placeholder="Enter decryption key">
+    <input type="password" id="nostrDecryptionKey" placeholder="Decryption key (if used) 🔑">
   </div>
   <!-- Relay inputs container -->
   <div id="relayContainer" class="input-container">
@@ -622,7 +646,10 @@
   <!-- Button to add more relay inputs -->
   <button id="addRelayButton" title="Add Relay">+</button>
   <br>
-  <label for="decodedNostrEvent" style="color: #444; font-size: x-small;">Nostr fetcher decodes <strong>text and emojis only</strong>. For files like images, download them and use the <a style="color: #aaa; font-size: xx-small;" href="#decodeFileInputContainer">File Decoder Tool</a></label>
+  <label for="decodedNostrEvent" style="color: #444; font-size: x-small;">Nostr fetcher decodes 
+    <strong>text and emojis only</strong>. For files like images, download them or copy the URL and use the 
+    <a style="color: #aaa; font-size: xx-small;" href="#decodeFileInputContainer">File Decoder Tool</a>
+  </label>
 
   <button id="fetchNostrButton">Fetch Nostr Event</button>
 
@@ -650,8 +677,8 @@
   </a>
 </div>
 
-<div class="legal-disclaimer" style="font-size: 12px; color: #888; margin-top: 30px; padding: 10px; max-width: 500px; text-align: center; border-top: 1px solid #444;">
-  <strong>Legal Disclaimer:</strong> The creator(s) of this website cannot be held responsible in case of misuse of this website for activities not permitted by law in the user's country.
+<div class="legal-disclaimer" style="font-size: 12px; color: red; margin-top: 30px; padding: 10px; max-width: 500px; text-align: center; border-top: 1px solid #444;">
+  <strong>Legal Disclaimer:</strong> The creator of this website cannot be held responsible in case of misuse of this website for activities not permitted by law in the user's country.
 </div>
   
   <!-- Scripts -->
@@ -716,7 +743,7 @@ function copyToClipboard(elementId) {
     });
   </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
+    <script src="theme.js"></script>
     <script src="emojiDecoder.js"></script>
     <script src="emojiConfetti.js"></script>
     <script src="foundSecrets.js"></script>

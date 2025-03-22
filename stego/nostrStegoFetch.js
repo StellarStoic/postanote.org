@@ -455,7 +455,7 @@ function hexToBytes(hex) {
                 downloadLink.target = "_blank";
                 downloadLink.setAttribute("download", fileName);
                 downloadLink.style.display = "block";
-                downloadLink.style.color = "#ffff";
+                downloadLink.style.color = "var(--background-reverse-color)";
                 downloadLink.style.margin = "5px 0";
                 originalElement.appendChild(downloadLink);
             }
