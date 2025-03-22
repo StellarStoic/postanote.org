@@ -154,19 +154,31 @@ function proceedWithEncoding(hiddenMeta, carrierFile, encryptionKey) {
 }
 
 // Decode a hidden file from a stego file and restore its original name and type
-function decodeFileStego() {
+async function decodeFileStego() {
   const stegoInput = document.getElementById('stegoFile');
+  const stegoUrl = document.getElementById('stegoFileUrl').value.trim();
   const decryptionKey = document.getElementById('fileDecryptionKey').value;
 
-  if (stegoInput.files.length === 0) {
-    alert("Please select a stego file.");
+  let fileBuffer = null;
+
+  // If user provides a URL and no local file, fetch from URL
+  if (stegoInput.files.length === 0 && stegoUrl) {
+    try {
+      const response = await fetch(stegoUrl);
+      if (!response.ok) throw new Error("Failed to fetch the file from the URL.");
+      fileBuffer = await response.arrayBuffer();
+    } catch (error) {
+      alert("Error fetching file: " + error.message);
+      return;
+    }
+  } else if (stegoInput.files.length > 0) {
+    fileBuffer = await stegoInput.files[0].arrayBuffer();
+  } else {
+    alert("Please select a file or enter a file URL.");
     return;
   }
 
-  const readerStego = new FileReader();
-  readerStego.onload = function (e) {
-    const buffer = e.target.result;
-    const bytes = new Uint8Array(buffer);
+    const bytes = new Uint8Array(fileBuffer);
     let text = new TextDecoder().decode(bytes);
 
     // Look for the marker in the text
@@ -292,11 +304,12 @@ function decodeFileStego() {
         downloadLink.download = payloadJSON.name || "extracted_hidden_file";
         downloadLink.href = URL.createObjectURL(hiddenBlob);
         downloadLink.style.display = 'block';
+        downloadLink.style.color = 'var(--background-reverse-color)';
         downloadLink.textContent = "Download Hidden File";
         // 🎇 Trigger sparkle effect for extracted hidden files
         triggerSparkleEffect();
       }
-  };
+
 
   readerStego.readAsArrayBuffer(stegoInput.files[0]);
 }
