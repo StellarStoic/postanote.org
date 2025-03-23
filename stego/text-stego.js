@@ -25,6 +25,16 @@ function textToBinary(text) {
         .join(ZWSP);
 }
 
+function clearEncodeOutput() {
+    const encodedOutput = document.getElementById("encodedOutput");
+    if (encodedOutput) encodedOutput.textContent = "";
+}
+
+function clearDecodeOutput() {
+    const decodedOutput = document.getElementById("decodedOutput");
+    if (decodedOutput) decodedOutput.textContent = "";
+}
+
 // Convert binary back to text
 function binaryToText(binaryString) {
     if (!binaryString) return "";
@@ -35,6 +45,8 @@ function binaryToText(binaryString) {
 
 // **Encode Function** - Handles encryption and text-only steganography
 function encodeMessage() {
+    clearEncodeOutput(); // Clear the output area before encoding
+
     let msg1 = document.getElementById('visibleMessage').value.trim();
     let hiddenText = document.getElementById('hiddenMessage').value.trim();
     let key = document.getElementById('encryptionKey').value;
@@ -58,13 +70,14 @@ function encodeMessage() {
 
 // **Decode Function** - Extracts and displays hidden text
 function decodeMessage() {
+    clearDecodeOutput(); // Clear only decoding output
     showLoader(); // Show loader when decoding starts (if defined)
     
     let encodedMsg = document.getElementById('encodedMessage').value.trim();
     let key = document.getElementById('decryptionKey').value;
 
     // Check if the encoded message is too large to decode safely.
-    const MAX_ENCODED_LENGTH = 1000000;
+    const MAX_ENCODED_LENGTH = 10000000;
     if (encodedMsg.length > MAX_ENCODED_LENGTH) {
         alert("Encoded message is too large to decode safely. Please use a smaller message.");
         hideLoader();
@@ -106,8 +119,30 @@ function decodeMessage() {
     let hiddenPart = encodedMsg.split(MARKER)[1];
     let binaryString = hiddenPart.replace(new RegExp(ZWNJ, 'g'), "0").replace(new RegExp(ZWJ, 'g'), "1");
     let decodedText = binaryToText(binaryString);
+    const isEncrypted = decodedText.startsWith("U2FsdGVkX1"); // Detect if the message is encrypted (starts with AES prefix)
+
+    if (isEncrypted && !key) {
+        const decodedOutput = document.getElementById('decodedOutput');
+        displayTruncatedText(decodedOutput, decodedText, 300); // Show it first
+        hideLoader();
     
-    if (key) decodedText = decrypt(decodedText, key);
+        // Slight delay ensures output renders before alert appears
+        setTimeout(() => {
+            alert("This message appears to be encrypted. Enter a decryption key to decode it.");
+        }, 100);
+    
+        return; // ✅ Stop here, no sparkles/confetti
+    }
+    
+    if (key) {
+        const decrypted = decrypt(decodedText, key);
+        if (decrypted === "Invalid Key!") {
+            hideLoader();
+            alert("Invalid decryption key!");
+            return;
+        }
+        decodedText = decrypted;
+    }
     
     const decodedOutput = document.getElementById('decodedOutput');
     displayTruncatedText(decodedOutput, decodedText, 300);
