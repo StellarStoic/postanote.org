@@ -155,6 +155,8 @@ function proceedWithEncoding(hiddenMeta, carrierFile, encryptionKey) {
 
 // Decode a hidden file from a stego file and restore its original name and type
 async function decodeFileStego() {
+    clearFileStegoOutputs(); // ✅ clear all old content
+    showLoader(); // Show loader as early as possible
   const stegoInput = document.getElementById('stegoFile');
   const stegoUrl = document.getElementById('stegoFileUrl').value.trim();
   const decryptionKey = document.getElementById('fileDecryptionKey').value;
@@ -168,12 +170,14 @@ async function decodeFileStego() {
       if (!response.ok) throw new Error("Failed to fetch the file from the URL.");
       fileBuffer = await response.arrayBuffer();
     } catch (error) {
+        hideLoader(); // ✅ hide on fetch fail
       alert("Error fetching file: " + error.message);
       return;
     }
   } else if (stegoInput.files.length > 0) {
     fileBuffer = await stegoInput.files[0].arrayBuffer();
   } else {
+    hideLoader(); // ✅ hide on fetch fail
     alert("Please select a file or enter a file URL.");
     return;
   }
@@ -184,6 +188,7 @@ async function decodeFileStego() {
     // Look for the marker in the text
     const markerIndex = text.lastIndexOf(FILE_MARKER);
     if (markerIndex === -1) {
+    hideLoader(); // ✅ hide on fetch fail
       alert("No hidden file or text found.");
       return;
     }
@@ -192,6 +197,7 @@ async function decodeFileStego() {
     const firstDelimiter = payloadText.indexOf("||");
 
     if (firstDelimiter === -1) {
+    hideLoader(); // ✅ hide on fetch fail  
       alert("Invalid payload format.");
       return;
     }
@@ -202,12 +208,14 @@ async function decodeFileStego() {
     let payloadJSON;
     if (flag === "ENC") {
       if (decryptionKey.trim() === "") {
+        hideLoader(); // ✅ hide on fetch fail
         alert("Decryption key required for encrypted data.");
         return;
       }
 
       const decrypted = decryptFileData(payloadStr, decryptionKey);
       if (decrypted === "Invalid Key!") {
+        hideLoader(); // ✅ hide on fetch fail
         alert("Invalid decryption key!");
         return;
       }
@@ -215,6 +223,7 @@ async function decodeFileStego() {
       try {
         payloadJSON = JSON.parse(decrypted);
       } catch (e) {
+        hideLoader(); // ✅ hide on fetch fail
         alert("Failed to parse hidden data.");
         return;
       }
@@ -222,12 +231,14 @@ async function decodeFileStego() {
       try {
         payloadJSON = JSON.parse(payloadStr);
       } catch (e) {
+        hideLoader(); // ✅ hide on fetch fail
         alert("Failed to parse hidden data.");
         return;
       }
     }
 
     if (!payloadJSON || !payloadJSON.data) {
+    hideLoader(); // ✅ hide on fetch fail
       alert("No valid hidden data found.");
       return;
     }
@@ -236,8 +247,11 @@ async function decodeFileStego() {
     if (payloadJSON.type.startsWith("image/")) {
         // Display image preview as before
         const imgPreview = document.getElementById("decodedThumbnail");
-        imgPreview.src = payloadJSON.data;
+        imgPreview.src = payloadJSON.data.startsWith("data:")
+            ? payloadJSON.data
+            : `data:${payloadJSON.type};base64,${payloadJSON.data}`;
         imgPreview.style.display = "block";
+        hideLoader(); // ✅ hide on fetch fail
 
         // ✅ Ensure the download button exists and is placed correctly
         let downloadLink = document.getElementById("imageHiddenDownloadLink");
@@ -250,9 +264,12 @@ async function decodeFileStego() {
             downloadLink.style.display = "none"; // Initially hidden
         }
 
-        downloadLink.href = payloadJSON.data;
+        downloadLink.href = payloadJSON.data.startsWith("data:")
+            ? payloadJSON.data
+            : `data:${payloadJSON.type};base64,${payloadJSON.data}`;
         downloadLink.download = payloadJSON.name || "decoded_image.png";
         downloadLink.style.display = "block"; // Make it visible
+        downloadLink.style.color = 'var(--background-reverse-color)'; // Make it visible
 
         // Place btn below the decoded image
         const thumbnailContainer = document.querySelector(".decodedImage-thumbnail-container");
@@ -273,13 +290,16 @@ async function decodeFileStego() {
         displayTruncatedText(textContainer, decodedText, 300);
         textContainer.style.display = "block";
 
+
         // ✅ First, check if confetti should trigger
         let confettiTriggered = checkForConfettiTrigger(decodedText);
-
+        
         // ✅ If confetti did NOT trigger, then trigger sparkles
         if (!confettiTriggered) {
             triggerSparkleEffect();
         }
+
+        hideLoader(); // ✅ hide on fetch fail
 
         // ✅ Get the existing copy button and make it visible
         let copyButton = document.getElementById("copyDecodedTextButton");
@@ -306,10 +326,59 @@ async function decodeFileStego() {
         downloadLink.style.display = 'block';
         downloadLink.style.color = 'var(--background-reverse-color)';
         downloadLink.textContent = "Download Hidden File";
+
+        hideLoader(); // ✅ hide on fetch fail
+
         // 🎇 Trigger sparkle effect for extracted hidden files
         triggerSparkleEffect();
       }
-
-
-  readerStego.readAsArrayBuffer(stegoInput.files[0]);
+//   readerStego.readAsArrayBuffer(stegoInput.files[0]);
 }
+
+function clearFileStegoOutputs() {
+    // Clear image preview
+    const imgPreview = document.getElementById("decodedThumbnail");
+    if (imgPreview) {
+      imgPreview.src = "";
+      imgPreview.style.display = "none";
+    }
+  
+    // Remove dynamic download button if exists
+    const imageDownloadLink = document.getElementById("imageHiddenDownloadLink");
+    if (imageDownloadLink) imageDownloadLink.remove();
+  
+    // Hide generic file download link
+    const fileDownloadLink = document.getElementById("fileHiddenDownloadLink");
+    if (fileDownloadLink) {
+      fileDownloadLink.href = "";
+      fileDownloadLink.style.display = "none";
+    }
+  
+    // Clear text output
+    const textOutput = document.getElementById("decodedHiddenText");
+    if (textOutput) {
+      textOutput.textContent = "";
+      textOutput.style.display = "none";
+    }
+  
+    // Hide copy button
+    const copyButton = document.getElementById("copyDecodedTextButton");
+    if (copyButton) {
+      copyButton.style.display = "none";
+    }
+  
+    // Clear encoded output (if needed)
+    const encodedOutput = document.getElementById("encodedFileTextOutput");
+    if (encodedOutput) {
+      encodedOutput.textContent = "";
+      encodedOutput.style.display = "none";
+    }
+  
+    // Hide stego download link
+    const stegoDownload = document.getElementById("stegoDownloadLink");
+    if (stegoDownload) {
+      stegoDownload.href = "";
+      stegoDownload.style.display = "none";
+    }
+  }
+  
