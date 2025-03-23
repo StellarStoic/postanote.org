@@ -67,26 +67,35 @@ function copyQRCodeTitle(event) {
 
 
 // nostr ID copy 
-document.addEventListener("DOMContentLoaded", function () {
-    const infoModal = document.getElementById("infoModal");
-
-    infoModal.addEventListener("click", function (event) {
-        const nostrEventId = document.getElementById("nostrEventToCopy");
-        const copySuccessMsg = document.getElementById("copySuccessMsg");
-
-        if (nostrEventId && event.target === nostrEventId) {
-            const textToCopy = nostrEventId.textContent.trim();
-
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                copySuccessMsg.style.display = "inline"; // Show "Copied!" message
-
+// nostr ID copy (using same feedback as QR codes)
+document.getElementById("infoModal").addEventListener("click", function (event) {
+    // Check if the clicked element has the "copy-nostr-id" class
+    if (event.target.classList.contains("copy-nostr-id")) {
+        const textToCopy = event.target.textContent.trim();
+        navigator.clipboard.writeText(textToCopy)
+            .then(() => {
+                // Create a floating feedback message, same as for QR codes
+                const feedback = document.createElement("div");
+                feedback.textContent = "Copied to clipboard!";
+                feedback.style.position = "fixed";
+                feedback.style.top = "50%";
+                feedback.style.left = "50%";
+                feedback.style.transform = "translate(-50%, -50%)";
+                feedback.style.background = "rgba(0, 0, 0, 0.75)";
+                feedback.style.color = "#fff";
+                feedback.style.padding = "10px";
+                feedback.style.borderRadius = "5px";
+                feedback.style.zIndex = "9999";
+                document.body.appendChild(feedback);
+                
+                // Remove the feedback after 2 seconds
                 setTimeout(() => {
-                    copySuccessMsg.style.display = "none"; // Hide after 2 seconds
+                    document.body.removeChild(feedback);
                 }, 2000);
-            }).catch(err => {
+            })
+            .catch(err => {
                 console.error("Failed to copy text: ", err);
             });
-        }
-    });
+    }
 });
 
