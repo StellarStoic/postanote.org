@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/stego/foundSecrets.css">
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=major-mono-display:400" rel="stylesheet" />
+  <link href="https://fonts.bunny.net/css?family=alegreya-sans-sc:300" rel="stylesheet" />
   <style>
     * {
       box-sizing: border-box;
@@ -39,7 +40,7 @@
     body {
       background-color: var(--background-color);
       color: var(--text-color);
-      font-family: monospace, Arial, Helvetica, sans-serif;
+      font-family: 'Alegreya Sans SC', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -60,17 +61,23 @@
       top: 0;
     }
 
+    .sectionTitle {
+      font-family: 'Major Mono Display', monospace;
+      margin-top: 20px;
+      font-size: 1.5em;
+    }
+
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
     }
     h2 {
       margin-top: 20px;
-      font-size: 1.4em;
+      font-size: 1.8em;
     }
     h3 {
       margin-top: 20px;
-      font-size: 1em;
+      font-size: 1.5em;
     }
     .input-container {
       width: 100%;
@@ -79,7 +86,7 @@
       margin-bottom: 10px;
     }
     .input-container label {
-      font-size: 14px;
+      font-size: 1.4rem;
       margin-bottom: 5px;
       display: block;
       color: var(--text-color);
@@ -92,7 +99,7 @@
       border: 1px solid var(--text-border);
       background-color: var(--background-color);
       color: var(--text-color);
-      font-size: 16px;
+      font-size: 1.1rem;
       border-radius: 5px;
       transition: all 0.3s ease-in-out;
     }
@@ -133,7 +140,7 @@
       border: none;
       cursor: pointer;
       padding: 5px 10px;
-      font-size: 14px;
+      font-size: 1rem;
       border-radius: 3px;
     }
     .copy-button:hover {
@@ -155,7 +162,7 @@
     }
     .footer {
       margin-top: 20px;
-      font-size: 12px;
+      font-size: 1rem;
       opacity: 0.7;
     }
     .loader {
@@ -163,7 +170,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 20px;
+      font-size: 1.2rem;
       background: rgba(0, 0, 0, 0.8);
       color: #fff;
       padding: 10px 20px;
@@ -196,6 +203,7 @@
     .file-section .output {
       border: 1px dashed var(--file-border);
       color: var(--file-color);
+      font-size: 1.1rem;
     }
 
     /* Change the copy button background for file section */
@@ -237,7 +245,7 @@
     }
     .nostr-section .original-message {
       opacity: 0.6;
-      font-size: 0.85em;
+      font-size: 1.1rem;
       border: 1px dotted var(--nostr-border);
       padding: 5px;
       color: darkgray;
@@ -245,6 +253,7 @@
     }
     .nostr-section .output {
       border: 1px dashed var(--nostr-border);
+      font-size: 1.1rem;
       color: var(--nostr-color);
     }
     .nostr-section .copy-button {
@@ -296,12 +305,6 @@
 
     .copy-nostr-id:hover {
         color: #ffa726;
-    }
-
-    .copy-success {
-        color: #4CAF50;
-        font-weight: bold;
-        margin-left: 8px;
     }
 
     .qr-code-container {
@@ -477,9 +480,29 @@
     </p>
     <p>
       <strong>File Hiding Capabilities:</strong><br>
-      You can hide images, text files, or any file type—each file is encoded (and optionally encrypted) 
-      before being appended to a carrier file.
+      You can hide images, text files, or any file type - each file is encoded (and optionally encrypted) before being appended to a carrier file. 
+      However, please be aware that when you share images online, many social media platforms and websites automatically 
+      compress or convert the file format. This process often reduces file size and standardizes formats, but it may also 
+      remove additional data embedded within the file. In some cases, these platforms strip out metadata or extra hidden 
+      information during upload. As a result, if your hidden data relies on being preserved exactly, it might be altered 
+      or lost once shared on these sites.
     </p>
+    <p>
+        <strong>Best Image Formats for Data and Text Embedding:</strong><br>
+        Lossless image formats are generally the best choice for embedding data, since they preserve every bit of the original 
+        image without discarding information. <em>PNG</em> and <em>TIFF</em> are popular options because they maintain all data, 
+        ensuring that your hidden information remains intact. Other lossless formats, like <em>GIF</em>, can also be used; however, 
+        keep in mind that <em>GIFs</em> are limited to a 256-color palette, which may not be ideal if you require higher color fidelity or 
+        have complex images. Additionally, formats like <em>BMP</em> or lossless modes of <em>WebP</em> might be considered, but 
+        they often have compatibility issues or less efficient compression compared to PNG.<br><br>
+        On the other hand, the vast majority of images on the internet—over 80%—are in the <em>JPEG</em> format. <em>JPEG</em> uses lossy 
+        compression, which significantly reduces file size by discarding some image data. This efficiency is critical for storing 
+        and transferring huge volumes of images (saving gazillions of terabytes of disk space), which is why it is so widely adopted. 
+        However, because <em>JPEG</em> compression removes some data permanently, it is not ideal for embedding information that needs to be 
+        preserved exactly. For preserving hidden data, a lossless format like <em>PNG</em> is usually recommended.
+      </p>
+      
+    
     <p>
       <strong>Nostr Integration:</strong><br>
       The tool uses the Nostr protocol to fetch events and extract hidden messages directly from relays.
@@ -490,7 +513,6 @@
       <span class="copy-nostr-id" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span>
       , or this one and check the image url 
       <span class="copy-nostr-id" title="Click to copy">note1hxdpv5xcneu6vqacrfg4adjh5n7zvue284fdu64x20ezlh900cqsqpdrdj</span>
-      <span class="copy-success" id="copySuccessMsg" style="display: none;">✔ Copied!</span>
     </p>
 
     <p>
@@ -533,7 +555,7 @@
   <h1 id="mainTitle"><canvas></canvas></h1>
   <br>
   <!-- Text Steganography Section -->
-  <h2>Text Steganography</h2>
+  <h2 class="sectionTitle">Text Steganography</h2>
   <h3>Encode a Hidden Message</h3>
   <div class="input-container">
     <label for="visibleMessage">Visible Message (Text or Emoji)</label>
@@ -587,14 +609,14 @@
   <br>
   <!-- File Steganography Section -->
   <div class="file-section">
-  <h2>File Steganography</h2>
+  <h2 class="sectionTitle">File Steganography</h2>
   <h3>Encode a secret in a file</h3>
   <div class="input-container">
     <label for="carrierFile">Carrier File (e.g., image, video...)</label>
     <input type="file" id="carrierFile">
     <label for="fileHiddenFile">Hidden File</label>
     <input type="file" id="fileHiddenFile">
-    <p style="color: #888; font-size: x-small;">Submit either text or a file for encoding, but not both at the same time. Only one object is allowed per submission.</p>
+    <p style="color: #888; font-size: 0.85rem;">Submit either text or a file for encoding, but not both at the same time. Only one object is allowed per submission.</p>
     <label for="hiddenText">Or Enter Hidden Text</label>
     <textarea id="hiddenText" placeholder="Enter text to hide instead of a file"></textarea>
   
@@ -658,7 +680,7 @@
 
 <!-- Nostr Section -->
 <div class="nostr-section">
-  <h2>Nostr Event Stego Fetcher</h2>
+  <h2 class="sectionTitle">Nostr Event Stego Fetcher</h2>
   <div class="input-container">
     <label for="nostrEventId">Enter Nostr Event ID (HEX, note1, nevent)</label>
     <input type="text" id="nostrEventId" placeholder="Enter event ID">
@@ -675,7 +697,7 @@
   <!-- Button to add more relay inputs -->
   <button id="addRelayButton" title="Add Relay">+</button>
   <br>
-  <label for="decodedNostrEvent" style="color: #444; font-size: x-small;">Nostr fetcher decodes 
+  <label for="decodedNostrEvent" style="color: #444; font-size: 0.85rem;">Nostr fetcher decodes 
     <strong>text and emojis only</strong>. For files like images, download them or copy the URL and use the 
     <a style="color: #aaa; font-size: xx-small;" href="#decodeFileInputContainer">File Decoder Tool</a>
   </label>
@@ -706,7 +728,7 @@
   </a>
 </div>
 
-<div class="legal-disclaimer" style="font-size: 12px; color: red; margin-top: 30px; padding: 10px; max-width: 500px; text-align: center; border-top: 1px solid #444;">
+<div class="legal-disclaimer" style="font-size: 0.85rem; color: red; margin-top: 30px; padding: 10px; max-width: 500px; text-align: center; border-top: 1px solid #444;">
   <strong>Legal Disclaimer:</strong> The creator of this website cannot be held responsible in case of misuse of this website for activities not permitted by law in the user's country.
 </div>
   
