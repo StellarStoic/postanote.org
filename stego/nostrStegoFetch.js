@@ -147,8 +147,20 @@ function hexToBytes(hex) {
    * note1, and nevent inputs. If a nevent string is provided, the decoded relay
    * URLs will override existing relay inputs.
    */
-  
+
   function fetchNostrEvent() {
+    showLoader(); // Show loader as early as possible
+
+    let foundEvent = false;
+    let fetchTimeout = null;
+
+    fetchTimeout = setTimeout(() => {
+    if (!foundEvent) {
+        alert("⚠️ Event not found or it does not exist.");
+        hideLoader();
+    }
+    }, 21000); // 21 seconds
+
     // Get the raw input from the event id field.
     let inputVal = document.getElementById("nostrEventId").value.trim();
     
@@ -207,10 +219,9 @@ function hexToBytes(hex) {
     
     if (!eventId) {
       alert("Please enter a Nostr event ID.");
+      hideLoader();
       return;
     }
-    
-    showLoader();
   
     // At the start of fetchNostrEvent, create or clear the error container:
     let errorContainer = document.getElementById("relayErrors");
@@ -252,12 +263,12 @@ function hexToBytes(hex) {
   
     // Array to hold all WebSocket connections for later closure.
     const wsConnections = [];
-    let foundEvent = false;
     let closedCount = 0; // Counter for closed/errored connections
   
     // Generate a unique subscription id to use across all relays.
     const subscriptionId = "nostr-stego-" + Math.random().toString(36).substr(2, 10);
-  
+
+
     relayUrls.forEach(relayUrl => {
       const ws = new WebSocket(relayUrl);
       wsConnections.push(ws);
@@ -278,15 +289,16 @@ function hexToBytes(hex) {
           console.error("Invalid JSON received:", event.data);
           return;
         }
-  
+
         // Check if the message is an EVENT message with our subscription id.
         if (Array.isArray(message) && message[0] === "EVENT" && message[1] === subscriptionId) {
           foundEvent = true; // Mark that we have received an event.
+          clearTimeout(fetchTimeout);  // ✅ Moved here
           
           const eventData = message[2];
           const content = eventData.content;
           let hiddenMessage = "";
-  
+            
           // Check for file stego marker first.
           if (content.includes(FILE_MARKER)) {
             const markerIndex = content.lastIndexOf(FILE_MARKER);
@@ -378,7 +390,7 @@ function hexToBytes(hex) {
                             triggerSparkleEffect();
                         }
                     } else {
-                        hiddenMessage = "No hidden message found using any method.";
+                        hiddenMessage = "No hidden message found in Nostr event text.";
                     }
                 }
             }
@@ -471,6 +483,7 @@ function hexToBytes(hex) {
           hideLoader();
         }
       };
+      
   
       ws.onerror = (err) => {
         console.error("WebSocket error on relay " + relayUrl, err);
