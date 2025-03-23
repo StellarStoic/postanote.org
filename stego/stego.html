@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:," />  <!-- Prevents favicon 404 error -->
-  <title>Steganography Tool</title>
+  <title>Stego Playground</title>
   <link rel="stylesheet" href="/stego/emojiConfetti.css">
   <link rel="stylesheet" href="/stego/foundSecrets.css">
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=major-mono-display:400" rel="stylesheet" />
   <style>
     * {
       box-sizing: border-box;
@@ -16,16 +18,22 @@
       --background-color: #121212;
       --background-reverse-color: #f0f0f0;
       --text-color: #00ff00;
+      --text-border: #00ff00;
       --file-color: #FFA500;
+      --file-border: #FFA500;
       --nostr-color: #9457b0;
+      --nostr-border: #9457b0;
     }
 
     body.light-theme {
       --background-color: #eeeeee;
       --background-reverse-color:#121212;
       --text-color: #267b3a;
+      --text-border: #267b3a;
       --file-color: #70592d;
+      --file-border: #70592d;
       --nostr-color: #4d245e;
+      --nostr-border: #4d245e;
     }
 
     body {
@@ -42,8 +50,16 @@
     }
 
     #mainTitle {
-      color: #888;
+      color: #808080;
+      font-family: 'Major Mono Display', monospace;
     }
+    canvas{
+      height: 100%;
+      width: 100%;
+      left: 0;
+      top: 0;
+    }
+
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
@@ -73,7 +89,7 @@
       max-width: 550px;
       padding: 12px;
       margin: 10px 0;
-      border: 1px solid #00ff00;
+      border: 1px solid var(--text-border);
       background-color: var(--background-color);
       color: var(--text-color);
       font-size: 16px;
@@ -99,7 +115,7 @@
       margin-top: 10px;
     }
     .output {
-      border: 1px dashed #00ff00;
+      border: 1px dashed var(--text-border);
       padding: 10px;
       width: 100%;
       min-height: 70px;
@@ -135,7 +151,7 @@
       max-height: 300px;
       display: none;
       margin: 0 auto;
-      border: 1px solid #00ff00;
+      border: 1px solid var(--file-border);
     }
     .footer {
       margin-top: 20px;
@@ -172,13 +188,13 @@
     .file-section input,
     .file-section textarea,
     .file-section button {
-      border: 1px solid #FFA500;
+      border: 1px solid var(--file-border);
       color: var(--file-color);
     }
 
     /* Adjust the output box border and text color */
     .file-section .output {
-      border: 1px dashed #FFA500;
+      border: 1px dashed var(--file-border);
       color: var(--file-color);
     }
 
@@ -216,19 +232,19 @@
     .nostr-section input,
     .nostr-section textarea,
     .nostr-section button {
-      border: 1px solid #9457b0;
+      border: 1px solid var(--nostr-border);
       color: var(--nostr-color);
     }
     .nostr-section .original-message {
       opacity: 0.6;
       font-size: 0.85em;
-      border: 1px dotted #9457b0;
+      border: 1px dotted var(--nostr-border);
       padding: 5px;
       color: darkgray;
       margin-top: 10px;
     }
     .nostr-section .output {
-      border: 1px dashed #9457b0;
+      border: 1px dashed var(--nostr-border);
       color: var(--nostr-color);
     }
     .nostr-section .copy-button {
@@ -266,7 +282,7 @@
     }
 
     .modal-content a:hover {
-        color: #f3f3f3; /* Slightly brighter grey on hover for better UX */
+        color: #ff9800; /* Slightly brighter grey on hover for better UX */
     }
 
     .copy-nostr-id {
@@ -395,7 +411,7 @@
   </div>
 
   <!-- Theme Toggle Icon -->
-  <div id="themeToggle" style="position: absolute; top: 20px; left: 20px; cursor: pointer;">
+  <div id="themeToggle" style="position: absolute; top: 20px; left: 20px; cursor: pointer; z-index: 3;">
     <img id="themeIcon" src="/img/othrIcon/spy_dark.png" alt="Toggle Theme" width="30" height="30">
   </div>
 
@@ -409,7 +425,7 @@
 
   <!-- Template for modal content -->
   <template id="modalTemplate">
-    <h2>About This Steganography Tool</h2>
+    <h2>About This Steganography Playground</h2>
     <p>
       <strong>Overview:</strong><br>
       This steganography tool allows you to hide secret messages or entire files within visible 
@@ -433,14 +449,25 @@
     </p>
     <p>
       <strong>Steganography Methods:</strong><br>
-      This tool leverages multiple steganography techniques:
+      This tool leverages multiple steganography techniques and <strong>none of them</strong> is LSB (Least Significant Bit):
       <ul>
-        <li><em>Two Zero-Width Characters Method (ZWNJ & ZWJ):</em> Binary data hidden using two zero-width characters.</li>
-        <li><em>Three Zero-Width Characters Method (ZWSP, ZWNJ & WORD JOINER):</em> Enhanced compatibility with external steganography tools.</li>
-        <li><em>File Payload Embedding:</em> Files appended to carriers in Base64 format using unique markers.</li>
-        <li><em>Emoji Steganography Decoding (Decode-Only):</em> Extracts hidden messages from variation selectors in emojis. 
-          Based on <a href="https://github.com/paulgb/emoji-encoder" target="_blank" rel="noopener noreferrer">Paul Butler’s emoji-encoder</a>, it identifies Unicode VS-1 to VS-256 markers to reconstruct the original 
-          hidden bytes. <strong>Note: This method is for decoding only and does not support encoding.</strong>
+        <li>
+          <strong>Two Zero-Width Characters Method (ZWNJ & ZWJ) – Encode & Decode:</strong>
+          Binary data is encoded using <code>\u200C</code> and <code>\u200D</code> to represent bits 0 and 1 respectively. Used for plain text and emoji-based carrier messages.
+        </li>
+        <li>
+          <strong>Three Zero-Width Characters Method (ZWSP, ZWNJ & ZWJ) – Decode-Only (Fallback):</strong>
+          Provides enhanced compatibility for decoding messages hidden with other tools using <code>\u200B</code>, <code>\u200C</code>, and <code>\u200D</code>.
+        </li>
+        <li>
+          <strong>File Payload Embedding – Encode & Decode:</strong>
+          Hides files or text data inside other files (like images or documents) by appending Base64-encoded payloads with a unique marker.
+        </li>
+        <li>
+          <strong>Emoji Steganography (Paul Butler’s Method) – Decode-Only:</strong>
+          Extracts hidden bytes from Unicode variation selectors embedded in emoji characters. 
+          <br><em>Based on <a href="https://github.com/paulgb/emoji-encoder" target="_blank" rel="noopener noreferrer">Paul Butler’s emoji-encoder</a>.</em>
+          <br><strong>Note: This method currently supports decoding only.</strong>
         </li>
       </ul>
       For further exploration, refer to:
@@ -459,8 +486,10 @@
       By entering a Nostr event ID (HEX, note1, nevent) and optionally relay URLs, the tool connects via WebSockets, fetches the event,
       and displays both the original and hidden secret message hidden in the text or emoji. 
       When pasting in the nevent string the tool will automatically extract and use its relay hints.
-      Secrets in files are not available with this option. For testing purposes, you can use the event ID: 
-      <span class="copy-nostr-id" id="nostrEventToCopy" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span>
+      Secrets in files are not available with this option. For testing purposes, you can use this event ID: 
+      <span class="copy-nostr-id" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span>
+      , or this one and check the image url 
+      <span class="copy-nostr-id" title="Click to copy">note1hxdpv5xcneu6vqacrfg4adjh5n7zvue284fdu64x20ezlh900cqsqpdrdj</span>
       <span class="copy-success" id="copySuccessMsg" style="display: none;">✔ Copied!</span>
     </p>
 
@@ -501,7 +530,7 @@
     </div>
   </template>
 
-  <h1 id="mainTitle">Steganography Tool</h1>
+  <h1 id="mainTitle"><canvas></canvas></h1>
   <br>
   <!-- Text Steganography Section -->
   <h2>Text Steganography</h2>
@@ -744,6 +773,7 @@ function copyToClipboard(elementId) {
   </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="theme.js"></script>
+    <script src="h1.js"></script>
     <script src="emojiDecoder.js"></script>
     <script src="emojiConfetti.js"></script>
     <script src="foundSecrets.js"></script>
