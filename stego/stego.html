@@ -488,21 +488,28 @@
       or lost once shared on these sites.
     </p>
     <p>
-        <strong>Best Image Formats for Data and Text Embedding:</strong><br>
-        Lossless image formats are generally the best choice for embedding data, since they preserve every bit of the original 
-        image without discarding information. <em>PNG</em> and <em>TIFF</em> are popular options because they maintain all data, 
-        ensuring that your hidden information remains intact. Other lossless formats, like <em>GIF</em>, can also be used; however, 
-        keep in mind that <em>GIFs</em> are limited to a 256-color palette, which may not be ideal if you require higher color fidelity or 
-        have complex images. Additionally, formats like <em>BMP</em> or lossless modes of <em>WebP</em> might be considered, but 
-        they often have compatibility issues or less efficient compression compared to PNG.<br><br>
-        On the other hand, the vast majority of images on the internet—over 80%—are in the <em>JPEG</em> format. <em>JPEG</em> uses lossy 
-        compression, which significantly reduces file size by discarding some image data. This efficiency is critical for storing 
-        and transferring huge volumes of images (saving gazillions of terabytes of disk space), which is why it is so widely adopted. 
-        However, because <em>JPEG</em> compression removes some data permanently, it is not ideal for embedding information that needs to be 
-        preserved exactly. For preserving hidden data, a lossless format like <em>PNG</em> is usually recommended.
-      </p>
-      
+      <strong>Best Image Formats for Data and Text Embedding:</strong><br>
+      Lossless image formats are generally the best choice for embedding data, since they preserve every bit of the original 
+      image without discarding information. <em>PNG</em> and <em>TIFF</em> are popular options because they maintain all data, 
+      ensuring that your hidden information remains intact. Other lossless formats, like <em>GIF</em>, can also be used; however, 
+      keep in mind that <em>GIFs</em> are limited to a 256-color palette, which may not be ideal if you require higher color fidelity or 
+      have complex images. Additionally, formats like <em>BMP</em> or lossless modes of <em>WebP</em> might be considered, but 
+      they often have compatibility issues or less efficient compression compared to PNG.<br><br>
+      On the other hand, the vast majority of images on the internet—over 80%—are in the <em>JPEG</em> format. <em>JPEG</em> uses lossy 
+      compression, which significantly reduces file size by discarding some image data. This efficiency is critical for storing 
+      and transferring huge volumes of images (saving gazillions of terabytes of disk space), which is why it is so widely adopted. 
+      However, because <em>JPEG</em> compression removes some data permanently, it is not ideal for embedding information that needs to be 
+      preserved exactly. For preserving hidden data, a lossless format like <em>PNG</em> is usually recommended.
+    </p>
     
+    <p><strong>What is Nostr?</strong><br>
+      Nostr, short for “Notes and Other Stuff Transmitted by Relays,” is a permissionless, censorship-resistant, open-source 
+      protocol (and much more...) designed to empower users and uphold the original principles of the internet: decentralization, freedom of expression, 
+      and user control. Unlike traditional social networks like Twitter or Instagram, Nostr operates on a client-relay model, 
+      eliminating centralized servers and giving users full ownership of their identity, data, audience and development on top of it.
+      <br><a href="https://njump.me/" target="_blank">Learn more about Nostr</a>.
+    </p>
+
     <p>
       <strong>Nostr Integration:</strong><br>
       The tool uses the Nostr protocol to fetch events and extract hidden messages directly from relays.
@@ -510,8 +517,8 @@
       and displays both the original and hidden secret message hidden in the text or emoji. 
       When pasting in the nevent string the tool will automatically extract and use its relay hints.
       Secrets in files are not available with this option. For testing purposes, you can use this event ID: 
-      <span class="copy-nostr-id" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span>
-      , or this one and check the image url 
+      <span class="copy-nostr-id" title="Click to copy">0001917b7176006a407f4c7d4a9b7408064fee7db0ad8a5b4f0f825bf0321b1b</span><br>
+      or this one with an image where image contain a hidden message: 
       <span class="copy-nostr-id" title="Click to copy">note1hxdpv5xcneu6vqacrfg4adjh5n7zvue284fdu64x20ezlh900cqsqpdrdj</span>
     </p>
 
