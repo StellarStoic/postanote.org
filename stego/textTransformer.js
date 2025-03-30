@@ -539,40 +539,71 @@
     const modal = document.getElementById("methodInfoModal");
     const title = document.getElementById("methodBubbleTitle");
     const removeBtn = document.getElementById("removeLastMethodBtn");
+    const removeAllBtn = document.getElementById("removeAllMethodsBtn"); // ✅ new button
 
     title.textContent = method.title;
 
-    if (Array.isArray(window.textObfuscator.methodHistory) && index === window.textObfuscator.methodHistory.length - 1) {
-      removeBtn.style.display = "block";
-      removeBtn.onclick = () => {
-        // Reverse the method effect on hidden text
-        const lastMethod = window.textObfuscator.methodHistory.pop();
-        const reverseKey = lastMethod.reverseMethod;
-        const reverseMethod = window.textObfuscator.obfuscationMethods[reverseKey];
-        if (reverseMethod && typeof reverseMethod.func === "function") {
-          const hiddenTextArea = document.getElementById("cipherHiddenMessage");
-          hiddenTextArea.value = reverseMethod.func(hiddenTextArea.value);
-        }
+    const isLast = Array.isArray(window.textObfuscator.methodHistory) && index === window.textObfuscator.methodHistory.length - 1;
 
-        // Remove the bubble
-        bubbleElement.remove();
-        refreshDropdownRestrictions();
-        modal.style.display = "none";
+    // Handle single remove button
+    if (isLast) {
+        removeBtn.style.display = "block";
+        removeAllBtn.style.display = "block"; // ✅ show removeAll button
 
-        // Update the last method bubble with delete button
-        const bubbles = document.querySelectorAll(".method-bubble");
-        if (bubbles.length > 0) {
-          const lastBubble = bubbles[bubbles.length - 1];
-          const newIndex = bubbles.length - 1;
-          const lastMethod = window.textObfuscator.methodHistory[newIndex];
-          showMethodBubbleModal(lastMethod, newIndex, lastBubble);
-        } else {
-          // Hide control buttons if no methods left
-          document.getElementById("methodControlButtons").style.display = "none";
-        }
-      };
+        removeBtn.onclick = () => {
+            // Reverse the method effect on hidden text
+            const lastMethod = window.textObfuscator.methodHistory.pop();
+            const reverseKey = lastMethod.reverseMethod;
+            const reverseMethod = window.textObfuscator.obfuscationMethods[reverseKey];
+            if (reverseMethod && typeof reverseMethod.func === "function") {
+                const hiddenTextArea = document.getElementById("cipherHiddenMessage");
+                hiddenTextArea.value = reverseMethod.func(hiddenTextArea.value);
+            }
+
+            bubbleElement.remove();
+            refreshDropdownRestrictions();
+            modal.style.display = "none";
+
+            // Update the last bubble
+            const bubbles = document.querySelectorAll(".method-bubble");
+            if (bubbles.length > 0) {
+                const lastBubble = bubbles[bubbles.length - 1];
+                const newIndex = bubbles.length - 1;
+                const lastMethod = window.textObfuscator.methodHistory[newIndex];
+                showMethodBubbleModal(lastMethod, newIndex, lastBubble);
+            } else {
+                document.getElementById("methodControlButtons").style.display = "none";
+            }
+        };
+
+        // ✅ Remove ALL methods button
+        removeAllBtn.onclick = () => {
+            // Reverse all methods in reverse order
+            const hiddenTextArea = document.getElementById("cipherHiddenMessage");
+            
+            for (let i = window.textObfuscator.methodHistory.length - 1; i >= 0; i--) {
+                const reverseKey = window.textObfuscator.methodHistory[i].reverseMethod;
+                const reverseMethod = window.textObfuscator.obfuscationMethods[reverseKey];
+                if (reverseMethod && typeof reverseMethod.func === "function") {
+                    hiddenTextArea.value = reverseMethod.func(hiddenTextArea.value);
+                }
+            }
+
+            // ✅ Clear cipherHiddenMessage content too!
+            hiddenTextArea.value = "";
+
+            // Clear method history and bubbles
+            window.textObfuscator.methodHistory = [];
+            document.getElementById("methodSequence").innerHTML = "";
+            document.getElementById("methodControlButtons").style.display = "none";
+            refreshDropdownRestrictions();
+            modal.style.display = "none";
+            showToast("All methods and text have been cleared.");
+        };
+
     } else {
-      removeBtn.style.display = "none";
+        removeBtn.style.display = "none";
+        removeAllBtn.style.display = "none"; // ✅ hide removeAll button when not on last bubble
     }
 
     const rect = bubbleElement.getBoundingClientRect();
@@ -580,11 +611,11 @@
     modal.style.left = `${rect.left}px`;
     modal.style.display = "block";
 
-    // Auto close after 5 seconds
     setTimeout(() => {
-      modal.style.display = "none";
+        modal.style.display = "none";
     }, 5000);
-  }
+}
+
 
   /**
    * Click handler to close modal when clicked outside
