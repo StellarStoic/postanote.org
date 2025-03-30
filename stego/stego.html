@@ -24,6 +24,8 @@
       --file-border: #FFA500;
       --nostr-color: #9457b0;
       --nostr-border: #9457b0;
+      --cipher-color: #07fbff;
+      --cipher-border: #07fbff;
     }
 
     body.light-theme {
@@ -35,6 +37,8 @@
       --file-border: #70592d;
       --nostr-color: #4d245e;
       --nostr-border: #4d245e;
+      --cipher-color: #0a314d;
+      --cipher-border: #0a314d;
     }
 
     body {
@@ -103,6 +107,7 @@
       border-radius: 5px;
       transition: all 0.3s ease-in-out;
     }
+
     textarea {
       resize: vertical;
       min-height: 60px;
@@ -126,6 +131,7 @@
       padding: 10px;
       width: 100%;
       min-height: 70px;
+      max-width: 550px;
       word-break: break-word;
       text-align: left;
     }
@@ -261,6 +267,146 @@
       color: var(--background-color);
     }
 
+    /* cipher section */
+
+    .cipher-section {
+      color: var(--cipher-color); /* dark purple */
+      width: 100%;
+      max-width: 550px; /* Match the input container's max-width */
+    }
+
+    .cipher-section h2, .cipher-section h3, .cipher-section label {
+      color: var(--cipher-color); /* dark purple */
+    }
+
+    #useObfuscation{
+      /* background-color: var(--cipher-color); */
+      border: 1px solid var(--cipher-border);
+      color: var(--cipher-color);
+    }
+    .cipher-section input,
+    .cipher-section textarea,
+    .cipher-section button {
+      border: 1px solid var(--cipher-border);
+      color: var(--cipher-color);
+    }
+    .cipher-section{
+      opacity: 0.6;
+      font-size: 1.1rem;
+      /* border: 1px dotted var(--cipher-border); */
+      padding: 5px;
+      color: darkgray;
+      margin-top: 10px;
+    }
+    .cipher-section .output-box {
+      border: 1px dashed var(--cipher-border);
+      font-size: 1.1rem;
+      color: var(--cipher-color);
+      word-wrap: break-word;
+    }
+
+    /* Change the copy button background for file section */
+    .cipher-section .copy-button {
+      background-color: var(--cipher-color);
+      color: var(--background-color);
+    }
+
+    #methodBubbleTitle {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--cipher-color);
+    }
+
+    #textTransformationMethod {
+  background-color: var(--background-color);        /* Background when closed */
+  color: var(--background-reverse-color);                   /* Text color */
+  border: 2px solid #555;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;     /* Smooth hover effects */
+  appearance: none;
+}
+
+#textTransformationMethod:hover {
+  border-color: #888;
+  background-color: #333;
+}
+
+#textTransformationMethod optgroup {
+  background-color: var(--cipher-color);     /* Changed to blue color */
+  color:var(--background-color);                   /* White text for better contrast */
+  font-weight: bold;             /* Make group labels stand out */
+}
+
+#textTransformationMethod option {
+  background-color: var(--background-color);        /* Background for individual options */
+  color: var(--background-reverse-color);                   /* Text color for options */
+}
+    .method-sequence {
+      margin-top: 10px;
+    }
+    .method-bubble {
+      display: inline-block;
+      padding: 5px 10px;
+      margin: 3px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      color: var(--background-reverse-color);
+    }
+    .mini-modal {
+      position: fixed;
+      background: var(--background-color);
+      color: var(--background-reverse-color);
+      border: 1px solid var(--cipher-border);
+      padding: 10px;
+      z-index: 10000;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    #modalMethodTitle {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--cipher-color);
+      margin-bottom: 8px;
+    }
+
+    .delete-button {
+      background: #ff5555;
+      color: white;
+      padding: 6px 10px;
+      margin-top: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .method-controls{
+      display: flex;               /* Default to flex */
+      justify-content: space-between;   /* Push buttons to edges */
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      align-items: center;
+      margin-top: 10px;
+      flex-direction: row;
+    }
+
+    .method-controls.hidden {
+      display: none;               /* Use JS to toggle this */
+    }
+
+    /* Nice button scaling */
+    .method-controls button {
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      border-radius: 6px;
+      color: var(--cipher-color, #888);
+      cursor: pointer;
+      transition: var(--background-color) 0.3s ease;
+    }
+
+
     /* Modal styling */
     .modal {
       position: fixed;
@@ -284,6 +430,13 @@
       border-radius: 8px;
       text-align: left;
     }
+    /* the textObfuscation description */
+    #modalDescription {
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+    }
+
     /* Light grey color for links inside the modal */
     .modal-content a {
         color: var(--background-reverse-color);
@@ -386,6 +539,62 @@
       width: 30px;
       height: 30px;
     }
+
+    /* toast message instead of alert */
+    #toastContainer {
+      position: fixed; /* Changed from sticky to fixed */
+      top: 20px; /* Distance from top */
+      left: 50%;
+      transform: translateX(-50%); /* Perfect horizontal centering */
+      z-index: 9999;
+      display: none;
+      padding: 12px 24px;
+      background: #333;
+      color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      font-family: sans-serif;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      max-width: 80%; /* Prevents toast from being too wide */
+      text-align: center;
+      pointer-events: none; /* Allows clicking through when hidden */
+    }
+
+    /* Class to show toast with fade-in animation */
+    #toastContainer.show {
+      display: block;
+      opacity: 1;
+    }
+
+    #toastContainer.show {
+    animation: toastSlideIn 0.3s ease-out;
+    }
+
+    /* click functional section separator */
+    .multi-section-hr {
+    display: flex;
+    height: 3px;
+    margin: 20px 0;
+    overflow: hidden;
+    border-radius: 1px;
+    }
+
+    .section-link {
+        flex: 1;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .section-link:hover {
+        opacity: 0.7;
+    }
+
+    @keyframes toastSlideIn {
+      from { top: 0; opacity: 0; }
+      to { top: 20px; opacity: 1; }
+    }
+    /* Class to hide toast with fade-out animation */    
     /* Responsive Styling */
     @media (max-width: 600px) {
       body {
@@ -405,8 +614,12 @@
     }
   </style>
 </head>
-<div>
+<body>
+  <div>
   <div id="loader" class="loader" style="display:none;">Processing...</div>
+
+    <!-- Toast Container -->
+  <div id="toastContainer"></div>
 
   <!-- Question Mark Icon -->
   <div id="helpIcon">
@@ -523,6 +736,35 @@
     </p>
 
     <p>
+      <strong>Obfuscation & Cipher Tools</strong><br>
+      This tool allows you to apply a sequence of text transformations to hide, scramble, or encode messages. 
+      You can combine multiple methods to produce complex and layered ciphers that resemble gibberish or random text, 
+      yet remain fully reversible when the correct method sequence is used.
+      <br><br>
+      The available methods include encoders/decoders for <em>Base64</em>, <em>Base32</em>, <em>Base58</em>, 
+      <em>Binary</em>, and <em>Morse Code</em>, as well as a collection of custom-built text manipulation techniques like 
+      <em>Full Flip</em>, <em>Word Flip</em>, <em>Sentence Inverter</em>, <em>Readable Reverser</em>, and 
+      <em>Scrambler</em>.
+      <br><br>
+      These transformations can be stacked together, forming a custom "method sequence" that records the order in which each method was applied. 
+      When you finish your transformation, you can copy this sequence in a format like <code>mSeq=1,3,7</code>. 
+      Later, the tool can automatically interpret different input formats such as <code>1,3,7</code>, <code>1 3 7</code>, <code>1.3.7</code>, 
+      or even <code>1 know a s3cre7</code>, making it flexible for sharing and reuse. 
+      The system also smartly detects incompatible methods and will guide you by disabling invalid options to prevent errors.
+      <br><br>
+      To decipher a message, you simply provide the text and the correct method sequence in reverse order. 
+      This restores the original text exactly as it was before.
+      <br><br>
+      <strong>Special Notes:</strong>
+      <ul>
+          <li>Some methods are designed to preserve hidden data markers when used together with the steganography tool.</li>
+          <li>Most methods will auto-detect and reject invalid inputs (e.g., invalid Morse or Binary) and warn you before applying.</li>
+          <li>The system provides a visual "method history" bubble system, showing exactly which steps you applied.</li>
+          <li>Future updates may introduce even more encoding and scrambling methods.</li>
+      </ul>
+  </p>
+
+    <p>
       <strong>Visual effects after successful decoding:</strong><br>
       If the decoding of files and messages is successful, you will receive visual feedback.
       In some cases, such as when the message includes at the start of the message prefixes 
@@ -559,20 +801,39 @@
     </div>
   </template>
 
+<!-- Modal for Obfuscation Explanation -->
+<div id="obfuscationModal" class="modal" style="display:none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+  <div class="modal-content" style="background-color: var(--background-color); margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; position: relative;">
+    <!-- Use a unique id for the close button in this modal -->
+    <span id="closeObfuscationModal" class="close-button" style="position: absolute; top: 10px; right: 10px; font-size: 24px; cursor: pointer;">&times;</span>
+    <h4 style="text-align: center;" id="modalMethodTitle"></h4>
+    <p id="modalDescription">Explanation text goes here...</p>
+    <div class="modal-buttons" style="text-align: right;">
+      <button id="useObfuscation">Use</button>
+    </div>
+  </div>
+</div>
+
   <h1 id="mainTitle"><canvas></canvas></h1>
-  <br>
+
+  <!-- Section functional Separator -->
+  <div class="multi-section-hr">
+    <span class="section-link" style="background: var(--text-border);" onclick="scrollToSection('section1')" title="Text Steganography"></span>
+    <span class="section-link" style="background: var(--file-border);" onclick="scrollToSection('section2')" title="File Steganography"></span>
+    <span class="section-link" style="background: var(--nostr-border);" onclick="scrollToSection('section3')" title="Nostr Section"></span>
+    <span class="section-link" style="background: var(--cipher-border);" onclick="scrollToSection('section4')" title="Cipher Tools"></span>
+  </div>
+<br>
   <!-- Text Steganography Section -->
   <h2 class="sectionTitle">Text Steganography</h2>
-  <h3>Encode a Hidden Message</h3>
+  <h3 id="section1">Encode a Hidden Message</h3>
   <div class="input-container">
     <label for="visibleMessage">Visible Message (Text or Emoji)</label>
     <textarea id="visibleMessage" placeholder="Enter visible text or an emoji"></textarea>
-  
-    <label for="hiddenMessage">Hidden Message</label>
-    <textarea id="hiddenMessage" placeholder="Enter the hidden message"></textarea>
 
-    <!-- <label for="hiddenFile">Or Select a File to Hide in Text</label>
-    <input type="file" id="hiddenFile"> -->
+  
+    <label for="hiddenMessage">Hidden Message</span></label>
+    <textarea id="hiddenMessage" placeholder="Enter the hidden message"></textarea>
     
     <label for="encryptionKey">Optional Encryption Key</label>
     <input type="password" id="encryptionKey" placeholder="*** 🔐 ***" autocomplete="new-password">
@@ -582,8 +843,7 @@
   
   <h5>Encoded Message</h5>
   <div class="output-container">
-    <div class="output" id="encodedOutput"></div> <!--Encoded Message Appears Here-->
-    <!-- <img id="encodedImagePreview" class="thumbnail-container" style="display:none;"> -->
+    <div class="output" id="encodedOutput"></div>
     <div class="copy-container">
       <button class="copy-button" onclick="copyToClipboard('encodedOutput')">Copy</button>
     </div>
@@ -604,20 +864,25 @@
   
   <h5>Decoded Output</h5>
   <div class="output-container">
-    <div class="output" id="decodedOutput"></div> <!--Decoded Hidden Message Appears Here-->
-    <!-- <a id="hiddenDownloadLink" style="display:none;">Download Secret File</a>
-    <img id="decodedImagePreview" class="thumbnail-container" style="display:none;"> -->
+    <div class="output" id="decodedOutput"></div>
     <div class="copy-container">
       <button class="copy-button" onclick="copyToClipboard('decodedOutput')">Copy</button>
     </div>
   </div>
+
   <br>
-    <hr>
+  <!-- Section functional Separator -->
+  <div class="multi-section-hr">
+    <span class="section-link" style="background: var(--text-border);" onclick="scrollToSection('section1')" title="Text Steganography"></span>
+    <span class="section-link" style="background: var(--file-border);" onclick="scrollToSection('section2')" title="File Steganography"></span>
+    <span class="section-link" style="background: var(--nostr-border);" onclick="scrollToSection('section3')" title="Nostr Section"></span>
+    <span class="section-link" style="background: var(--cipher-border);" onclick="scrollToSection('section4')" title="Cipher Tools"></span>
+  </div>
   <br>
   <!-- File Steganography Section -->
   <div class="file-section">
   <h2 class="sectionTitle">File Steganography</h2>
-  <h3>Encode a secret in a file</h3>
+  <h3 id="section2">Encode a secret in a file</h3>
   <div class="input-container">
     <label for="carrierFile">Carrier File (e.g., image, video...)</label>
     <input type="file" id="carrierFile">
@@ -681,13 +946,20 @@
     <a id="imageHiddenDownloadLink">Download Decoded Image</a>
   </div>
   </div>
+
   <br>
-    <hr>
+  <!-- Section functional Separator -->
+  <div class="multi-section-hr">
+    <span class="section-link" style="background: var(--text-border);" onclick="scrollToSection('section1')" title="Text Steganography"></span>
+    <span class="section-link" style="background: var(--file-border);" onclick="scrollToSection('section2')" title="File Steganography"></span>
+    <span class="section-link" style="background: var(--nostr-border);" onclick="scrollToSection('section3')" title="Nostr Section"></span>
+    <span class="section-link" style="background: var(--cipher-border);" onclick="scrollToSection('section4')" title="Cipher Tools"></span>
+  </div>
   <br>
 
 <!-- Nostr Section -->
 <div class="nostr-section">
-  <h2 class="sectionTitle">Nostr Event Stego Fetcher</h2>
+  <h2 id="section3" class="sectionTitle">Nostr Event Stego Fetcher</h2>
   <div class="input-container">
     <label for="nostrEventId">Enter Nostr Event ID (HEX, note1, nevent)</label>
     <input type="text" id="nostrEventId" placeholder="Enter event ID">
@@ -725,6 +997,90 @@
   </div>
 </div>
 
+  <br>
+  <!-- Section functional Separator -->
+  <div class="multi-section-hr">
+    <span class="section-link" style="background: var(--text-border);" onclick="scrollToSection('section1')" title="Text Steganography"></span>
+    <span class="section-link" style="background: var(--file-border);" onclick="scrollToSection('section2')" title="File Steganography"></span>
+    <span class="section-link" style="background: var(--nostr-border);" onclick="scrollToSection('section3')" title="Nostr Section"></span>
+    <span class="section-link" style="background: var(--cipher-border);" onclick="scrollToSection('section4')" title="Cipher Tools"></span>
+  </div>
+  <br>
+
+<div id="cipherToolsSection" class="cipher-section">
+  <h2 id="section4">Cipher & Transformation Tools</h2>
+
+  <!-- Input for user text -->
+  <label for="cipherHiddenMessage">Text to Cipher:</label>
+  <textarea id="cipherHiddenMessage" rows="4" placeholder="Enter text you want to transform..."></textarea>
+
+  <div>
+    <!-- Dropdown for transformation method -->
+    <label for="textTransformationMethod">Select a Transformation Method:</label>
+    <select id="textTransformationMethod">
+      <optgroup label="Fun Text Ciphers">
+        <option value="none">Chose a Method</option>
+        <option value="fullFlip">Full Flip</option>
+        <option value="wordFlip">Flip Words</option>
+        <option value="readableReverser">Readable Reverser</option>
+        <option value="sentenceInverter">Sentence Inverter</option>
+        <option value="scrambler">Scrambler</option>
+        <option value="leetSpeak">1337</option>
+      </optgroup>
+      <optgroup label="Morse Code">
+        <option value="morseCode">Morse Code</option>
+      </optgroup>
+      <optgroup label="Binary Tools">
+        <option value="binaryEncoder">Text → Binary</option>
+        <option value="binaryDecoder">Binary → Text</option>
+      </optgroup>
+      <optgroup label="Base Encoding">
+        <option value="base32Encoder">Text → Base32</option>
+        <option value="base32Decoder">Base32 → Text</option>
+        <option value="base58Encoder">Text → Base58</option>
+        <option value="base58Decoder">Base58 → Text</option>
+        <option value="base64Encoder">Text → Base64</option>
+        <option value="base64Decoder">Base64 → Text</option>
+      </optgroup>
+    </select>
+    <!-- X button -->
+    <button id="clearMethodsBtn" style="display:none; color: red; cursor: pointer;">X</button>
+  </div>
+
+
+  <!-- Colored method bubbles -->
+  <div id="methodSequence" class="method-sequence"></div>
+
+  <!-- Copy buttons (only shown if methods applied) -->
+  <div id="methodControlButtons" class="method-controls" style="display: none">
+    <button id="copyMethodSequence">Copy Sequence</button>
+    <button id="copyCipheredText" onclick="copyToClipboard('cipherHiddenMessage')">Copy Ciphered Text</button>
+  </div>
+
+    <!-- Input for deciphering process -->
+    <hr>
+    <label for="decipheredInput">Ciphered Text to Decipher:</label>
+    <textarea id="decipheredInput" rows="3" placeholder="Paste ciphered text here..."></textarea>
+
+    <div class="input-container">
+      <label for="methodSequenceInput">Sequence (e.g., mSeq=1,7,13):</label>
+      <input id="methodSequenceInput" type="text" placeholder="mSeq=1,3,7 or 1 3 7 or 1 know a s3cre7">
+    </div>
+
+    <button id="decipherButton">Decipher</button>
+
+    <div class="output-container">
+      <div id="decipheredOutput"  class="output-box with-border"></div>
+      <button id="copyDecipheredOutput" class="copy-button" style="display:none">Copy</button>
+    </div>
+</div>
+
+<!-- Mini modal for method info + delete -->
+<div id="methodInfoModal" class="mini-modal" style="display: none">
+  <div id="methodBubbleTitle" class="modal-title"></div>
+  <button id="removeLastMethodBtn" class="delete-button">🗑️ Remove last method</button>
+</div>
+
 
 <div class="footer" style="color: #aaa;">
   Built with curiosity and 💚 by 
@@ -738,35 +1094,67 @@
 <div class="legal-disclaimer" style="font-size: 0.85rem; color: red; margin-top: 30px; padding: 10px; max-width: 500px; text-align: center; border-top: 1px solid #444;">
   <strong>Legal Disclaimer:</strong> The creator of this website cannot be held responsible in case of misuse of this website for activities not permitted by law in the user's country.
 </div>
+</div>
   
   <!-- Scripts -->
   <script>
+    document.getElementById("copyDecipheredOutput").addEventListener("click", function() {
+      console.log("Copying deciphered output to clipboard st3ego.html...");
+      copyToClipboard("decipheredOutput");
+    });
+
+  function showToast(message) {
+    console.log("Showing toast message:", message);
+    const toast = document.getElementById('toastContainer');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.opacity = '1', 10); // fade-in
+
+    // Auto-close after 4 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0'; // fade-out
+        setTimeout(() => toast.style.display = 'none', 500); // remove after fade-out
+    }, 4000);
+}
+
+function scrollToSection(id) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
 function copyToClipboard(elementId) {
+    
     let element = document.getElementById(elementId);
 
     if (!element) {
-        alert("Element not found!");
+      showToast("Element not found!");
         return;
     }
 
-    // Clone the element to avoid modifying the original
-    let tempElement = element.cloneNode(true);
+    let text = "";
 
-    // Remove all download links and media elements from the cloned element
-    tempElement.querySelectorAll("a, img, video").forEach(el => el.remove());
-
-    // Extract only the cleaned-up text content
-    let text = tempElement.textContent.trim();
+    // ✅ If the element was truncated, use the full version from dataset
+    if (element.tagName === "TEXTAREA" || element.tagName === "INPUT") {
+        text = element.value.trim();   // ✅ FIX: read value for textareas and inputs
+    } else if (element.dataset.fullText) {
+        text = element.dataset.fullText.trim();
+    } else {
+        let tempElement = element.cloneNode(true);
+        tempElement.querySelectorAll("a, img, video, button").forEach(el => el.remove());
+        text = tempElement.textContent.trim();
+    }
 
     if (!text) {
-        alert("Nothing to copy!");
+      showToast("Nothing to copy!");
         return;
     }
 
     navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
+      showToast("Copied to clipboard!");
     }).catch(err => {
-        alert("Failed to copy!");
+      showToast("Failed to copy!");
     });
 }
 
@@ -807,6 +1195,8 @@ function copyToClipboard(elementId) {
     <script src="emojiConfetti.js"></script>
     <script src="foundSecrets.js"></script>
     <script src="threeZeroWidthCharactersDecoder.js"></script>
+    <script src="textTransformer.js"></script>
+    <script src="decipher.js"></script>
     <script src="text-stego.js"></script>
     <script src="file-stego.js"></script>
     <script src="truncate.js"></script>

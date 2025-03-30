@@ -36,11 +36,23 @@ function clearDecodeOutput() {
 }
 
 // Convert binary back to text
+// function binaryToText(binaryString) {
+//     if (!binaryString) return "";
+//     return binaryString.split(ZWSP)
+//         .map(bin => String.fromCodePoint(parseInt(bin, 2)))
+//         .join('');
+// }
 function binaryToText(binaryString) {
     if (!binaryString) return "";
-    return binaryString.split(ZWSP)
-        .map(bin => String.fromCodePoint(parseInt(bin, 2)))
-        .join('');
+
+    return binaryString.split(ZWSP).map(bin => {
+        const codePoint = parseInt(bin, 2);
+        if (isNaN(codePoint) || codePoint < 0 || codePoint > 0x10FFFF) {
+            console.warn(`⚠️ Skipping invalid code point: ${codePoint}`);
+            return "";  // or maybe "�"
+        }
+        return String.fromCodePoint(codePoint);
+    }).join('');
 }
 
 // **Encode Function** - Handles encryption and text-only steganography
@@ -52,17 +64,21 @@ function encodeMessage() {
     let key = document.getElementById('encryptionKey').value;
 
     if (!msg1) {
-        alert("Visible message cannot be empty!");
+        showToast("Visible message cannot be empty!");
         return;
     }
     if (!hiddenText) {
-        alert("Hidden message cannot be empty!");
+        showToast("Hidden message cannot be empty!");
         return;
     }
 
     // If encryption key is provided, encrypt the hidden text.
     if (key) hiddenText = encrypt(hiddenText, key);
+    console.log("🔐 Encrypted hiddenText:", hiddenText);
+
     let hiddenBinary = textToBinary(hiddenText);
+    console.log("📦 Hidden binary before embedding:", hiddenBinary);
+
     let stegoText = msg1 + MARKER + hiddenBinary.replace(/0/g, ZWNJ).replace(/1/g, ZWJ);
     document.getElementById('encodedOutput').textContent = stegoText;
 }
@@ -79,12 +95,12 @@ function decodeMessage() {
     // Check if the encoded message is too large to decode safely.
     const MAX_ENCODED_LENGTH = 10000000;
     if (encodedMsg.length > MAX_ENCODED_LENGTH) {
-        alert("Encoded message is too large to decode safely. Please use a smaller message.");
+        showToast("Encoded message is too large to decode safely. Please use a smaller message.");
         hideLoader();
         return;
     }
 
-    if (!encodedMsg.includes(MARKER)) { 
+    if (!encodedMsg.includes(MARKER)) {
         // Try alternative three-char method
         const altDecoded = decodeMessageWithThreeChar(encodedMsg, key);
         if (altDecoded) {
@@ -114,11 +130,17 @@ function decodeMessage() {
         }
         hideLoader();
         return;
-    }
+     }
 
     let hiddenPart = encodedMsg.split(MARKER)[1];
     let binaryString = hiddenPart.replace(new RegExp(ZWNJ, 'g'), "0").replace(new RegExp(ZWJ, 'g'), "1");
     let decodedText = binaryToText(binaryString);
+    console.log("📤 Recovered raw binary decodedText:", decodedText);
+    console.log("🧬 With invisible markers shown:", decodedText
+    .replace(/\u200B/g, '[ZWSP]')
+    .replace(/\u200C/g, '[ZWNJ]')
+    .replace(/\u200D/g, '[ZWJ]')
+    );
     const isEncrypted = decodedText.startsWith("U2FsdGVkX1"); // Detect if the message is encrypted (starts with AES prefix)
 
     if (isEncrypted && !key) {
@@ -126,9 +148,9 @@ function decodeMessage() {
         displayTruncatedText(decodedOutput, decodedText, 300); // Show it first
         hideLoader();
     
-        // Slight delay ensures output renders before alert appears
+        // Slight delay ensures output renders before showToast appears
         setTimeout(() => {
-            alert("This message appears to be encrypted. Enter a decryption key to decode it.");
+            showToast("This message appears to be encrypted. Enter a decryption key to decode it.");
         }, 100);
     
         return; // ✅ Stop here, no sparkles/confetti
@@ -138,7 +160,7 @@ function decodeMessage() {
         const decrypted = decrypt(decodedText, key);
         if (decrypted === "Invalid Key!") {
             hideLoader();
-            alert("Invalid decryption key!");
+            showToast("Invalid decryption key!");
             return;
         }
         decodedText = decrypted;

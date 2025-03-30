@@ -47,19 +47,19 @@ function encodeFileStego() {
 
 
   if (carrierInput.files.length === 0) {
-    alert("Please select a carrier file.");
+    showToast("Please select a carrier file.");
     hideLoader(); // Hide loader on error
     return;
   }
 
   if (hiddenInput.files.length > 0 && hiddenTextInput !== "") {
-    alert("You can only hide either a file or text, not both. Please choose one.");
+    showToast("You can only hide either a file or text, not both. Please choose one.");
     hideLoader();
     return;
   }
 
   if (hiddenInput.files.length === 0 && hiddenTextInput === "") {
-    alert("Please enter hidden text or select a hidden file.");
+    showToast("Please enter hidden text or select a hidden file.");
     hideLoader(); // Hide loader on error
     return;
   }
@@ -171,14 +171,14 @@ async function decodeFileStego() {
       fileBuffer = await response.arrayBuffer();
     } catch (error) {
         hideLoader(); // ✅ hide on fetch fail
-      alert("Error fetching file: " + error.message);
+      showToast("Error fetching file: " + error.message);
       return;
     }
   } else if (stegoInput.files.length > 0) {
     fileBuffer = await stegoInput.files[0].arrayBuffer();
   } else {
     hideLoader(); // ✅ hide on fetch fail
-    alert("Please select a file or enter a file URL.");
+    showToast("Please select a file or enter a file URL.");
     return;
   }
 
@@ -189,7 +189,7 @@ async function decodeFileStego() {
     const markerIndex = text.lastIndexOf(FILE_MARKER);
     if (markerIndex === -1) {
     hideLoader(); // ✅ hide on fetch fail
-      alert("No hidden file or text found.");
+      showToast("No hidden file or text found.");
       return;
     }
 
@@ -198,7 +198,7 @@ async function decodeFileStego() {
 
     if (firstDelimiter === -1) {
     hideLoader(); // ✅ hide on fetch fail  
-      alert("Invalid payload format.");
+      showToast("Invalid payload format.");
       return;
     }
 
@@ -209,14 +209,14 @@ async function decodeFileStego() {
     if (flag === "ENC") {
       if (decryptionKey.trim() === "") {
         hideLoader(); // ✅ hide on fetch fail
-        alert("Decryption key required for encrypted data.");
+        showToast("Decryption key required for encrypted data.");
         return;
       }
 
       const decrypted = decryptFileData(payloadStr, decryptionKey);
       if (decrypted === "Invalid Key!") {
         hideLoader(); // ✅ hide on fetch fail
-        alert("Invalid decryption key!");
+        showToast("Invalid decryption key!");
         return;
       }
 
@@ -224,7 +224,7 @@ async function decodeFileStego() {
         payloadJSON = JSON.parse(decrypted);
       } catch (e) {
         hideLoader(); // ✅ hide on fetch fail
-        alert("Failed to parse hidden data.");
+        showToast("Failed to parse hidden data.");
         return;
       }
     } else {
@@ -232,14 +232,14 @@ async function decodeFileStego() {
         payloadJSON = JSON.parse(payloadStr);
       } catch (e) {
         hideLoader(); // ✅ hide on fetch fail
-        alert("Failed to parse hidden data.");
+        showToast("Failed to parse hidden data.");
         return;
       }
     }
 
     if (!payloadJSON || !payloadJSON.data) {
     hideLoader(); // ✅ hide on fetch fail
-      alert("No valid hidden data found.");
+      showToast("No valid hidden data found.");
       return;
     }
 
@@ -310,9 +310,9 @@ async function decodeFileStego() {
         // ✅ Update the function to copy the correct text
         copyButton.onclick = function () {
             navigator.clipboard.writeText(decodedText).then(() => {
-                alert("Copied to clipboard!");
+                showToast("Copied to clipboard!");
             }).catch(err => {
-                alert("Failed to copy!");
+                showToast("Failed to copy!");
             });
         };
 
