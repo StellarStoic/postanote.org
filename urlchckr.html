@@ -76,6 +76,10 @@
     box-sizing: border-box; /* Ensures padding doesn't add extra width */
 }
 
+#time-till-deletion {
+    padding-bottom: 100px; /* Add padding to prevent overlap with footer */
+}
+
 .footerDynamic {
     position: fixed;
     bottom: 0;
@@ -130,6 +134,25 @@ footer a:hover {
     </footer>
 
     <script>
+
+        // Check if the URL exists in deletedURLs.json
+        async function checkDeletedURLs(shortCode) {
+            try {
+                const response = await fetch('/deleted-urls');
+                const data = await response.json();
+                const match = data.find(entry => entry.short === shortCode);
+
+                if (match) {
+                    return `This URL has been deleted by the moderator on ${match.deleted_at}.<br>
+                            It was visited ${match.visits} times.<br><br>
+                            Reason: ${match.reason}`;
+                }
+            } catch (err) {
+                console.error("Error loading deletedURLs:", err);
+            }
+            return null;
+        }
+
         document.getElementById('check-btn').addEventListener('click', async () => {
             const shortUrl = document.getElementById('short-url').value.trim();
             const errorContainer = document.getElementById('error-message');
@@ -139,9 +162,12 @@ footer a:hover {
             const lastAccessedEl = document.getElementById('last-accessed');
             const urlAgeEl = document.getElementById('url-age');
             const timeTillDeletionEl = document.getElementById('time-till-deletion');
+            const deletedMessage = await checkDeletedURLs(shortUrl);
+
 
             errorContainer.style.display = 'none';
             resultContainer.style.display = 'none';
+
 
             if (!shortUrl) {
                 errorContainer.textContent = 'Please enter a valid shortened URL.';
@@ -149,10 +175,21 @@ footer a:hover {
                 return;
             }
 
+            // Extract the short code from the URL
+            const urlParts = shortUrl.split('/');
+            const shortCode = urlParts[urlParts.length - 1];
+
+            // Use shortCode to check deleted URLs
+            if (deletedMessage) {
+                errorContainer.innerHTML = deletedMessage;
+                errorContainer.style.display = 'block';
+                return;
+            }
+
             try {
-                // Extract the short code from the URL
-                const urlParts = shortUrl.split('/');
-                const shortCode = urlParts[urlParts.length - 1];
+                // // Extract the short code from the URL
+                // const urlParts = shortUrl.split('/');
+                // const shortCode = urlParts[urlParts.length - 1];
 
                 // Fetch data from the /visits endpoint
                 const response = await fetch('https://snofl.com/visits');

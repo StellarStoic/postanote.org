@@ -120,6 +120,14 @@ def get_warning_url(reason):
     
     return f"{base_url}?{urllib.parse.urlencode(params)}"
 
+@app.route('/deleted-urls', methods=['GET'])
+def get_deleted_urls():
+    try:
+        with open("deletedURLs.json", "r") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify([])  # Return empty list if file doesn't exist
 
 @app.route('/<short>', methods=['GET'])
 def redirect_short_url(short):
