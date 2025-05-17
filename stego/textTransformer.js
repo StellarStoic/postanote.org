@@ -19,7 +19,7 @@
         mNumber: 1,
         reverseMethod: "fullFlip",
         color: "#a9e726",
-        notCompatible: ["base64Decoder", "binaryDecoder", "base32Decoder", "base58Decoder"],
+        notCompatible: ["base64Decoder", "binaryDecoder", "base32Decoder", "base58Decoder", "leetSpeak"],
         func: protectHiddenData(function(text) {
           return text.split("").reverse().join("");
         })
@@ -32,7 +32,7 @@
         mNumber: 2,
         reverseMethod: "wordFlip",
         color: "#26e7e7",
-        notCompatible: ["base64Decoder", "binaryDecoder", "base32Decoder", "base58Decoder"],
+        notCompatible: ["base64Decoder", "binaryDecoder", "base32Decoder", "base58Decoder", "leetSpeak"],
         func: protectHiddenData(function(text) {
           return text.split(" ").map(function(word) {
             return word.split("").reverse().join("");
@@ -377,7 +377,7 @@
       mNumber: 14,
       reverseMethod: "morseCode",
       color: "#cc9e11",
-      notCompatible: ["sentenceInverter","base64Decoder", "base58Decoder", "base32Decoder", "binaryDecoder"],
+      notCompatible: ["sentenceInverter","base64Decoder", "base58Decoder", "base32Decoder", "binaryDecoder", "leetSpeak"],
       func: protectHiddenData(function (text) {
   
           // ⬇️ Place it right here:
@@ -440,7 +440,7 @@
     mNumber: 15,
     reverseMethod: "leetSpeak",
     color: "#00cc00",
-    notCompatible: ["base64Decoder", "base58Decoder", "base32Decoder", "binaryDecoder"],
+    notCompatible: ["base64Decoder", "base58Decoder", "base32Decoder", "binaryDecoder", "wordFlip", "fullFlip", "morseCode"],
     func: protectHiddenData(function (text) {
         // Simple reversible leetspeak map
         const leetMap = {
