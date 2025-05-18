@@ -35,6 +35,16 @@ function clearDecodeOutput() {
     if (decodedOutput) decodedOutput.textContent = "";
 }
 
+/**
+ * Returns the UTF-8 byte length of a single emoji or string.
+ * Useful for debugging emoji-based steganography limits.
+ */
+function getEmojiBytes(emoji) {
+  const encoder = new TextEncoder(); // UTF-8 by default
+  const bytes = encoder.encode(emoji);
+  return bytes.length;
+}
+
 // Convert binary back to text
 // function binaryToText(binaryString) {
 //     if (!binaryString) return "";
@@ -59,7 +69,7 @@ function binaryToText(binaryString) {
 function encodeMessage() {
     clearEncodeOutput(); // Clear the output area before encoding
 
-    let msg1 = document.getElementById('visibleMessage').value.trim();
+    let msg1 = document.getElementById('visibleMessage').value.trim().split(MARKER)[0];  // 💥 strip old marker
     let hiddenText = document.getElementById('hiddenMessage').value.trim();
     let key = document.getElementById('encryptionKey').value;
 
@@ -81,6 +91,15 @@ function encodeMessage() {
 
     let stegoText = msg1 + MARKER + hiddenBinary.replace(/0/g, ZWNJ).replace(/1/g, ZWJ);
     document.getElementById('encodedOutput').textContent = stegoText;
+
+    //  log the total UTF-8 byte size of the full encoded message (including zero-width characters)
+    const encodedBytes = new TextEncoder().encode(stegoText).length;
+    console.log("🧮 Encoded output byte length:", encodedBytes);
+
+    const encodedVisualBytes = new TextEncoder().encode(stegoText);
+    console.log("🧬 Raw UTF-8 bytes:", encodedVisualBytes);
+
+    showToast("Message encoded successfully!");
 }
 
 

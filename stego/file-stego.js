@@ -37,6 +37,7 @@ function decryptFileData(encryptedData, key) {
 
 // Encode a file into a carrier file with extra info
 function encodeFileStego() {
+    clearFileStegoOutputs();  // ✅ Clear before encoding again
     showLoader(); // Show the loader when starting
 
   const carrierInput = document.getElementById('carrierFile');
@@ -127,6 +128,12 @@ function proceedWithEncoding(hiddenMeta, carrierFile, encryptionKey) {
 
     // Build payload string: marker + flag + delimiter + payloadStr
     const payload = FILE_MARKER + flag + "||" + payloadStr;
+
+    const byteLength = new TextEncoder().encode(payload).length;
+    console.log("📦 File payload byte length:", byteLength);
+
+    const totalCombinedLength = new TextEncoder().encode(stegoBlob).length;
+    console.log("🧬 Final stego file size (bytes):", totalCombinedLength);
 
     // Display the encoded text in the new output container
     const encodedOutput = document.getElementById('encodedFileTextOutput');
@@ -334,6 +341,7 @@ async function decodeFileStego() {
       }
 //   readerStego.readAsArrayBuffer(stegoInput.files[0]);
 }
+
 
 function clearFileStegoOutputs() {
     // Clear image preview
